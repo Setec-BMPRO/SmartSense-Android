@@ -56,7 +56,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_account"
-                    app:tint="?attr/colorOnSurfaceVariant"/>
+                    app:tint="@android:color/white"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tab_account_label"
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/nav_account"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textColor="@android:color/white"
                     android:layout_marginTop="2dp"/>
             </LinearLayout>
 
@@ -91,7 +91,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_settings"
-                    app:tint="?attr/colorOnSurfaceVariant"/>
+                    app:tint="@android:color/white"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tab_settings_label"
@@ -99,7 +99,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/nav_settings"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textColor="@android:color/white"
                     android:layout_marginTop="2dp"/>
             </LinearLayout>
         </LinearLayout>
