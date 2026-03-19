@@ -22,11 +22,6 @@
             android:paddingTop="@dimen/spacing_md"
             android:paddingBottom="@dimen/spacing_sm"/>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/outline"/>
-
     </LinearLayout>
 
 </FrameLayout>

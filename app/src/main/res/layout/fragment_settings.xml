@@ -21,12 +21,6 @@
             android:textAppearance="?attr/textAppearanceHeadlineMedium"
             android:paddingBottom="@dimen/spacing_md"/>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="@dimen/spacing_md"
-            android:background="@color/outline"/>
-
         <!-- Unit System -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="match_parent"
