@@ -51,8 +51,8 @@
                         android:layout_height="match_parent"
                         android:src="@drawable/ic_tank_vertical"
                         android:contentDescription="@string/tank_type"
-                        app:tint="?attr/colorOutlineVariant"
-                        android:alpha="0.4"/>
+                        app:tint="?attr/colorOnSurfaceVariant"
+                        android:alpha="0.35"/>
 
                     <!-- Tank fill (clipped from top based on level) -->
                     <ImageView

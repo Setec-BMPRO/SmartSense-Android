@@ -12,8 +12,8 @@
     <!-- Outline -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#666666"
-        android:strokeWidth="1.5"
+        android:strokeColor="#444444"
+        android:strokeWidth="2"
         android:pathData="M14,8 L34,8 Q38,8 38,12 L38,38 Q38,42 34,42 L14,42 Q10,42 10,38 L10,12 Q10,8 14,8 Z"/>
 
     <!-- Question mark to indicate custom/unknown -->

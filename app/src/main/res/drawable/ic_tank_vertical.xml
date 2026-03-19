@@ -24,8 +24,8 @@
     <!-- Tank body outline -->
     <path
         android:fillColor="#00000000"
-        android:strokeColor="#666666"
-        android:strokeWidth="1.5"
+        android:strokeColor="#444444"
+        android:strokeWidth="2"
         android:pathData="M16,7 L32,7 Q36,7 36,12 L36,36 Q36,42 32,42 L16,42 Q12,42 12,36 L12,12 Q12,7 16,7 Z"/>
 
     <!-- Horizontal band lines -->
