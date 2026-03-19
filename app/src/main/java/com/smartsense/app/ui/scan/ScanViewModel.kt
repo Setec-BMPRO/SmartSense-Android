@@ -7,8 +7,10 @@ import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.UnitSystem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,6 +24,9 @@ class ScanViewModel @Inject constructor(
     val isScanning: StateFlow<Boolean> = repository.isScanning
     val sensorCount: StateFlow<Int> = repository.sensorCount
 
+    private val _scanError = MutableStateFlow(false)
+    val scanError: StateFlow<Boolean> = _scanError.asStateFlow()
+
     val sensors: StateFlow<List<Sensor>> = repository.getSensors()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -30,7 +35,12 @@ class ScanViewModel @Inject constructor(
 
     fun startScan() {
         viewModelScope.launch {
-            repository.scanForSensors().collect { /* auto-paired via repository */ }
+            try {
+                _scanError.value = false
+                repository.scanForSensors().collect { /* auto-paired via repository */ }
+            } catch (e: Exception) {
+                _scanError.value = true
+            }
         }
     }
 

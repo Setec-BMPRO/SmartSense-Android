@@ -15,15 +15,6 @@
         app:navGraph="@navigation/nav_graph"
         app:defaultNavHost="true"/>
 
-    <!-- Top border line -->
-    <View
-        android:id="@+id/tab_border"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="80dp"
-        android:background="@color/outline"/>
-
     <!-- Bottom bar background -->
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottom_app_bar"

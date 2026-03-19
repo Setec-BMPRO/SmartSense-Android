@@ -1,5 +1,6 @@
 package com.smartsense.app.ui.scan
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
@@ -80,12 +81,13 @@ class ScanFragment : Fragment() {
                         val hasSensors = sensors.isNotEmpty()
 
                         binding.scanningState.isVisible = !hasSensors
-                        binding.connectedState.isVisible = hasSensors
+                        binding.sensorList.isVisible = hasSensors
 
                         if (hasSensors) {
                             adapter.submitList(sensors)
                             binding.sensorCount.text = getString(R.string.sensor_count_label, sensors.size)
                         }
+                        binding.sensorCount.isVisible = hasSensors
                     }
                 }
 
@@ -99,7 +101,15 @@ class ScanFragment : Fragment() {
                             binding.scanStatus.text = getString(R.string.scan_tap_to_start)
                         }
                         binding.scanHint.isVisible = scanning
-                        binding.scanSpinner.isVisible = scanning
+                    }
+                }
+
+                launch {
+                    viewModel.scanError.collect { hasError ->
+                        val colorRes = if (hasError) R.color.level_red else R.color.level_green
+                        binding.statusLed.backgroundTintList = ColorStateList.valueOf(
+                            ContextCompat.getColor(requireContext(), colorRes)
+                        )
                     }
                 }
             }

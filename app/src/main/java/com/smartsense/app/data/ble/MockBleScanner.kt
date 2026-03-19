@@ -78,20 +78,24 @@ class MockBleScanner @Inject constructor() : BleScanner {
         val remaining = mockSensors.shuffled().toMutableList()
         val discovered = mutableListOf<MockSensorState>()
 
-        while (_isScanning.value) {
-            // Wait a random 5–10 seconds before discovering the next sensor
-            val delayMs = Random.nextLong(5000, 10001)
+        // Discovery phase: add sensors one by one
+        while (_isScanning.value && remaining.isNotEmpty()) {
+            val delayMs = Random.nextLong(3000, 6001)
             delay(delayMs)
-
             if (!_isScanning.value) break
 
-            // Add next sensor if any remain
-            if (remaining.isNotEmpty()) {
-                discovered.add(remaining.removeFirst())
-            }
+            discovered.add(remaining.removeFirst())
+            emit(discovered.map { it.toSensor(tick) })
+            tick++
+        }
 
-            val sensors = discovered.map { it.toSensor(tick) }
-            emit(sensors)
+        // Live update phase: continuously update sensor states
+        while (_isScanning.value) {
+            val delayMs = Random.nextLong(2000, 4001)
+            delay(delayMs)
+            if (!_isScanning.value) break
+
+            emit(discovered.map { it.toSensor(tick) })
             tick++
         }
     }
@@ -111,11 +115,13 @@ class MockBleScanner @Inject constructor() : BleScanner {
     ) {
         fun toSensor(tick: Int): Sensor {
             val preset = TankPreset.findById(presetId) ?: TankPreset.defaults.first()
-            val levelDrift = (Random.nextFloat() - 0.5f) * 2f
-            val currentLevel = (baseLevel + levelDrift - tick * 0.05f).coerceIn(0f, 100f)
+            val levelDrift = (Random.nextFloat() - 0.5f) * 6f
+            val currentLevel = (baseLevel + levelDrift - tick * 0.1f).coerceIn(0f, 100f)
             val heightMm = preset.heightMm * currentLevel / 100f
-            val tempDrift = (Random.nextFloat() - 0.5f) * 0.5f
-            val rssiDrift = Random.nextInt(-3, 4)
+            val tempDrift = (Random.nextFloat() - 0.5f) * 2f
+            val rssiDrift = Random.nextInt(-8, 9)
+            val currentRssi = (baseRssi + rssiDrift).coerceIn(-100, -20)
+            val batteryDrift = Random.nextInt(-2, 1)
 
             return Sensor(
                 address = address,
@@ -125,12 +131,12 @@ class MockBleScanner @Inject constructor() : BleScanner {
                     percentage = currentLevel,
                     heightMm = heightMm
                 ),
-                batteryPercent = baseBattery,
-                rssi = (baseRssi + rssiDrift).coerceIn(-100, -20),
+                batteryPercent = (baseBattery + batteryDrift).coerceIn(0, 100),
+                rssi = currentRssi,
                 temperatureCelsius = baseTemp + tempDrift,
                 readQuality = when {
-                    baseRssi >= -60 -> ReadQuality.GOOD
-                    baseRssi >= -80 -> ReadQuality.FAIR
+                    currentRssi >= -60 -> ReadQuality.GOOD
+                    currentRssi >= -80 -> ReadQuality.FAIR
                     else -> ReadQuality.POOR
                 },
                 lastUpdated = System.currentTimeMillis(),
