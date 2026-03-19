@@ -2,4 +2,7 @@
 <resources>
     <!-- Logo -->
     <color name="logo_smart_text">#FFFFFF</color>
+
+    <!-- Tab bar -->
+    <color name="tab_bar_background">#1E1E1E</color>
 </resources>
