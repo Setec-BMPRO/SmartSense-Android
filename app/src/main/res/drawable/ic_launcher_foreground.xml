@@ -4,79 +4,58 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- All content centered at (54,54) inside the 66dp safe zone -->
+    <!-- All content centered in the 66dp safe zone (21–87) -->
     <group
         android:translateX="54"
         android:translateY="54">
 
-        <!-- Outer gauge track (270-degree arc) - faint white -->
+        <!-- Valve handle -->
         <path
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFF"
-            android:strokeAlpha="0.15"
-            android:strokeWidth="5"
-            android:strokeLineCap="round"
-            android:pathData="M-19.09,19.09A27,27 0,1 1,19.09 19.09"/>
+            android:fillColor="#FFFFFF"
+            android:pathData="M-3,-28h6v3h-6z"/>
 
-        <!-- Active gauge arc (~75% fill) - BMPRO orange -->
+        <!-- Valve body -->
+        <path
+            android:fillColor="#E0E0E0"
+            android:pathData="M-5,-25.5h10v4h-10z"/>
+
+        <!-- Tank body (rounded cylinder) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M-14,-21.5 L14,-21.5 Q20,-21.5 20,-14 L20,18 Q20,26 14,26 L-14,26 Q-20,26 -20,18 L-20,-14 Q-20,-21.5 -14,-21.5 Z"/>
+
+        <!-- Tank band top -->
         <path
             android:fillColor="@android:color/transparent"
             android:strokeColor="#D24520"
-            android:strokeWidth="5"
-            android:strokeLineCap="round"
-            android:pathData="M-19.09,19.09A27,27 0,1 1,25.37 -9.18"/>
+            android:strokeWidth="1.2"
+            android:pathData="M-19,-16 L19,-16"/>
 
-        <!-- Glowing dot at arc endpoint -->
-        <path
-            android:fillColor="#FFBC7D"
-            android:pathData="M25.37,-9.18m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0"/>
-
-        <!-- Inner gauge track -->
-        <path
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#FFFFFF"
-            android:strokeAlpha="0.08"
-            android:strokeWidth="3"
-            android:strokeLineCap="round"
-            android:pathData="M-13.44,13.44A19,19 0,1 1,13.44 13.44"/>
-
-        <!-- Inner active arc - lighter orange -->
-        <path
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#E35205"
-            android:strokeAlpha="0.6"
-            android:strokeWidth="3"
-            android:strokeLineCap="round"
-            android:pathData="M-13.44,13.44A19,19 0,1 1,17.85 -6.46"/>
-
-        <!-- Center "75" text -->
-        <!-- 7 digit -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M-8,-4L-2,-4L-2,-2L-6,-2L-8,6L-10,6L-8,0L-8,-4z"/>
-
-        <!-- 5 digit -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M0,-4L6,-4L6,-2L2,-2L2,-0.5L5,-0.5Q7,-0.5 7,1.5L7,4Q7,6 5,6L1,6Q-1,6 -1,4L-1,3L1,3L1,4L5,4L5,1.5L0,1.5z"/>
-
-        <!-- Percent symbol (amber accent) -->
-        <path
-            android:fillColor="#FFBC7D"
-            android:pathData="M7.5,-3m-1.2,0a1.2,1.2 0,1 1,2.4 0a1.2,1.2 0,1 1,-2.4 0"/>
-        <path
-            android:fillColor="#FFBC7D"
-            android:pathData="M11,4m-1.2,0a1.2,1.2 0,1 1,2.4 0a1.2,1.2 0,1 1,-2.4 0"/>
-        <path
-            android:fillColor="#FFBC7D"
-            android:strokeColor="#FFBC7D"
-            android:strokeWidth="0.8"
-            android:pathData="M11.5,-3.5L7,4.5"/>
-
-        <!-- Small droplet icon below -->
+        <!-- Level fill (orange, ~60% from bottom) -->
         <path
             android:fillColor="#D24520"
-            android:pathData="M0,11 Q-4,14 -4,17 Q-4,20 0,21 Q4,20 4,17 Q4,14 0,11z"/>
+            android:fillAlpha="0.85"
+            android:pathData="M-20,4 L20,4 L20,18 Q20,26 14,26 L-14,26 Q-20,26 -20,18 Z"/>
+
+        <!-- Level line -->
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#D24520"
+            android:strokeWidth="0.8"
+            android:strokeAlpha="0.5"
+            android:pathData="M-18,4 L18,4"/>
+
+        <!-- Tank band bottom -->
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#D24520"
+            android:strokeWidth="1.2"
+            android:pathData="M-19,22 L19,22"/>
+
+        <!-- Base/foot -->
+        <path
+            android:fillColor="#E0E0E0"
+            android:pathData="M-12,26 L12,26 L12,29 Q12,30 11,30 L-11,30 Q-12,30 -12,29 Z"/>
 
     </group>
 </vector>
