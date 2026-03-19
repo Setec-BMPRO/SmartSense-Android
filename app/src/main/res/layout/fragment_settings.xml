@@ -90,8 +90,8 @@
             android:layout_marginBottom="@dimen/spacing_xl"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="?attr/colorOutlineVariant"
+            app:strokeWidth="0dp"
+            app:strokeColor="@android:color/transparent"
             style="@style/Widget.Material3.CardView.Outlined">
 
             <com.google.android.material.button.MaterialButtonToggleGroup

@@ -9,8 +9,8 @@
     <!-- Secondary warm charcoal -->
     <color name="secondary">#77574B</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="secondary_container">#FFDBC9</color>
-    <color name="on_secondary_container">#2C160D</color>
+    <color name="secondary_container">#D24520</color>
+    <color name="on_secondary_container">#FFFFFF</color>
 
     <!-- Tertiary amber/gold -->
     <color name="tertiary">#6C5D2F</color>
