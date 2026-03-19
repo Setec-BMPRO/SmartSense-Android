@@ -29,28 +29,40 @@
             android:orientation="vertical"
             android:gravity="center_horizontal">
 
-            <FrameLayout
-                android:layout_width="48dp"
-                android:layout_height="48dp">
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/sensor_tank_container"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="?attr/colorOutlineVariant">
 
-                <!-- Tank outline (always full, dim) -->
-                <ImageView
-                    android:id="@+id/sensor_tank_outline"
+                <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:src="@drawable/ic_tank_vertical"
-                    android:contentDescription="@string/tank_type"
-                    app:tint="?attr/colorOutlineVariant"
-                    android:alpha="0.4"/>
+                    android:padding="4dp">
 
-                <!-- Tank fill (clipped from top based on level) -->
-                <ImageView
-                    android:id="@+id/sensor_tank_fill"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_tank_vertical"
-                    android:importantForAccessibility="no"/>
-            </FrameLayout>
+                    <!-- Tank outline (always full, dim) -->
+                    <ImageView
+                        android:id="@+id/sensor_tank_outline"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_tank_vertical"
+                        android:contentDescription="@string/tank_type"
+                        app:tint="?attr/colorOutlineVariant"
+                        android:alpha="0.4"/>
+
+                    <!-- Tank fill (clipped from top based on level) -->
+                    <ImageView
+                        android:id="@+id/sensor_tank_fill"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_tank_vertical"
+                        android:importantForAccessibility="no"/>
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/sensor_level"
