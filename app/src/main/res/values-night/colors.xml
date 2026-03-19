@@ -3,6 +3,10 @@
     <!-- Logo -->
     <color name="logo_smart_text">#FFFFFF</color>
 
+    <!-- Selected toggle / secondary container -->
+    <color name="secondary_container">#D24520</color>
+    <color name="on_secondary_container">#FFFFFF</color>
+
     <!-- Tab bar -->
     <color name="tab_bar_background">#1E1E1E</color>
 </resources>

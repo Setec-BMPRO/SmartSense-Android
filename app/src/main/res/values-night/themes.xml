@@ -10,8 +10,8 @@
         <!-- Secondary -->
         <item name="colorSecondary">#E7BDB0</item>
         <item name="colorOnSecondary">#442A20</item>
-        <item name="colorSecondaryContainer">#5D4035</item>
-        <item name="colorOnSecondaryContainer">#FFDBC9</item>
+        <item name="colorSecondaryContainer">#D24520</item>
+        <item name="colorOnSecondaryContainer">#FFFFFF</item>
 
         <!-- Tertiary amber -->
         <item name="colorTertiary">#D9C58D</item>
