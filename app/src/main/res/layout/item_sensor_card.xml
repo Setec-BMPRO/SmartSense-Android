@@ -29,13 +29,28 @@
             android:orientation="vertical"
             android:gravity="center_horizontal">
 
-            <ImageView
-                android:id="@+id/sensor_tank_image"
+            <FrameLayout
                 android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:src="@drawable/ic_tank_vertical"
-                android:contentDescription="@string/tank_type"
-                app:tint="?attr/colorOnSurfaceVariant"/>
+                android:layout_height="48dp">
+
+                <!-- Tank outline (always full, dim) -->
+                <ImageView
+                    android:id="@+id/sensor_tank_outline"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_tank_vertical"
+                    android:contentDescription="@string/tank_type"
+                    app:tint="?attr/colorOutlineVariant"
+                    android:alpha="0.4"/>
+
+                <!-- Tank fill (clipped from top based on level) -->
+                <ImageView
+                    android:id="@+id/sensor_tank_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_tank_vertical"
+                    android:importantForAccessibility="no"/>
+            </FrameLayout>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/sensor_level"
@@ -83,9 +98,10 @@
 
                 <!-- Battery -->
                 <ImageView
+                    android:id="@+id/sensor_battery_icon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
-                    android:src="@drawable/ic_battery"
+                    android:src="@drawable/ic_battery_full"
                     app:tint="?attr/colorOnSurfaceVariant"
                     android:contentDescription="@string/battery"/>
 
@@ -108,9 +124,10 @@
 
                 <!-- Temperature -->
                 <ImageView
+                    android:id="@+id/sensor_temp_icon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
-                    android:src="@drawable/ic_temperature"
+                    android:src="@drawable/ic_temp_warm"
                     app:tint="?attr/colorOnSurfaceVariant"
                     android:contentDescription="@string/temperature"/>
 
@@ -133,9 +150,10 @@
 
                 <!-- Signal -->
                 <ImageView
+                    android:id="@+id/sensor_signal_icon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
-                    android:src="@drawable/ic_signal"
+                    android:src="@drawable/ic_signal_good"
                     app:tint="?attr/colorOnSurfaceVariant"
                     android:contentDescription="@string/signal_strength"/>
 

@@ -40,6 +40,12 @@
     <color name="level_yellow">#FFC107</color>
     <color name="level_red">#F44336</color>
 
+    <!-- Temperature colors -->
+    <color name="temp_cold">#2196F3</color>
+    <color name="temp_cool">#4CAF50</color>
+    <color name="temp_warm">#FF9800</color>
+    <color name="temp_hot">#F44336</color>
+
     <!-- Logo -->
     <color name="logo_smart_text">#231A16</color>
 
