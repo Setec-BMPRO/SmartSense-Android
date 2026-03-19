@@ -114,7 +114,7 @@
         android:contentDescription="@string/nav_smartsense"
         app:layout_anchor="@id/bottom_app_bar"
         app:tint="@android:color/white"
-        app:backgroundTint="?attr/colorPrimary"
+        app:backgroundTint="@color/primary"
         app:fabSize="auto"
         app:fabCustomSize="72dp"
         app:maxImageSize="36dp"
