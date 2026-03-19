@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.scan.ScanFragment">
+
+    <!-- Scanning state (shown when no sensors connected) -->
+    <LinearLayout
+        android:id="@+id/scanning_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/scan_title"
+            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+            android:paddingStart="@dimen/spacing_md"
+            android:paddingEnd="@dimen/spacing_md"
+            android:paddingTop="@dimen/spacing_md"
+            android:paddingBottom="@dimen/spacing_sm"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/outline"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/spacing_xl">
+
+            <!-- Bluetooth icon with pulse rings -->
+            <FrameLayout
+                android:layout_width="240dp"
+                android:layout_height="240dp"
+                android:layout_gravity="center">
+
+                <com.smartsense.app.ui.views.PulseView
+                    android:id="@+id/pulse_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="invisible"/>
+
+                <ImageView
+                    android:id="@+id/scan_icon"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_bluetooth_scan"
+                    app:tint="?attr/colorPrimary"
+                    android:contentDescription="@string/nav_scan"/>
+            </FrameLayout>
+
+            <!-- Status text -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/scan_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface"
+                android:gravity="center"
+                tools:text="@string/scanning"/>
+
+            <!-- Subtitle hint -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/scan_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_sm"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:gravity="center"
+                android:text="@string/scan_auto_pair_hint"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Connected sensors state (shown when sensors found) -->
+    <LinearLayout
+        android:id="@+id/connected_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Header with logo and sensor count -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/spacing_md"
+            android:paddingEnd="@dimen/spacing_md"
+            android:paddingTop="@dimen/spacing_md"
+            android:paddingBottom="@dimen/spacing_sm">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/scan_spinner"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:indeterminate="true"
+                app:indicatorSize="20dp"
+                app:trackThickness="2dp"
+                app:indicatorColor="?attr/colorPrimary"
+                app:trackColor="@android:color/transparent"
+                android:layout_marginEnd="@dimen/spacing_sm"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
+            <include
+                android:id="@+id/smartsense_logo"
+                layout="@layout/layout_smartsense_logo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/sensor_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
+                tools:text="5 sensors"/>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/outline"/>
+
+        <!-- Sensor list -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/sensor_list"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingStart="@dimen/spacing_sm"
+            android:paddingEnd="@dimen/spacing_sm"
+            android:paddingTop="@dimen/spacing_sm"
+            android:paddingBottom="100dp"
+            tools:listitem="@layout/item_sensor_card"/>
+
+    </LinearLayout>
+
+</FrameLayout>

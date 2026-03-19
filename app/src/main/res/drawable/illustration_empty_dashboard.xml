@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Tank outline -->
+    <path
+        android:pathData="M70,40h60c5.5,0 10,4.5 10,10v90c0,5.5 -4.5,10 -10,10H70c-5.5,0 -10,-4.5 -10,-10V50C60,44.5 64.5,40 70,40z"
+        android:strokeWidth="3"
+        android:strokeColor="#BEC9C5"
+        android:fillColor="@android:color/transparent"/>
+    <!-- Tank cap -->
+    <path
+        android:pathData="M90,30h20v10H90z"
+        android:strokeWidth="3"
+        android:strokeColor="#BEC9C5"
+        android:fillColor="@android:color/transparent"/>
+    <!-- Question mark -->
+    <path
+        android:fillColor="#BEC9C5"
+        android:pathData="M95,75c0,-5.5 4.5,-10 10,-10s10,4.5 10,10c0,4 -2.5,7 -6,8.5V90h-8v-8.5C97.5,80 95,77 95,75zM97,100h16v10H97z"/>
+    <!-- Bluetooth icon -->
+    <path
+        android:fillColor="#BEC9C5"
+        android:pathData="M25,85l10,-10 -10,-10v-5l15,15 -15,15v-5zM35,80l5,5 -5,5z"/>
+    <!-- Signal waves -->
+    <path
+        android:strokeWidth="2"
+        android:strokeColor="#BEC9C5"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M155,75c5,0 9,4 9,9s-4,9 -9,9"/>
+    <path
+        android:strokeWidth="2"
+        android:strokeColor="#BEC9C5"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M155,68c9,0 16,7 16,16s-7,16 -16,16"/>
+</vector>

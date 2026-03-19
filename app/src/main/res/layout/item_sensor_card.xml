@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/spacing_sm"
+    android:layout_marginEnd="@dimen/spacing_sm"
+    android:layout_marginBottom="@dimen/spacing_sm"
+    app:cardCornerRadius="@dimen/card_corner_radius"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutlineVariant"
+    style="@style/Widget.Material3.CardView.Elevated">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="@dimen/card_padding">
+
+        <!-- Tank gauge -->
+        <com.smartsense.app.ui.views.TankGaugeView
+            android:id="@+id/sensor_gauge"
+            android:layout_width="@dimen/gauge_size_small"
+            android:layout_height="@dimen/gauge_size_small"
+            app:gaugeStrokeWidth="@dimen/gauge_stroke_width"
+            app:gaugeShowPercentage="true"/>
+
+        <!-- Sensor info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/spacing_md">
+
+            <!-- Name -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/sensor_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                tools:text="Propane - BBQ"/>
+
+            <!-- Tank type -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/sensor_tank_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="2dp"
+                tools:text="20 lb (BBQ)"/>
+
+            <!-- Info row: battery, temp, signal -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/spacing_sm">
+
+                <!-- Battery -->
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_battery"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/battery"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_battery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginStart="2dp"
+                    tools:text="95%"/>
+
+                <!-- Divider -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" · "
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
+                <!-- Temperature -->
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_temperature"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/temperature"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_temperature"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginStart="2dp"
+                    tools:text="22.5°C"/>
+
+                <!-- Divider -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" · "
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
+                <!-- Signal -->
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_signal"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/signal_strength"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_signal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginStart="2dp"
+                    tools:text="Good"/>
+            </LinearLayout>
+
+            <!-- Last updated -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/sensor_last_updated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginTop="@dimen/spacing_xs"
+                tools:text="Updated 5s ago"/>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

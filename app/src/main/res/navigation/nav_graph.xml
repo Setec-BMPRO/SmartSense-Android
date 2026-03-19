@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/scanFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.smartsense.app.ui.dashboard.DashboardFragment"
+        android:label="@string/nav_account"
+        tools:layout="@layout/fragment_dashboard">
+
+        <action
+            android:id="@+id/action_dashboard_to_detail"
+            app:destination="@id/sensorDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/scanFragment"
+        android:name="com.smartsense.app.ui.scan.ScanFragment"
+        android:label="@string/nav_scan"
+        tools:layout="@layout/fragment_scan">
+
+        <action
+            android:id="@+id/action_scan_to_detail"
+            app:destination="@id/sensorDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.smartsense.app.ui.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings"/>
+
+    <fragment
+        android:id="@+id/sensorDetailFragment"
+        android:name="com.smartsense.app.ui.detail.SensorDetailFragment"
+        android:label="@string/tank_level"
+        tools:layout="@layout/fragment_sensor_detail">
+
+        <argument
+            android:name="sensorAddress"
+            app:argType="string"/>
+    </fragment>
+</navigation>

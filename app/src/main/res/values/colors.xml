@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary orange palette (BMPRO brand) -->
+    <color name="primary">#D24520</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_container">#FFDBC9</color>
+    <color name="on_primary_container">#3A0B00</color>
+
+    <!-- Secondary warm charcoal -->
+    <color name="secondary">#77574B</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="secondary_container">#FFDBC9</color>
+    <color name="on_secondary_container">#2C160D</color>
+
+    <!-- Tertiary amber/gold -->
+    <color name="tertiary">#6C5D2F</color>
+    <color name="on_tertiary">#FFFFFF</color>
+    <color name="tertiary_container">#F6E1A7</color>
+    <color name="on_tertiary_container">#231B00</color>
+
+    <!-- Surface -->
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#231A16</color>
+    <color name="surface_variant">#F5F5F5</color>
+    <color name="on_surface_variant">#53433D</color>
+    <color name="surface_container">#FFFFFF</color>
+    <color name="surface_container_low">#FFFFFF</color>
+    <color name="surface_container_high">#F5F5F5</color>
+
+    <!-- Error -->
+    <color name="error">#BA1A1A</color>
+    <color name="on_error">#FFFFFF</color>
+
+    <!-- Outline -->
+    <color name="outline">#9E9E9E</color>
+    <color name="outline_variant">#E0E0E0</color>
+
+    <!-- Tank level status colors -->
+    <color name="level_green">#4CAF50</color>
+    <color name="level_yellow">#FFC107</color>
+    <color name="level_red">#F44336</color>
+
+    <!-- Logo -->
+    <color name="logo_smart_text">#231A16</color>
+
+    <!-- Tab bar -->
+    <color name="tab_bar_background">#FFF5F0</color>
+
+    <!-- Gauge -->
+    <color name="gauge_track">#D0C4BF</color>
+    <color name="gauge_track_dark">#4A4A4A</color>
+</resources>
