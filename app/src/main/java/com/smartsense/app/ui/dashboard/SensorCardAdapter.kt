@@ -2,15 +2,20 @@ package com.smartsense.app.ui.dashboard
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.content.res.ColorStateList
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
+import androidx.core.content.ContextCompat
+import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.smartsense.app.R
 import com.smartsense.app.databinding.ItemSensorCardBinding
+import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.UnitSystem
@@ -29,7 +34,20 @@ class SensorCardAdapter(
         fun bind(sensor: Sensor) {
             binding.sensorName.text = sensor.name
             binding.sensorTankType.text = sensor.tankPreset.name
-            binding.sensorGauge.setLevel(sensor.level.percentage, sensor.level.status)
+
+            // Tank image based on type
+            binding.sensorTankImage.setImageResource(sensor.tankPreset.type.drawableRes)
+            val tintColor = when (sensor.level.status) {
+                LevelStatus.GREEN -> ContextCompat.getColor(binding.root.context, R.color.level_green)
+                LevelStatus.YELLOW -> ContextCompat.getColor(binding.root.context, R.color.level_yellow)
+                LevelStatus.RED -> ContextCompat.getColor(binding.root.context, R.color.level_red)
+            }
+            ImageViewCompat.setImageTintList(binding.sensorTankImage, ColorStateList.valueOf(tintColor))
+
+            // Level percentage
+            binding.sensorLevel.text = "${sensor.level.percentage.toInt()}%"
+            binding.sensorLevel.setTextColor(tintColor)
+
             binding.sensorBattery.text = "${sensor.batteryPercent}%"
             binding.sensorTemperature.text = sensor.temperatureFormatted(unitSystem)
             binding.sensorSignal.text = when (sensor.signalStrength) {
@@ -81,15 +99,15 @@ class SensorCardAdapter(
                 interpolator = overshoot
             }
 
-            // Gauge fills after card lands
-            val gaugeAlpha = ObjectAnimator.ofFloat(binding.sensorGauge, View.ALPHA, 0f, 1f).apply {
+            // Tank image fades in after card lands
+            val tankAlpha = ObjectAnimator.ofFloat(binding.sensorTankImage, View.ALPHA, 0f, 1f).apply {
                 duration = 300
                 startDelay = 250
             }
-            binding.sensorGauge.alpha = 0f
+            binding.sensorTankImage.alpha = 0f
 
             AnimatorSet().apply {
-                playTogether(slideUp, fadeIn, scaleX, scaleY, gaugeAlpha)
+                playTogether(slideUp, fadeIn, scaleX, scaleY, tankAlpha)
                 start()
             }
         }

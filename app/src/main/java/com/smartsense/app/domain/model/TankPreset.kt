@@ -22,8 +22,8 @@ data class TankPreset(
     }
 }
 
-enum class TankType {
-    PROPANE_VERTICAL,
-    PROPANE_HORIZONTAL,
-    CUSTOM
+enum class TankType(val drawableRes: Int) {
+    PROPANE_VERTICAL(com.smartsense.app.R.drawable.ic_tank_vertical),
+    PROPANE_HORIZONTAL(com.smartsense.app.R.drawable.ic_tank_horizontal),
+    CUSTOM(com.smartsense.app.R.drawable.ic_tank_custom)
 }

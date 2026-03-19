@@ -1,0 +1,45 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Valve/handle on top -->
+    <path
+        android:fillColor="#AAAAAA"
+        android:pathData="M22,4h4v3h-4z"/>
+    <path
+        android:fillColor="#AAAAAA"
+        android:pathData="M20,2h8v3H20z"
+        android:strokeWidth="0"/>
+    <path
+        android:fillColor="#999999"
+        android:pathData="M23,1 L25,1 L25,3 L23,3 Z"/>
+
+    <!-- Tank body (rounded cylinder) -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M16,7 L32,7 Q36,7 36,12 L36,36 Q36,42 32,42 L16,42 Q12,42 12,36 L12,12 Q12,7 16,7 Z"/>
+
+    <!-- Tank body outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#666666"
+        android:strokeWidth="1.5"
+        android:pathData="M16,7 L32,7 Q36,7 36,12 L36,36 Q36,42 32,42 L16,42 Q12,42 12,36 L12,12 Q12,7 16,7 Z"/>
+
+    <!-- Horizontal band lines -->
+    <path
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="0.8"
+        android:pathData="M12,14 L36,14"/>
+    <path
+        android:strokeColor="#CCCCCC"
+        android:strokeWidth="0.8"
+        android:pathData="M12,35 L36,35"/>
+
+    <!-- Foot/base -->
+    <path
+        android:fillColor="#999999"
+        android:pathData="M14,42 L34,42 L34,45 Q34,46 33,46 L15,46 Q14,46 14,45 Z"/>
+</vector>

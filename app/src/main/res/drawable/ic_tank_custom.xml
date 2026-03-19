@@ -1,0 +1,34 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Generic container/tank shape -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M14,8 L34,8 Q38,8 38,12 L38,38 Q38,42 34,42 L14,42 Q10,42 10,38 L10,12 Q10,8 14,8 Z"/>
+
+    <!-- Outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#666666"
+        android:strokeWidth="1.5"
+        android:pathData="M14,8 L34,8 Q38,8 38,12 L38,38 Q38,42 34,42 L14,42 Q10,42 10,38 L10,12 Q10,8 14,8 Z"/>
+
+    <!-- Question mark to indicate custom/unknown -->
+    <path
+        android:fillColor="#999999"
+        android:pathData="M20.5,18 Q20.5,14 24,14 Q27.5,14 27.5,18 Q27.5,21 24,22 L24,26"/>
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#999999"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M20.5,18 Q20.5,14.5 24,14.5 Q27.5,14.5 27.5,18 Q27.5,21 24,22 L24,26"/>
+
+    <!-- Question mark dot -->
+    <path
+        android:fillColor="#999999"
+        android:pathData="M22.5,30 A1.5,1.5 0 1,1 25.5,30 A1.5,1.5 0 1,1 22.5,30 Z"/>
+</vector>
