@@ -9,7 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
+
 
 @HiltAndroidApp
 class SmartSenseApplication : Application() {
@@ -24,6 +26,9 @@ class SmartSenseApplication : Application() {
         applicationScope.launch {
             val theme = userPreferences.appTheme.first()
             applyTheme(theme)
+        }
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
         }
     }
 

@@ -3,11 +3,15 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    kotlin("kapt")
 }
 
 android {
     namespace = "com.smartsense.app"
     compileSdk = 35
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.smartsense.app"
@@ -69,4 +73,12 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
+
+    // Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.jakewharton.timber:timber:5.0.1")
 }

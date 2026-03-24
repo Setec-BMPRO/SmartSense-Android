@@ -1,0 +1,221 @@
+package com.smartsense.app.data.repository
+
+import com.mopeka.bmpro.data.ble.BleManager
+import com.mopeka.bmpro.data.ble.ScannedSensor
+import com.smartsense.app.domain.model.MopekaSensorType
+import com.smartsense.app.domain.model.NotificationFrequency
+
+import com.smartsense.app.data.local.dao.SensorDao
+import com.smartsense.app.data.local.entity.SensorEntity
+import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.model.Tank
+import com.smartsense.app.domain.model.TankLevelUnit
+import com.smartsense.app.domain.model.TankOrientation
+import com.smartsense.app.domain.model.TankRegion
+import com.smartsense.app.domain.model.TankType
+import com.smartsense.app.domain.usecase.CalculateTankLevelUseCase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class Sensor1Repository @Inject constructor(
+    private val bleManager: BleManager,
+    private val sensorDao: SensorDao,
+    private val calculateLevel: CalculateTankLevelUseCase
+) {
+
+
+    // In-memory cache of latest BLE readings keyed by address
+    private val liveReadings = MutableStateFlow<Map<String, ScannedSensor>>(emptyMap())
+
+    /**
+     * Start scanning and update in-memory BLE reading cache.
+     * Returns a flow of ALL discovered sensors (for discovery dialog).
+     */
+    fun discoverSensors(): Flow<List<Sensor1>> {
+        _isScanning.value=true
+        return combine(
+            bleManager.startScan().onEach { scanned ->
+                liveReadings.value += (scanned.address to scanned)
+            }.map { liveReadings.value },
+            sensorDao.observeAllTanks()
+        ) { readings, tanks ->
+            val tankMap = tanks.associateBy { it.sensorAddress }
+            readings.values.map { scanned ->
+                val tankEntity = tankMap[scanned.address]
+                val tank = tankEntity?.toDomain()
+                val reading = scanned.reading?.let { r ->
+                    //if (tank != null) {
+                        r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
+                    //} else r
+                }
+                _isScanning.value=false
+                Sensor1(
+                    address = scanned.address,
+                    name = "New LPG Device",
+                    advertisedName = scanned.name,
+                    sensorType = scanned.sensorType,
+                    syncPressed = scanned.syncPressed,
+                    reading = reading,
+                    tank = tank,
+                    lastSeenMillis = scanned.timestampMillis,
+                    tankLevelPercentage = scanned.reading?.tankLevelPercentage?:0
+                )
+            }.sortedByDescending { it.lastSeenMillis }
+        }
+    }
+
+    /**
+     * Observe only registered sensors, combining stored config with live BLE data.
+     * This is used for the main sensor list.
+     */
+    fun observeRegisteredSensors(): Flow<List<Sensor1>> {
+        return combine(
+            sensorDao.observeRegisteredAddresses(),
+            liveReadings,
+            sensorDao.observeAllTanks()
+        ) { registeredAddresses, readings, tanks ->
+            val tankMap = tanks.associateBy { it.sensorAddress }
+            registeredAddresses.mapNotNull { address ->
+                val scanned = readings[address]
+                val tankEntity = tankMap[address]
+                val tank = tankEntity?.toDomain()
+                val reading = scanned?.reading?.let { r ->
+                    //if (tank != null) {
+                        r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
+                    //} else r
+                }
+                Sensor1(
+                    address = address,
+                    name = tankEntity?.name ?: scanned?.name ?: address,
+                    advertisedName = scanned?.name,
+                    sensorType = scanned?.sensorType ?: MopekaSensorType.UNKNOWN,
+                    syncPressed = scanned?.syncPressed ?: false,
+                    reading = reading,
+                    tank = tank,
+                    lastSeenMillis = scanned?.timestampMillis ?: 0L,
+                    tankLevelPercentage = scanned?.reading?.tankLevelPercentage?:0
+                )
+            }.sortedBy { it.name }
+        }
+    }
+
+    fun stopScan() {
+        bleManager.stopScan()
+    }
+
+    /**
+     * Get the strongest-signal sensor currently in the BLE cache.
+     * Used for auto-pairing the closest sensor.
+     */
+    fun getStrongestSensor(): ScannedSensor? {
+        return liveReadings.value.values.maxByOrNull { it.rssi }
+    }
+
+    /**
+     * Register a sensor — mark it as registered so it appears in the main list.
+     */
+    suspend fun registerSensor(address: String, name: String) {
+        val existing = sensorDao.getSensor(address)
+        sensorDao.insertSensor(
+            SensorEntity(
+                address = address,
+                name = name.ifBlank { address },
+                lastSeenMillis = System.currentTimeMillis(),
+                isRegistered = true
+            )
+        )
+    }
+
+    /**
+     * Unregister a sensor — remove from the main list and delete tank config.
+     */
+    suspend fun unregisterSensor(address: String) {
+        sensorDao.deleteTank(address)
+        sensorDao.deleteSensor(address)
+    }
+
+    /**
+     * Observe a single sensor by address, combining live readings with stored config.
+     */
+    fun observeSensor(address: String): Flow<Sensor1?> {
+        return combine(
+            liveReadings,
+            sensorDao.observeTank(address)
+        ) { readings, tankEntity ->
+            val scanned = readings[address] ?: return@combine null
+            val tank = tankEntity?.toDomain()
+            val reading = scanned.reading?.let { r ->
+                //if (tank != null) {
+                    r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
+                //} else r
+            }
+            Sensor1(
+                address = scanned.address,
+                name = tankEntity?.name ?: scanned.name ?: scanned.address,
+                advertisedName = scanned.name,
+                sensorType = scanned.sensorType,
+                syncPressed = scanned.syncPressed,
+                reading = reading,
+                tank = tank,
+                lastSeenMillis = scanned.timestampMillis,
+                tankLevelPercentage = scanned.reading?.tankLevelPercentage?:0
+            )
+        }
+    }
+
+    suspend fun saveTankConfig(tank: Tank) {
+        sensorDao.insertTank(tank.toEntity())
+        sensorDao.insertSensor(
+            SensorEntity(address = tank.sensorAddress, name = tank.name, isRegistered = true)
+        )
+    }
+
+    suspend fun getTankConfig(sensorAddress: String): Tank? {
+        return sensorDao.getTank(sensorAddress)?.toDomain()
+    }
+
+    val isBluetoothEnabled: Boolean
+        get() = bleManager.isBluetoothEnabled
+
+    val isBluetoothSupported: Boolean
+        get() = bleManager.isBluetoothSupported
+
+    // Mapping extensions
+    private fun TankEntity.toDomain(): Tank = Tank(
+        sensorAddress = sensorAddress,
+        name = name,
+        type = try { TankType.valueOf(tankType) } catch (_: Exception) { TankType.KG_3_7 },
+        customHeightMeters = customHeightMeters,
+        orientation = try { TankOrientation.valueOf(orientation) } catch (_: Exception) { TankOrientation.VERTICAL },
+        alarmThresholdPercent = alarmThresholdPercent,
+        region = try { TankRegion.valueOf(region) } catch (_: Exception) { TankRegion.AUSTRALIA },
+        levelUnit = try { TankLevelUnit.valueOf(levelUnit) } catch (_: Exception) { TankLevelUnit.PERCENT },
+        notificationsEnabled = notificationsEnabled,
+        notificationFrequency = try { NotificationFrequency.valueOf(notificationFrequency) } catch (_: Exception) { NotificationFrequency.EVERY_12_HOURS }
+    )
+
+    private fun Tank.toEntity(): TankEntity = TankEntity(
+        sensorAddress = sensorAddress,
+        name = name,
+        tankType = type.name,
+        customHeightMeters = customHeightMeters,
+        orientation = orientation.name,
+        alarmThresholdPercent = alarmThresholdPercent,
+        region = region.name,
+        levelUnit = levelUnit.name,
+        notificationsEnabled = notificationsEnabled,
+        notificationFrequency = notificationFrequency.name
+    )
+
+    private val _isScanning = MutableStateFlow(false)
+    val isScanning: StateFlow<Boolean> = _isScanning
+
+}

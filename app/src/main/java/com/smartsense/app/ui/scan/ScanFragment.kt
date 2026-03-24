@@ -69,12 +69,12 @@ class ScanFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.unitSystem.collect { unit ->
-                        adapter.unitSystem = unit
-                        adapter.notifyDataSetChanged()
-                    }
-                }
+//                launch {
+//                    viewModel.unitSystem.collect { unit ->
+//                        adapter.unitSystem = unit
+//                        adapter.notifyDataSetChanged()
+//                    }
+//                }
 
                 launch {
                     viewModel.sensors.collect { sensors ->

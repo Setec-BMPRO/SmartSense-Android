@@ -20,10 +20,11 @@ data class TankPreset(
 
         fun findById(id: String): TankPreset? = defaults.find { it.id == id }
     }
+    enum class TankType(val drawableRes: Int) {
+        PROPANE_VERTICAL(com.smartsense.app.R.drawable.ic_tank_vertical),
+        PROPANE_HORIZONTAL(com.smartsense.app.R.drawable.ic_tank_horizontal),
+        CUSTOM(com.smartsense.app.R.drawable.ic_tank_custom)
+    }
+
 }
 
-enum class TankType(val drawableRes: Int) {
-    PROPANE_VERTICAL(com.smartsense.app.R.drawable.ic_tank_vertical),
-    PROPANE_HORIZONTAL(com.smartsense.app.R.drawable.ic_tank_horizontal),
-    CUSTOM(com.smartsense.app.R.drawable.ic_tank_custom)
-}

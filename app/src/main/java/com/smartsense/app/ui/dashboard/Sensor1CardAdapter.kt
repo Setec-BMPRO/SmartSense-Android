@@ -18,12 +18,16 @@ import com.smartsense.app.R
 import com.smartsense.app.databinding.ItemSensorCardBinding
 import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.UnitSystem
+import timber.log.Timber
+import kotlin.compareTo
+import kotlin.div
 
-class SensorCardAdapter(
-    private val onSensorClick: (Sensor) -> Unit
-) : ListAdapter<Sensor, SensorCardAdapter.ViewHolder>(SensorDiffCallback()) {
+class Sensor1CardAdapter(
+    private val onSensorClick: (Sensor1) -> Unit
+) : ListAdapter<Sensor1, Sensor1CardAdapter.ViewHolder>(SensorDiffCallback()) {
 
     var unitSystem: UnitSystem = UnitSystem.METRIC
     private val animatedAddresses = mutableSetOf<String>()
@@ -32,24 +36,29 @@ class SensorCardAdapter(
         private val binding: ItemSensorCardBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(sensor: Sensor) {
+        fun bind(sensor: Sensor1) {
             binding.sensorName.text = sensor.name
-            //binding.sensorTankType.text = sensor.tankPreset.name
+            val levelText = when {
+                sensor.reading == null -> "No Signal"
+                sensor.reading.levelPercent <= 0f -> "Empty"
+                else -> "${sensor.reading.levelPercent.toInt()}%"
+            }
+            binding.sensorLevel.text = levelText
 
             // Tank images based on type
-            val tankRes = sensor.tankPreset.type.drawableRes
-            binding.sensorTankOutline.setImageResource(tankRes)
-            binding.sensorTankFill.setImageResource(tankRes)
+//            val tankRes = sensor.tankPreset.type.drawableRes
+//            binding.sensorTankOutline.setImageResource(tankRes)
+//            binding.sensorTankFill.setImageResource(tankRes)
 
             val tintColor = when (sensor.level.status) {
                 LevelStatus.GREEN -> ContextCompat.getColor(binding.root.context, R.color.level_green)
                 LevelStatus.YELLOW -> ContextCompat.getColor(binding.root.context, R.color.level_yellow)
                 LevelStatus.RED -> ContextCompat.getColor(binding.root.context, R.color.level_red)
             }
-            ImageViewCompat.setImageTintList(binding.sensorTankFill, ColorStateList.valueOf(tintColor))
+//            ImageViewCompat.setImageTintList(binding.sensorTankFill, ColorStateList.valueOf(tintColor))
 
             // Clip the fill image from top based on level percentage
-            val level = sensor.level.percentage.coerceIn(0f, 100f)
+            val level = (sensor.reading?.levelPercent?:0F).coerceIn(0f, 100f)
             binding.sensorTankFill.post {
                 val h = binding.sensorTankFill.height
                 val clipTop = ((100f - level) / 100f * h).toInt()
@@ -57,15 +66,17 @@ class SensorCardAdapter(
             }
 
             // Level percentage
-            binding.sensorLevel.text = "${sensor.level.percentage.toInt()}%"
+            //binding.sensorLevel.text = "${sensor.level.percentage.toInt()}%"
             binding.sensorLevel.setTextColor(tintColor)
-
-            binding.sensorBattery.text = "${sensor.batteryPercent}%"
-            val battery = sensor.batteryPercent
+            val batteryPercent = (((sensor.reading?.batteryVoltage ?:0F)- 2.0f) / 1.6f * 100f).coerceIn(0f, 100f)
+            binding.sensorBattery.text = "${batteryPercent.toInt()}%"
+            //val battery = sensor.reading?.batteryVoltage
             val (battIcon, battColorRes) = when {
-                battery <= 15 -> R.drawable.ic_battery_critical to R.color.level_red
-                battery <= 40 -> R.drawable.ic_battery_low to R.color.level_yellow
-                battery <= 70 -> R.drawable.ic_battery_medium to R.color.level_green
+                batteryPercent <= 15F -> R.drawable.ic_battery_critical to R.color.level_red
+                batteryPercent <= 40 -> R.drawable.ic_battery_low to R.color.level_yellow
+                batteryPercent <= 70 -> {
+                    R.drawable.ic_battery_medium to R.color.level_green
+                }
                 else -> R.drawable.ic_battery_full to R.color.level_green
             }
             binding.sensorBatteryIcon.setImageResource(battIcon)
@@ -73,11 +84,13 @@ class SensorCardAdapter(
             ImageViewCompat.setImageTintList(binding.sensorBatteryIcon, ColorStateList.valueOf(battColor))
             binding.sensorBattery.setTextColor(battColor)
             binding.sensorTemperature.text = sensor.temperatureFormatted(unitSystem)
-            val tempC = sensor.temperatureCelsius
+            val tempC = sensor.reading?.temperatureCelsius?:0F
             val (tempIcon, tempColorRes) = when {
-                tempC <= 10f -> R.drawable.ic_temp_cold to R.color.temp_cold
+                tempC <= 10F -> R.drawable.ic_temp_cold to R.color.temp_cold
                 tempC <= 20f -> R.drawable.ic_temp_cool to R.color.temp_cool
-                tempC <= 30f -> R.drawable.ic_temp_warm to R.color.temp_warm
+                tempC <= 30f -> {
+                    R.drawable.ic_temp_warm to R.color.temp_warm
+                }
                 else -> R.drawable.ic_temp_hot to R.color.temp_hot
             }
             binding.sensorTempIcon.setImageResource(tempIcon)
@@ -97,14 +110,14 @@ class SensorCardAdapter(
             binding.sensorSignal.text = signalInfo.text
             binding.sensorSignal.setTextColor(signalColor)
 
-            val ago = DateUtils.getRelativeTimeSpanString(
-                sensor.lastUpdated,
-                System.currentTimeMillis(),
-                DateUtils.SECOND_IN_MILLIS,
-                DateUtils.FORMAT_ABBREV_RELATIVE
-            )
-            binding.sensorLastUpdated.text = "Updated $ago"
-
+            val seconds = (System.currentTimeMillis() - sensor.lastSeenMillis) / 1000
+            binding.sensorLastUpdated.text = when {
+                seconds < 10 -> "Updated just now"
+                seconds < 60 -> "Updated ${seconds}s ago"
+                seconds < 3600 -> "Updated ${seconds / 60}m ago"
+                else -> "Updated ${seconds / 3600}h ago"
+            }
+            binding.sensorType.text=sensor.tank?.type?.displayName?:"STANDARD"
             binding.root.setOnClickListener { onSensorClick(sensor) }
         }
 
@@ -170,11 +183,11 @@ class SensorCardAdapter(
         }
     }
 
-    private class SensorDiffCallback : DiffUtil.ItemCallback<Sensor>() {
-        override fun areItemsTheSame(oldItem: Sensor, newItem: Sensor): Boolean =
+    private class SensorDiffCallback : DiffUtil.ItemCallback<Sensor1>() {
+        override fun areItemsTheSame(oldItem: Sensor1, newItem: Sensor1): Boolean =
             oldItem.address == newItem.address
 
-        override fun areContentsTheSame(oldItem: Sensor, newItem: Sensor): Boolean =
+        override fun areContentsTheSame(oldItem: Sensor1, newItem: Sensor1): Boolean =
             oldItem == newItem
     }
 }

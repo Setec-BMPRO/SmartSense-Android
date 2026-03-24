@@ -30,8 +30,8 @@ class ScanViewModel @Inject constructor(
     val sensors: StateFlow<List<Sensor>> = repository.getSensors()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val unitSystem: StateFlow<UnitSystem> = userPreferences.unitSystem
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UnitSystem.METRIC)
+//    val unitSystem: StateFlow<UnitSystem> = userPreferences.unitSystem
+//        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UnitSystem.METRIC)
 
     fun startScan() {
         viewModelScope.launch {
