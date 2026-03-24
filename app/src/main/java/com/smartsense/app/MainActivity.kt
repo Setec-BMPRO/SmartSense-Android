@@ -1,13 +1,16 @@
 package com.smartsense.app
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.smartsense.app.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -27,14 +30,17 @@ class MainActivity : AppCompatActivity() {
 
         binding.tabAccount.setOnClickListener {
             navController.navigate(R.id.dashboardFragment)
+            selectTab(binding.tabAccount)
         }
 
         binding.fabSmartsense.setOnClickListener {
             navController.navigate(R.id.scanFragment)
+
         }
 
         binding.tabSettings.setOnClickListener {
             navController.navigate(R.id.settingsFragment)
+            selectTab(binding.tabSettings)
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -49,27 +55,25 @@ class MainActivity : AppCompatActivity() {
             } else 0
             binding.navHostFragment.layoutParams = params
 
-            updateTabColors(destination.id)
+            when (destination.id) {
+                R.id.tab_account -> selectTab(binding.tabAccount)
+                R.id.tab_settings -> selectTab(binding.tabSettings)
+                else -> {selectTab(binding.tabSettings)}
+            }
         }
     }
 
-    private fun updateTabColors(activeId: Int) {
-        val activeColor = android.graphics.Color.WHITE
-        val inactiveColor = android.graphics.Color.argb(180, 255, 255, 255)
-
-        val isAccount = activeId == R.id.dashboardFragment
-        val isSettings = activeId == R.id.settingsFragment
-
-        binding.tabAccountIcon.setColorFilter(if (isAccount) activeColor else inactiveColor)
-        binding.tabAccountLabel.setTextColor(if (isAccount) activeColor else inactiveColor)
-
-        binding.tabSettingsIcon.setColorFilter(if (isSettings) activeColor else inactiveColor)
-        binding.tabSettingsLabel.setTextColor(if (isSettings) activeColor else inactiveColor)
+    private fun selectTab(selected: View) {
+        val tabs = listOf(binding.tabAccount, binding.tabSettings)
+        tabs.forEach { tab ->
+            val isActive = tab == selected
+            tab.isSelected = isActive
+            for (i in 0 until tab.childCount) {
+                val child = tab.getChildAt(i)
+                child.isSelected = isActive
+                child.refreshDrawableState()
+            }
+        }
     }
 
-    private fun resolveThemeColor(attrId: Int): Int {
-        val typedValue = android.util.TypedValue()
-        theme.resolveAttribute(attrId, typedValue, true)
-        return typedValue.data
-    }
 }

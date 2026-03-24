@@ -56,16 +56,16 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_account"
-                    app:tint="@android:color/white"/>
+                    app:tint="@color/bottom_tab_color"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tab_account_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
                     android:text="@string/nav_account"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="@android:color/white"
-                    android:layout_marginTop="2dp"/>
+                    android:textColor="@color/bottom_tab_color" />
             </LinearLayout>
 
             <!-- Spacer for center FAB -->
@@ -91,16 +91,16 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_settings"
-                    app:tint="@android:color/white"/>
+                    app:tint="@color/bottom_tab_color"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tab_settings_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
                     android:text="@string/nav_settings"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="@android:color/white"
-                    android:layout_marginTop="2dp"/>
+                    android:textColor="@color/bottom_tab_color" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.bottomappbar.BottomAppBar>
@@ -114,7 +114,7 @@
         android:contentDescription="@string/nav_smartsense"
         app:layout_anchor="@id/bottom_app_bar"
         app:tint="@android:color/white"
-        app:backgroundTint="@color/primary"
+        app:backgroundTint="@color/tab_bar_background"
         app:fabSize="auto"
         app:fabCustomSize="72dp"
         app:maxImageSize="36dp"

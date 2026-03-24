@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- SELECTED must be FIRST -->
+    <item android:state_selected="true"
+        android:color="@color/tab_color_selected"/>
+
+    <!-- DEFAULT (unselected) -->
+    <item android:color="@color/tab_color_unselected"/>
+
+</selector>

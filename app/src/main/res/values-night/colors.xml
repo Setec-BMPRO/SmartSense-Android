@@ -9,4 +9,6 @@
 
     <!-- Tab bar -->
     <color name="tab_bar_background">#1E1E1E</color>
+    <color name="tab_color_selected">@color/primary</color>
+    <color name="tab_color_unselected">@color/primary_50</color>
 </resources>

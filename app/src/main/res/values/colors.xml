@@ -51,8 +51,13 @@
 
     <!-- Tab bar -->
     <color name="tab_bar_background">#D24520</color>
+    <color name="primary_50">#80D24520</color>
 
     <!-- Gauge -->
     <color name="gauge_track">#D0C4BF</color>
     <color name="gauge_track_dark">#4A4A4A</color>
+    <color name="tab_color_selected">#FFFFFF</color>
+    <color name="tab_color_unselected">#80FFFFFF</color>
+
+
 </resources>
