@@ -113,7 +113,7 @@
         android:src="@drawable/ic_smartsense"
         android:contentDescription="@string/nav_smartsense"
         app:layout_anchor="@id/bottom_app_bar"
-        app:tint="@android:color/white"
+        app:tint="@color/tab_color_selected"
         app:backgroundTint="@color/tab_bar_background"
         app:fabSize="auto"
         app:fabCustomSize="72dp"
