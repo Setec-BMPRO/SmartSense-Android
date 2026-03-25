@@ -85,7 +85,8 @@ class BleScannerImpl @Inject constructor(
             tankType = preset.type
         )
 
-        val batteryPercent = ((parsed.batteryVoltage - 2.0f) / 1.6f * 100f)
+        // CR2032 battery: decompiled formula (voltage - 2.2) / 0.65 * 100
+        val batteryPercent = ((parsed.batteryVoltage - 2.2f) / 0.65f * 100f)
             .coerceIn(0f, 100f).toInt()
 
         val readQuality = when (parsed.quality) {
