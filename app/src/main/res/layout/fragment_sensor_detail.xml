@@ -67,6 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_lg"
             app:cardCornerRadius="12dp"
+            android:visibility="gone"
             style="@style/Widget.Material3.CardView.Filled">
 
             <LinearLayout
@@ -96,7 +97,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    tools:text="182 mm"/>
+                    android:text="182 mm"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -118,6 +119,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:id="@+id/img_battery"
                     android:src="@drawable/ic_battery"
                     app:tint="?attr/colorPrimary"
                     android:contentDescription="@string/battery"/>
@@ -135,7 +137,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    tools:text="95%"/>
+                    android:text="95%"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -157,6 +159,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:id="@+id/img_signal"
                     android:src="@drawable/ic_signal"
                     app:tint="?attr/colorPrimary"
                     android:contentDescription="@string/signal_strength"/>
@@ -174,7 +177,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    tools:text="Good (-45 dBm)"/>
+                    android:text="Good (-45 dBm)"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -196,6 +199,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:id="@+id/img_temperature"
                     android:src="@drawable/ic_temperature"
                     app:tint="?attr/colorPrimary"
                     android:contentDescription="@string/temperature"/>

@@ -1,7 +1,7 @@
 package com.smartsense.app.data.repository
 
-import com.mopeka.bmpro.data.ble.BleManager
-import com.mopeka.bmpro.data.ble.ScannedSensor
+import com.smartsense.app.data.ble.BleManager
+import com.smartsense.app.data.ble.ScannedSensor
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.NotificationFrequency
 

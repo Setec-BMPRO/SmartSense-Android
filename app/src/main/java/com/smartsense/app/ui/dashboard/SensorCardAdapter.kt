@@ -22,6 +22,7 @@ import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.UnitSystem
 
 class SensorCardAdapter(
+
     private val onSensorClick: (Sensor) -> Unit
 ) : ListAdapter<Sensor, SensorCardAdapter.ViewHolder>(SensorDiffCallback()) {
 

@@ -61,7 +61,7 @@ object SensorAdvertParser {
      */
     fun parseCC2540(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
         if (data.size != CC2540_PAYLOAD_SHORT && data.size != CC2540_PAYLOAD_LONG) return null
-        Timber.i("-----parseCC2540-data:${getReadableByteArray(data)}")
+        //Timber.i("-----parseCC2540-data:${getReadableByteArray(data)}")
         return try {
             val byte0 = data[0].toInt() and 0xFF
             // Reject gateway/diagnostic packets

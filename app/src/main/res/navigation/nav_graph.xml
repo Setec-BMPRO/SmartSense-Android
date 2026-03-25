@@ -43,7 +43,7 @@
 
     <fragment
         android:id="@+id/sensorDetailFragment"
-        android:name="com.smartsense.app.ui.detail.SensorDetailFragment"
+        android:name="com.smartsense.app.ui.detail.Sensor1DetailFragment"
         android:label="@string/tank_level"
         tools:layout="@layout/fragment_sensor_detail">
 

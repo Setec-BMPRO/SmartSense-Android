@@ -1,4 +1,4 @@
-package com.mopeka.bmpro.data.ble
+package com.smartsense.app.data.ble
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -12,13 +12,10 @@ import android.content.Context
 import android.util.Log
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.SensorReading
-import com.smartsense.app.data.ble.BleConstants
-import com.smartsense.app.data.ble.SensorAdvertParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -78,7 +78,6 @@ class Scan1Fragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupViews()
         observeViewModel()
         // Single entry point
@@ -87,17 +86,13 @@ class Scan1Fragment : Fragment() {
     }
 
     private fun setupViews() {
+        Timber.i("-----setupViews:${viewModel.unitSystem}")
         // Setup Adapter & RecyclerView
-        sensorAdapter = Sensor1CardAdapter { sensor ->
-            findNavController().navigate(
-                R.id.action_scan_to_detail,
-                Bundle().apply { putString("sensorAddress", sensor.address) },
-//                navOptions {
-//                    popUpTo(R.id.scanFragment) {
-//                        inclusive = true // This removes the scan fragment from the stack
-//                    }
-//                }
-            )
+        sensorAdapter = Sensor1CardAdapter(viewModel.unitSystem) { sensor ->
+            val bundle = Bundle().apply {
+                putString("sensorAddress", sensor.address)
+            }
+            findNavController().navigate(R.id.action_scan_to_detail, bundle)
         }
 
         binding.sensorList.apply {

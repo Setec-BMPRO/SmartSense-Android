@@ -26,10 +26,11 @@ import kotlin.compareTo
 import kotlin.div
 
 class Sensor1CardAdapter(
+    val unitSystem: UnitSystem ,
     private val onSensorClick: (Sensor1) -> Unit
 ) : ListAdapter<Sensor1, Sensor1CardAdapter.ViewHolder>(SensorDiffCallback()) {
 
-    var unitSystem: UnitSystem = UnitSystem.METRIC
+
     private val animatedAddresses = mutableSetOf<String>()
 
     inner class ViewHolder(
@@ -68,9 +69,8 @@ class Sensor1CardAdapter(
             // Level percentage
             //binding.sensorLevel.text = "${sensor.level.percentage.toInt()}%"
             binding.sensorLevel.setTextColor(tintColor)
-            val batteryPercent = (((sensor.reading?.batteryVoltage ?:0F)- 2.0f) / 1.6f * 100f).coerceIn(0f, 100f)
-            binding.sensorBattery.text = "${batteryPercent.toInt()}%"
-            //val battery = sensor.reading?.batteryVoltage
+            val batteryPercent = sensor.reading?.batteryPercent?:0F
+            binding.sensorBattery.text = batteryPercent.toInt().toString() + "%"
             val (battIcon, battColorRes) = when {
                 batteryPercent <= 15F -> R.drawable.ic_battery_critical to R.color.level_red
                 batteryPercent <= 40 -> R.drawable.ic_battery_low to R.color.level_yellow
@@ -97,7 +97,7 @@ class Sensor1CardAdapter(
             val tempColor = ContextCompat.getColor(binding.root.context, tempColorRes)
             ImageViewCompat.setImageTintList(binding.sensorTempIcon, ColorStateList.valueOf(tempColor))
             binding.sensorTemperature.setTextColor(tempColor)
-            data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)
+
             val signalInfo = when (sensor.signalStrength) {
                 SignalStrength.EXCELLENT -> SignalInfo(R.drawable.ic_signal_excellent, "Excellent", R.color.level_green)
                 SignalStrength.GOOD -> SignalInfo(R.drawable.ic_signal_good, "Good", R.color.level_green)
@@ -191,3 +191,5 @@ class Sensor1CardAdapter(
             oldItem == newItem
     }
 }
+
+data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)

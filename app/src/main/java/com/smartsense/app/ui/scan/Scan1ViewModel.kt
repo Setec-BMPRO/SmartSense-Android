@@ -3,20 +3,26 @@ package com.smartsense.app.ui.scan
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartsense.app.data.preferences.UserPreferences
 
 import com.smartsense.app.data.repository.Sensor1Repository
 import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.domain.usecase.ScanForSensors1UseCase
 import com.smartsense.app.domain.usecase.ScanForSensorsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,7 +39,8 @@ data class SensorListUiState(
 @HiltViewModel
 class Scan1ViewModel @Inject constructor(
     private val scanForSensors: ScanForSensors1UseCase,
-    private val repository: Sensor1Repository
+    private val repository: Sensor1Repository,
+    userPreferences: UserPreferences
 ) : ViewModel() {
 
     companion object {
@@ -42,6 +49,10 @@ class Scan1ViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SensorListUiState())
     val uiState: StateFlow<SensorListUiState> = _uiState.asStateFlow()
+
+    val unitSystem: UnitSystem = runBlocking {
+        userPreferences.unitSystem.first()
+    }
 
     private var scanJob: Job? = null
     private var registeredJob: Job? = null

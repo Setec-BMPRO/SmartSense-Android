@@ -64,15 +64,12 @@ class CalculateTankLevelUseCase @Inject constructor() {
      fun calculateRoundedGasTankLevel(rawTankLevel: Int): Int =
          when {
              rawTankLevel < 0 -> {
-                 Timber.i("-----calculateRoundedGasTankLevel-rawTankLevel 0")
                  0
              }
              rawTankLevel > MAX_PERCENTAGE -> {
-                 Timber.i("-----calculateRoundedGasTankLevel-rawTankLevel > MAX_PERCENTAGE-${MAX_PERCENTAGE.toInt()}")
                  MAX_PERCENTAGE.toInt()
              }
              else -> {
-                 Timber.i("-----calculateRoundedGasTankLevel-rawTankLevel < MAX_PERCENTAGE-${((rawTankLevel + 5) / 10) * 10}")
                  ((rawTankLevel + 5) / 10) * 10
              }
          }
