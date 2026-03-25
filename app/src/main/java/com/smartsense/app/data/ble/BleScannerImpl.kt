@@ -1,39 +1,118 @@
 package com.smartsense.app.data.ble
 
+import android.util.Log
+import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.TankPreset
+import com.smartsense.app.domain.usecase.CalculateTankLevelUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Real BLE scanner implementation stub.
- * Delegates to MockBleScanner for now. When real Mopeka sensors are available,
- * implement actual BLE scanning using BluetoothLeScanner and parse
- * manufacturer-specific advertisement data.
- */
 @Singleton
 class BleScannerImpl @Inject constructor(
-    private val mockBleScanner: MockBleScanner
+    private val bleManager: BleManager,
+    private val calculateTankLevel: CalculateTankLevelUseCase
 ) : BleScanner {
+
+    companion object {
+        private const val TAG = "BleScannerImpl"
+    }
 
     private val _isScanning = MutableStateFlow(false)
     override val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
 
-    override fun getInitialSensors(): List<Sensor> = mockBleScanner.getInitialSensors()
+    /** Sensors that have been paired via sync button press */
+    private val pairedSensors = MutableStateFlow<Map<String, Sensor>>(emptyMap())
+
+    /** Addresses of sensors paired via sync button */
+    private val pairedAddresses = mutableSetOf<String>()
+
+    private val presetOverrides = mutableMapOf<String, TankPreset>()
+
+    override fun getInitialSensors(): List<Sensor> = emptyList()
 
     override fun startScan(): Flow<List<Sensor>> {
-        // TODO: Implement real BLE scanning with BluetoothLeScanner
-        // - Request BLUETOOTH_SCAN permission (API 31+)
-        // - Use ScanFilter for Mopeka service UUIDs
-        // - Parse ScanResult manufacturer data
-        // For now, delegate to mock
-        return mockBleScanner.startScan()
+        return bleManager.startScan()
+            .onStart { _isScanning.value = true }
+            .onEach { scanned -> handleScannedSensor(scanned) }
+            .map { pairedSensors.value.values.toList().sortedByDescending { it.lastUpdated } }
+            .onCompletion { _isScanning.value = false }
     }
 
     override fun stopScan() {
-        mockBleScanner.stopScan()
+        bleManager.stopScan()
+        _isScanning.value = false
+    }
+
+    fun setPresetOverride(address: String, preset: TankPreset) {
+        presetOverrides[address] = preset
+    }
+
+    private fun handleScannedSensor(scanned: ScannedSensor) {
+        val address = scanned.address
+
+        // Auto-pair when sync button is pressed on the physical sensor
+        if (scanned.parsed.syncPressed && address !in pairedAddresses) {
+            pairedAddresses.add(address)
+            Log.d(TAG, "Sync button detected — auto-pairing sensor $address")
+        }
+
+        // Only update sensors that have been paired
+        if (address in pairedAddresses) {
+            updateSensor(scanned)
+        }
+    }
+
+    private fun updateSensor(scanned: ScannedSensor) {
+        val parsed = scanned.parsed
+        val address = scanned.address
+
+        val preset = presetOverrides[address]
+            ?: pairedSensors.value[address]?.tankPreset
+            ?: TankPreset.defaults.first()
+
+        val level = calculateTankLevel.calculate(
+            rawHeightMeters = parsed.rawHeightMeters,
+            tankHeightMm = preset.heightMm,
+            tankType = preset.type
+        )
+
+        val batteryPercent = ((parsed.batteryVoltage - 2.0f) / 1.6f * 100f)
+            .coerceIn(0f, 100f).toInt()
+
+        val readQuality = when (parsed.quality) {
+            3 -> ReadQuality.GOOD
+            2 -> ReadQuality.FAIR
+            else -> ReadQuality.POOR
+        }
+
+        val name = scanned.name
+            ?: pairedSensors.value[address]?.name
+            ?: "Mopeka ${parsed.sensorType.displayName}"
+
+        val sensor = Sensor(
+            address = address,
+            name = name,
+            tankPreset = preset,
+            level = level,
+            batteryPercent = batteryPercent,
+            rssi = parsed.rssi,
+            temperatureCelsius = parsed.temperatureCelsius,
+            readQuality = readQuality,
+            lastUpdated = System.currentTimeMillis(),
+            isPaired = true
+        )
+
+        val current = pairedSensors.value.toMutableMap()
+        current[address] = sensor
+        pairedSensors.value = current
     }
 }
