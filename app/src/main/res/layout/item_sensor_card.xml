@@ -29,40 +29,11 @@
             android:orientation="vertical"
             android:gravity="center_horizontal">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/sensor_tank_container"
+            <com.smartsense.app.ui.views.TankLevelMiniView
+                android:id="@+id/sensor_tank_mini"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                app:strokeWidth="1.5dp"
-                app:strokeColor="?attr/colorOutlineVariant">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="4dp">
-
-                    <!-- Tank outline (always full, dim) -->
-                    <ImageView
-                        android:id="@+id/sensor_tank_outline"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_tank_vertical"
-                        android:contentDescription="@string/tank_type"
-                        app:tint="?attr/colorOnSurfaceVariant"
-                        android:alpha="0.35"/>
-
-                    <!-- Tank fill (clipped from top based on level) -->
-                    <ImageView
-                        android:id="@+id/sensor_tank_fill"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_tank_vertical"
-                        android:importantForAccessibility="no"/>
-                </FrameLayout>
-            </com.google.android.material.card.MaterialCardView>
+                android:contentDescription="@string/tank_type"/>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/sensor_level"

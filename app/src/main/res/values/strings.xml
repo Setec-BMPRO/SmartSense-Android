@@ -45,6 +45,15 @@
     <string name="quality_good">Good</string>
     <string name="quality_fair">Fair</string>
     <string name="quality_poor">Poor</string>
+    <string name="quality_warning_poor">Low Quality: Tank empty or sensor is incorrectly positioned. (Tap for more info)</string>
+    <string name="quality_warning_fair">Fair Quality: Signal may be weak. Check sensor position.</string>
+
+    <!-- Additional Info -->
+    <string name="additional_info">Additional Info</string>
+    <string name="update_rate">Update Rate</string>
+    <string name="sensor_type">Sensor Type</string>
+    <string name="device_address">Device Address</string>
+    <string name="format_seconds">%1$.1f seconds</string>
 
     <!-- Signal -->
     <string name="signal_excellent">Excellent</string>

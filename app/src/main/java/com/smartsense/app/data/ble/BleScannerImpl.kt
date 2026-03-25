@@ -95,9 +95,16 @@ class BleScannerImpl @Inject constructor(
             else -> ReadQuality.POOR
         }
 
+        val defaultName = if (parsed.sensorType.isLpg) {
+            "New LPG Device"
+        } else if (parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER) {
+            "New water sensor"
+        } else {
+            "New ${parsed.sensorType.displayName} Device"
+        }
         val name = scanned.name
             ?: pairedSensors.value[address]?.name
-            ?: "Mopeka ${parsed.sensorType.displayName}"
+            ?: defaultName
 
         val sensor = Sensor(
             address = address,
@@ -109,7 +116,8 @@ class BleScannerImpl @Inject constructor(
             temperatureCelsius = parsed.temperatureCelsius,
             readQuality = readQuality,
             lastUpdated = System.currentTimeMillis(),
-            isPaired = true
+            isPaired = true,
+            sensorTypeName = parsed.sensorType.displayName
         )
 
         val current = pairedSensors.value.toMutableMap()

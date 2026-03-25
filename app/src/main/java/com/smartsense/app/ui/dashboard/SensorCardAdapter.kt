@@ -3,7 +3,6 @@ package com.smartsense.app.ui.dashboard
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
-import android.graphics.Rect
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -36,24 +35,13 @@ class SensorCardAdapter(
             binding.sensorName.text = sensor.name
             binding.sensorTankType.text = sensor.tankPreset.name
 
-            // Tank images based on type
-            val tankRes = sensor.tankPreset.type.drawableRes
-            binding.sensorTankOutline.setImageResource(tankRes)
-            binding.sensorTankFill.setImageResource(tankRes)
+            // Mini tank view with fill level
+            binding.sensorTankMini.setLevel(sensor.level.percentage, sensor.level.status)
 
             val tintColor = when (sensor.level.status) {
                 LevelStatus.GREEN -> ContextCompat.getColor(binding.root.context, R.color.level_green)
                 LevelStatus.YELLOW -> ContextCompat.getColor(binding.root.context, R.color.level_yellow)
                 LevelStatus.RED -> ContextCompat.getColor(binding.root.context, R.color.level_red)
-            }
-            ImageViewCompat.setImageTintList(binding.sensorTankFill, ColorStateList.valueOf(tintColor))
-
-            // Clip the fill image from top based on level percentage
-            val level = sensor.level.percentage.coerceIn(0f, 100f)
-            binding.sensorTankFill.post {
-                val h = binding.sensorTankFill.height
-                val clipTop = ((100f - level) / 100f * h).toInt()
-                binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
             }
 
             // Level percentage
@@ -139,12 +127,12 @@ class SensorCardAdapter(
                 interpolator = overshoot
             }
 
-            // Tank image fades in after card lands
-            val tankAlpha = ObjectAnimator.ofFloat(binding.sensorTankFill, View.ALPHA, 0f, 1f).apply {
+            // Tank view fades in after card lands
+            val tankAlpha = ObjectAnimator.ofFloat(binding.sensorTankMini, View.ALPHA, 0f, 1f).apply {
                 duration = 300
                 startDelay = 250
             }
-            binding.sensorTankFill.alpha = 0f
+            binding.sensorTankMini.alpha = 0f
 
             AnimatorSet().apply {
                 playTogether(slideUp, fadeIn, scaleX, scaleY, tankAlpha)

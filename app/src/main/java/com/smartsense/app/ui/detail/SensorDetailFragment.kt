@@ -29,6 +29,8 @@ class SensorDetailFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SensorDetailViewModel by viewModels()
 
+    private var lastUpdateTimestamp = 0L
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -55,7 +57,7 @@ class SensorDetailFragment : Fragment() {
                 .show()
         }
 
-        binding.detailTankType.setOnClickListener {
+        binding.tankTypeRow.setOnClickListener {
             showTankPresetDialog()
         }
 
@@ -72,8 +74,11 @@ class SensorDetailFragment : Fragment() {
 
     private fun bindSensor(sensor: Sensor, unitSystem: UnitSystem) {
         binding.sensorName.text = sensor.name
-        binding.detailGauge.setLevel(sensor.level.percentage, sensor.level.status)
 
+        // Tank fill level
+        binding.detailTank.setLevel(sensor.level.percentage, sensor.level.status)
+
+        // Last updated
         binding.lastUpdated.text = getString(
             R.string.last_updated,
             DateUtils.getRelativeTimeSpanString(
@@ -84,18 +89,55 @@ class SensorDetailFragment : Fragment() {
             )
         )
 
-        binding.detailLevelHeight.text = sensor.levelHeightFormatted(unitSystem)
+        // Top row: Battery, Quality, Signal
         binding.detailBattery.text = getString(R.string.format_battery, sensor.batteryPercent)
-        binding.detailSignal.text = "${sensor.signalStrength.name} (${sensor.rssi} dBm)"
-        binding.detailTemperature.text = sensor.temperatureFormatted(unitSystem)
-
-        binding.detailQualityChip.text = when (sensor.readQuality) {
+        binding.detailQuality.text = when (sensor.readQuality) {
             ReadQuality.GOOD -> getString(R.string.quality_good)
             ReadQuality.FAIR -> getString(R.string.quality_fair)
             ReadQuality.POOR -> getString(R.string.quality_poor)
         }
+        binding.detailSignal.text = getString(R.string.format_rssi, sensor.rssi)
 
+        // Quality warning
+        when (sensor.readQuality) {
+            ReadQuality.POOR -> {
+                binding.qualityWarning.visibility = View.VISIBLE
+                binding.qualityWarning.text = getString(R.string.quality_warning_poor)
+            }
+            ReadQuality.FAIR -> {
+                binding.qualityWarning.visibility = View.VISIBLE
+                binding.qualityWarning.text = getString(R.string.quality_warning_fair)
+            }
+            ReadQuality.GOOD -> {
+                binding.qualityWarning.visibility = View.GONE
+            }
+        }
+
+        // Update rate (time since last reading)
+        val now = System.currentTimeMillis()
+        if (lastUpdateTimestamp > 0) {
+            val intervalSeconds = (now - lastUpdateTimestamp) / 1000.0f
+            binding.detailUpdateRate.text = getString(R.string.format_seconds, intervalSeconds)
+        } else {
+            binding.detailUpdateRate.text = "--"
+        }
+        lastUpdateTimestamp = now
+
+        // Additional info
+        binding.detailSensorType.text = sensor.sensorTypeName.ifEmpty { "--" }
+        binding.detailDeviceAddress.text = formatShortAddress(sensor.address)
+        binding.detailTemperature.text = sensor.temperatureFormatted(unitSystem)
         binding.detailTankType.text = sensor.tankPreset.name
+    }
+
+    private fun formatShortAddress(address: String): String {
+        // Show last 3 octets like the reference app: "76:FC:54"
+        val parts = address.split(":")
+        return if (parts.size == 6) {
+            "${parts[3]}:${parts[4]}:${parts[5]}"
+        } else {
+            address
+        }
     }
 
     private fun showTankPresetDialog() {
