@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingBottom="40dp"
     tools:context=".ui.settings.SettingsFragment">
 
     <LinearLayout
@@ -92,9 +93,8 @@
                 android:id="@+id/theme_toggle_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/spacing_xs"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                android:padding="@dimen/spacing_xs" app:checkedButton="@+id/btn_theme_system"
+                app:singleSelection="true" app:selectionRequired="true">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_theme_light"

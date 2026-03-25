@@ -16,6 +16,7 @@ import com.smartsense.app.databinding.FragmentSettingsBinding
 import com.smartsense.app.domain.model.UnitSystem
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -24,6 +25,7 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by viewModels()
     private var isUpdatingThemeToggle = false
+    private var appRestarted = true
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -34,7 +36,7 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        Timber.i("-----onViewCreated-----")
         setupDropdowns()
         setupThemeToggle()
         observeState()
@@ -102,8 +104,12 @@ class SettingsFragment : Fragment() {
                             else -> R.id.btn_theme_system
                         }
                         isUpdatingThemeToggle = true
-                        binding.themeToggleGroup.check(buttonId)
+                        if(!appRestarted && theme.equals("System",true))
+                            binding.themeToggleGroup.check(R.id.btn_theme_system)
+                        else if(!appRestarted)
+                            binding.themeToggleGroup.check(buttonId)
                         isUpdatingThemeToggle = false
+                        appRestarted=false
                     }
                 }
             }

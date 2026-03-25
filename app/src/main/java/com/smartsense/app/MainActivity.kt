@@ -9,6 +9,9 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.smartsense.app.databinding.ActivityMainBinding
+import com.smartsense.app.ui.scan.Scan1Fragment
+import com.smartsense.app.ui.scan.ScanFragment
+import com.smartsense.app.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
@@ -35,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.fabSmartsense.setOnClickListener {
             navController.navigate(R.id.scanFragment)
+            selectTab(null)
 
         }
 
@@ -58,21 +62,21 @@ class MainActivity : AppCompatActivity() {
             when (destination.id) {
                 R.id.tab_account -> selectTab(binding.tabAccount)
                 R.id.tab_settings -> selectTab(binding.tabSettings)
-                else -> {selectTab(binding.tabSettings)}
+                else -> {
+                    val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+                    val currentFragment = navHostFragment?.childFragmentManager?.fragments?.firstOrNull()
+                    val fragmentName = currentFragment?.javaClass?.simpleName
+                    selectTab(if(fragmentName.equals(SettingsFragment::class.java.simpleName)) binding.tabSettings else null)
+                }
             }
         }
     }
 
-    private fun selectTab(selected: View) {
+    private fun selectTab(selected: View?) {
         val tabs = listOf(binding.tabAccount, binding.tabSettings)
         tabs.forEach { tab ->
-            val isActive = tab == selected
-            tab.isSelected = isActive
-            for (i in 0 until tab.childCount) {
-                val child = tab.getChildAt(i)
-                child.isSelected = isActive
-                child.refreshDrawableState()
-            }
+            tab.isSelected = tab == selected
+            tab.refreshDrawableState()
         }
     }
 

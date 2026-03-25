@@ -11,7 +11,7 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="70dp"
         app:navGraph="@navigation/nav_graph"
         app:defaultNavHost="true"/>
 
@@ -19,7 +19,7 @@
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottom_app_bar"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="70dp"
         android:layout_gravity="bottom"
         app:fabAlignmentMode="center"
         app:fabAnchorMode="cradle"
@@ -36,8 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingBottom="8dp">
+            android:gravity="center_vertical">
 
             <!-- Account tab -->
             <LinearLayout
@@ -51,19 +50,15 @@
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless">
 
-                <ImageView
-                    android:id="@+id/tab_account_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_account"
-                    app:tint="@color/bottom_tab_color"/>
-
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tab_account_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:drawableTop="@drawable/ic_account"
+                    android:drawableTint="@color/bottom_tab_color"
                     android:layout_marginTop="2dp"
                     android:text="@string/nav_account"
+                    app:rippleColor="#FFFFFF33"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="@color/bottom_tab_color" />
             </LinearLayout>
@@ -86,19 +81,15 @@
                 android:focusable="true"
                 android:background="?attr/selectableItemBackgroundBorderless">
 
-                <ImageView
-                    android:id="@+id/tab_settings_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_settings"
-                    app:tint="@color/bottom_tab_color"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/tab_settings_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
+                    android:drawableTop="@drawable/ic_settings"
                     android:text="@string/nav_settings"
+                    android:drawableTint="@color/bottom_tab_color"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="@color/bottom_tab_color" />
             </LinearLayout>
