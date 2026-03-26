@@ -89,10 +89,12 @@ class Scan1Fragment : Fragment() {
         Timber.i("-----setupViews:${viewModel.unitSystem}")
         // Setup Adapter & RecyclerView
         sensorAdapter = Sensor1CardAdapter(viewModel.unitSystem) { sensor ->
+            //viewModel.registerSensor(sensor.address,sensor.name!!)
             val bundle = Bundle().apply {
                 putString("sensorAddress", sensor.address)
             }
             findNavController().navigate(R.id.action_scan_to_detail, bundle)
+
         }
 
         binding.sensorList.apply {
@@ -131,7 +133,7 @@ class Scan1Fragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState
-                    .map { it.discoveredSensors }
+                    .map { it.sensors }
                     .distinctUntilChanged()
                     .collect { sensors ->
                         val hasSensors = sensors.isNotEmpty()
@@ -150,18 +152,18 @@ class Scan1Fragment : Fragment() {
                     }
             }
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState
-                    .map { it.isBluetoothEnabled to it.sensors.isNotEmpty() }
-                    .distinctUntilChanged()
-                    .collect { (isEnabled, hasSensors) ->
-                        if (isEnabled && hasSensors) {
-                            // Start background BLE scan
-                        }
-                    }
-            }
-        }
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                viewModel.uiState
+//                    .map { it.isBluetoothEnabled to it.sensors.isNotEmpty() }
+//                    .distinctUntilChanged()
+//                    .collect { (isEnabled, hasSensors) ->
+//                        if (isEnabled && hasSensors) {
+//                            // Start background BLE scan
+//                        }
+//                    }
+//            }
+//        }
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState
@@ -188,5 +190,6 @@ class Scan1Fragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+
     }
 }

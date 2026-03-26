@@ -50,7 +50,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:src="@drawable/ic_tank_vertical"
-                        android:contentDescription="@string/tank_type"
+                        android:contentDescription="@string/device_mac"
                         app:tint="?attr/colorOnSurfaceVariant"
                         android:alpha="0.35"/>
 

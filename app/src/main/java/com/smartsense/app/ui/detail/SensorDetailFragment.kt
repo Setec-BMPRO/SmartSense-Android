@@ -55,7 +55,7 @@ class SensorDetailFragment : Fragment() {
                 .show()
         }
 
-        binding.detailTankType.setOnClickListener {
+        binding.detailDeviceMac.setOnClickListener {
             showTankPresetDialog()
         }
 
@@ -95,7 +95,7 @@ class SensorDetailFragment : Fragment() {
             ReadQuality.POOR -> getString(R.string.quality_poor)
         }
 
-        binding.detailTankType.text = sensor.tankPreset.name
+        binding.detailDeviceMac.text = sensor.tankPreset.name
     }
 
     private fun showTankPresetDialog() {

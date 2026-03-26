@@ -26,7 +26,7 @@ import kotlin.compareTo
 import kotlin.div
 
 class Sensor1CardAdapter(
-    val unitSystem: UnitSystem ,
+    val unitSystem: UnitSystem=UnitSystem.METRIC ,
     private val onSensorClick: (Sensor1) -> Unit
 ) : ListAdapter<Sensor1, Sensor1CardAdapter.ViewHolder>(SensorDiffCallback()) {
 
@@ -38,26 +38,21 @@ class Sensor1CardAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(sensor: Sensor1) {
+            // Name
             binding.sensorName.text = sensor.name
+
+            // Level
             val levelText = when {
                 sensor.reading == null -> "No Signal"
                 sensor.reading.levelPercent <= 0f -> "Empty"
                 else -> "${sensor.reading.levelPercent.toInt()}%"
             }
             binding.sensorLevel.text = levelText
-
-            // Tank images based on type
-//            val tankRes = sensor.tankPreset.type.drawableRes
-//            binding.sensorTankOutline.setImageResource(tankRes)
-//            binding.sensorTankFill.setImageResource(tankRes)
-
             val tintColor = when (sensor.level.status) {
                 LevelStatus.GREEN -> ContextCompat.getColor(binding.root.context, R.color.level_green)
                 LevelStatus.YELLOW -> ContextCompat.getColor(binding.root.context, R.color.level_yellow)
                 LevelStatus.RED -> ContextCompat.getColor(binding.root.context, R.color.level_red)
             }
-//            ImageViewCompat.setImageTintList(binding.sensorTankFill, ColorStateList.valueOf(tintColor))
-
             // Clip the fill image from top based on level percentage
             val level = (sensor.reading?.levelPercent?:0F).coerceIn(0f, 100f)
             binding.sensorTankFill.post {
@@ -65,10 +60,9 @@ class Sensor1CardAdapter(
                 val clipTop = ((100f - level) / 100f * h).toInt()
                 binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
             }
-
-            // Level percentage
-            //binding.sensorLevel.text = "${sensor.level.percentage.toInt()}%"
             binding.sensorLevel.setTextColor(tintColor)
+
+            // Battery percent
             val batteryPercent = sensor.reading?.batteryPercent?:0F
             binding.sensorBattery.text = batteryPercent.toInt().toString() + "%"
             val (battIcon, battColorRes) = when {
@@ -83,6 +77,8 @@ class Sensor1CardAdapter(
             val battColor = ContextCompat.getColor(binding.root.context, battColorRes)
             ImageViewCompat.setImageTintList(binding.sensorBatteryIcon, ColorStateList.valueOf(battColor))
             binding.sensorBattery.setTextColor(battColor)
+
+            // Temperature
             binding.sensorTemperature.text = sensor.temperatureFormatted(unitSystem)
             val tempC = sensor.reading?.temperatureCelsius?:0F
             val (tempIcon, tempColorRes) = when {
@@ -98,6 +94,7 @@ class Sensor1CardAdapter(
             ImageViewCompat.setImageTintList(binding.sensorTempIcon, ColorStateList.valueOf(tempColor))
             binding.sensorTemperature.setTextColor(tempColor)
 
+            // Signal
             val signalInfo = when (sensor.signalStrength) {
                 SignalStrength.EXCELLENT -> SignalInfo(R.drawable.ic_signal_excellent, "Excellent", R.color.level_green)
                 SignalStrength.GOOD -> SignalInfo(R.drawable.ic_signal_good, "Good", R.color.level_green)
@@ -110,6 +107,7 @@ class Sensor1CardAdapter(
             binding.sensorSignal.text = signalInfo.text
             binding.sensorSignal.setTextColor(signalColor)
 
+            // Last update
             val seconds = (System.currentTimeMillis() - sensor.lastSeenMillis) / 1000
             binding.sensorLastUpdated.text = when {
                 seconds < 10 -> "Updated just now"
@@ -117,6 +115,8 @@ class Sensor1CardAdapter(
                 seconds < 3600 -> "Updated ${seconds / 60}m ago"
                 else -> "Updated ${seconds / 3600}h ago"
             }
+
+            // Tank type
             binding.sensorType.text=sensor.tank?.type?.displayName?:"STANDARD"
             binding.root.setOnClickListener { onSensorClick(sensor) }
         }

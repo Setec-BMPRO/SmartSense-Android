@@ -100,9 +100,9 @@ class Scan1ViewModel @Inject constructor(
                     // 1. Logic check: Auto-pair sync sensor
                     handleAutoPairing(freshlyScannedSensors)
 
-                    // 2. Filter out already registered sensors
-                    val registeredAddresses = _uiState.value.sensors.map { it.address }.toSet()
-                    val unregistered = freshlyScannedSensors.filter { it.address !in registeredAddresses }
+//                    // 2. Filter out already registered sensors
+//                    val registeredAddresses = _uiState.value.sensors.map { it.address }.toSet()
+//                    val unregistered = freshlyScannedSensors.filter { it.address !in registeredAddresses }
 
                     // 3. STABILIZE THE LIST:
                     // To prevent flickering, we only update if the count or specific data changes
@@ -111,7 +111,7 @@ class Scan1ViewModel @Inject constructor(
                         state.copy(
                             // Sort by RSSI initially, but consider sorting by Address
                             // to keep the list items in the same physical spot in the UI
-                            discoveredSensors = unregistered.sortedByDescending { it.address }
+                            discoveredSensors = freshlyScannedSensors.sortedByDescending { it.address }
                         )
                     }
                 }
@@ -119,47 +119,36 @@ class Scan1ViewModel @Inject constructor(
     }
 
     private fun handleAutoPairing(sensors: List<Sensor1>) {
-        if (!autoPairDone && _uiState.value.sensors.isEmpty()) {
+        // Auto-pair: if syncPressed detected and no sensors registered yet,
+        // and will auto close discovery after registered
+        //if (!autoPairDone && _uiState.value.sensors.isEmpty()) {
             sensors.firstOrNull { it.syncPressed }?.let { syncSensor ->
                 Timber.d("Auto-pairing syncPressed sensor: ${syncSensor.address}")
                 autoPairDone = true
                 registerSensor(syncSensor.address, "New LPG Device")
             }
-        }
-    }
-
-    fun openDiscovery() {
-        _uiState.update { it.copy(showDiscovery = true, discoveredSensors = emptyList()) }
-        if (scanJob?.isActive != true) {
-            autoStartScan()
-        }
-    }
-
-    fun closeDiscovery() {
-        _uiState.update {
-            it.copy(showDiscovery = false, discoveredSensors = emptyList())
-        }
+        //}
     }
 
     fun registerSensor(address: String, name: String) {
         viewModelScope.launch {
             autoPairDone = true
             repository.registerSensor(address, name)
-            closeDiscovery()
+            //closeDiscovery()
         }
     }
 
-    fun toggleSort() {
-        _uiState.update { state ->
-            val newSortByLevel = !state.sortByLevel
-            val sorted = if (newSortByLevel) {
-                state.sensors.sortedByDescending { it.reading?.levelPercent ?: 0f }
-            } else {
-                state.sensors.sortedBy { it.name }
-            }
-            state.copy(sortByLevel = newSortByLevel, sensors = sorted)
-        }
-    }
+//    fun toggleSort() {
+//        _uiState.update { state ->
+//            val newSortByLevel = !state.sortByLevel
+//            val sorted = if (newSortByLevel) {
+//                state.sensors.sortedByDescending { it.reading?.levelPercent ?: 0f }
+//            } else {
+//                state.sensors.sortedBy { it.name }
+//            }
+//            state.copy(sortByLevel = newSortByLevel, sensors = sorted)
+//        }
+//    }
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }

@@ -10,5 +10,6 @@ data class SensorReading(
     val firmwareVersion: String = "",
     val timestampMillis: Long = System.currentTimeMillis(),
     val tankLevelPercentage: Int=0,
-    val batteryPercent: Float=((batteryVoltage - 2.0f) / 1.6f * 100f).coerceIn(0f, 100f)
+    val batteryPercent: Float=((batteryVoltage - 2.0f) / 1.6f * 100f).coerceIn(0f, 100f),
+    val deviceMAC: String=""
 )

@@ -280,23 +280,23 @@
                     android:layout_height="24dp"
                     android:src="@drawable/ic_tank"
                     app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/tank_type"/>
+                    android:contentDescription="@string/device_mac"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/spacing_md"
-                    android:text="@string/tank_type"
+                    android:text="@string/device_mac"
                     android:textAppearance="?attr/textAppearanceTitleSmall"/>
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/detail_tank_type"
+                    android:id="@+id/detail_device_mac"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorPrimary"
-                    tools:text="20 lb (BBQ)"/>
+                    tools:text="00:00:00"/>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

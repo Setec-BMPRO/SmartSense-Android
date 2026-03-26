@@ -33,7 +33,7 @@
     <string name="signal_strength">Signal Strength</string>
     <string name="temperature">Temperature</string>
     <string name="read_quality">Read Quality</string>
-    <string name="tank_type">Tank Type</string>
+    <string name="device_mac">Device MAC</string>
     <string name="change">Change</string>
     <string name="remove_sensor">Remove Sensor</string>
     <string name="remove_confirm_title">Remove Sensor?</string>

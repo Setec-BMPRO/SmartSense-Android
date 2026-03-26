@@ -51,9 +51,9 @@ class Sensor1DetailFragment : Fragment() {
         binding.btnBack.setOnClickListener {
             findNavController().popBackStack()
         }
-        binding.detailTankType.setOnClickListener {
-            showTankPresetDialog()
-        }
+//        binding.detailDeviceMac.setOnClickListener {
+//            showTankPresetDialog()
+//        }
         viewModel.loadSensor()
 
 
@@ -87,7 +87,7 @@ class Sensor1DetailFragment : Fragment() {
         // Battery
         val batteryPercent = sensor.reading?.batteryPercent?:0F
         binding.detailBattery.text = "${batteryPercent.toInt()}%"
-        val (battIcon) = when {
+        val (battIcon,battColorRes) = when {
             batteryPercent <= 15F -> R.drawable.ic_battery_critical to R.color.level_red
             batteryPercent <= 40 -> R.drawable.ic_battery_low to R.color.level_yellow
             batteryPercent <= 70 -> {
@@ -96,6 +96,9 @@ class Sensor1DetailFragment : Fragment() {
             else -> R.drawable.ic_battery_full to R.color.level_green
         }
         binding.imgBattery.setImageResource(battIcon)
+        val battColor = ContextCompat.getColor(binding.root.context, battColorRes)
+        ImageViewCompat.setImageTintList(binding.imgBattery, ColorStateList.valueOf(battColor))
+        binding.detailBattery.setTextColor(battColor)
 
         // Signal
         val signalInfo = when (sensor.signalStrength) {
@@ -122,6 +125,15 @@ class Sensor1DetailFragment : Fragment() {
             else -> R.drawable.ic_temp_hot to R.color.temp_hot
         }
         binding.imgTemperature.setImageResource(tempIcon)
+        val tempColor = ContextCompat.getColor(binding.root.context, tempColorRes)
+        ImageViewCompat.setImageTintList(binding.imgTemperature, ColorStateList.valueOf(tempColor))
+        binding.detailTemperature.setTextColor(tempColor)
+
+        // Quality
+        binding.detailQualityChip.text = sensor.readQuality
+
+        // Tank type
+        binding.detailDeviceMac.text =sensor.reading?.deviceMAC?:""
 
 //        binding.detailLevelHeight.text = sensor.reading?.rawHeightMeters.toString()
 //        binding.detailBattery.text = getString(R.string.format_battery, sensor.batteryPercent)

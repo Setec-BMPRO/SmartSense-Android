@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -59,7 +60,7 @@ class Sensor1Repository @Inject constructor(
                 _isScanning.value=false
                 Sensor1(
                     address = scanned.address,
-                    name = "New LPG Device",
+                    name = scanned.name?:"New LPG Device",
                     advertisedName = scanned.name,
                     sensorType = scanned.sensorType,
                     syncPressed = scanned.syncPressed,
@@ -94,7 +95,7 @@ class Sensor1Repository @Inject constructor(
                 }
                 Sensor1(
                     address = address,
-                    name = tankEntity?.name ?: scanned?.name ?: address,
+                    name = scanned?.name?:"New LPG Device",
                     advertisedName = scanned?.name,
                     sensorType = scanned?.sensorType ?: MopekaSensorType.UNKNOWN,
                     syncPressed = scanned?.syncPressed ?: false,
@@ -123,7 +124,10 @@ class Sensor1Repository @Inject constructor(
      * Register a sensor — mark it as registered so it appears in the main list.
      */
     suspend fun registerSensor(address: String, name: String) {
-        val existing = sensorDao.getSensor(address)
+        if (sensorDao.getSensor(address) != null) {
+            Timber.i("Sensor register failed with address ${address}")
+            return
+        }
         sensorDao.insertSensor(
             SensorEntity(
                 address = address,
@@ -132,6 +136,7 @@ class Sensor1Repository @Inject constructor(
                 isRegistered = true
             )
         )
+        Timber.i("Sensor registered successful with address ${address}")
     }
 
     /**
@@ -159,7 +164,7 @@ class Sensor1Repository @Inject constructor(
             }
             Sensor1(
                 address = scanned.address,
-                name = tankEntity?.name ?: scanned.name ?: scanned.address,
+                name = scanned.name?:"New LPG Device",
                 advertisedName = scanned.name,
                 sensorType = scanned.sensorType,
                 syncPressed = scanned.syncPressed,

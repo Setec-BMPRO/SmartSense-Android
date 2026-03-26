@@ -134,7 +134,11 @@ object SensorAdvertParser {
                     quality = quality,
                     temperatureCelsius = temperatureCelsius,
                     firmwareVersion = "",
-                    tankLevelPercentage = tankLevelPercentage.toInt() and 0xFF
+                    tankLevelPercentage = tankLevelPercentage.toInt() and 0xFF,
+                    deviceMAC = macBytes?.let {
+                        byteArrayOf(it[3], it[4], it[5])
+                            .joinToString(":") { byte -> "%02X".format(byte) }
+                    } ?: ""
 
                 ),
                 sensorType = MopekaSensorType.fromCC2540DeviceByte(byte1),
