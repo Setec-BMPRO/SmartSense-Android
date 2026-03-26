@@ -1,25 +1,12 @@
 package com.smartsense.app.ui.scan
 
-import android.Manifest
-import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.res.ColorStateList
-import android.os.Build
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -28,14 +15,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.navOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScan1Binding
-import com.smartsense.app.domain.model.Sensor
-import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.ui.dashboard.Sensor1CardAdapter
+
 import com.smartsense.app.ui.helper.BlePermissionManager
 
 import dagger.hilt.android.AndroidEntryPoint

@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
+import android.os.ParcelUuid
 import android.util.Log
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.SensorReading
@@ -22,10 +23,7 @@ import javax.inject.Singleton
 data class ScannedSensor(
     val address: String,
     val name: String?,
-    val reading: SensorReading?,
-    val sensorType: MopekaSensorType,
-    val syncPressed: Boolean,
-    val rssi: Int,
+    val parsed: ParsedSensor,
     val timestampMillis: Long = System.currentTimeMillis()
 )
 
@@ -72,8 +70,15 @@ class BleManager @Inject constructor(
             .setReportDelay(0)
             .build()
 
-        // Scan for all BLE devices — we filter Mopeka sensors by manufacturer data in parseScanResult
-        val scanFilters = listOf<ScanFilter>()
+        // Filter by Mopeka service UUIDs: ADA0 (CC2540) and FEE5 (NRF52)
+        val scanFilters = listOf(
+            ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_CC2540))
+                .build(),
+            ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_NRF52))
+                .build()
+        )
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -137,28 +142,32 @@ class BleManager @Inject constructor(
     @SuppressLint("MissingPermission")
     private fun parseScanResult(result: ScanResult): ScannedSensor? {
         val record = result.scanRecord ?: return null
-        // ---------------------------------------------------------------
-        // Get manufacturer-specific data for Mopeka's manufacturer ID (0x000D)
-        // ---------------------------------------------------------------
-        val mfgData = record.getManufacturerSpecificData(BleConstants.MOPEKA_MANUFACTURER_ID)
-            ?: return null // Not a Mopeka device
-        // Try parsing as CC2540 (20/23 byte payload) or NRF52 (10 byte payload)
-        // Pass BLE address for MAC validation (Mopeka duplicates last 3 MAC bytes in payload)
-        val parsed = SensorAdvertParser.parse(mfgData, result.rssi, result.device.address)
-        if (parsed == null) {
-            return null
+
+        // RSSI threshold filter
+        if (result.rssi < BleConstants.DEFAULT_RSSI_THRESHOLD) return null
+
+        // Determine hardware type by service UUID and get correct manufacturer data
+        val serviceUuids = record.serviceUuids
+        val hwType = when {
+            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_CC2540 } == true -> HwType.CC2540
+            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_NRF52 } == true -> HwType.NRF52
+            else -> return null
         }
 
-        // Only show LPG sensors
-        if (!parsed.sensorType.isLpg) {
-            Log.d(TAG, "Skipping non-LPG sensor ${result.device.address}: ${parsed.sensorType.displayName}")
-            return null
-        }
-        Log.d("-----",parsed.toString())
+        // Get manufacturer data using the correct manufacturer ID for each hardware type
+        val mfgData = when (hwType) {
+            HwType.CC2540 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_CC2540)
+            HwType.NRF52 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_NRF52)
+        } ?: return null
 
-        // ---------------------------------------------------------------
-        // Extract BLE advertised name
-        // ---------------------------------------------------------------
+        // Parse using the format matching the hardware type
+        val parsed = when (hwType) {
+            HwType.CC2540 -> SensorAdvertParser.parseCC2540(mfgData, result.rssi, result.device.address)
+            HwType.NRF52 -> SensorAdvertParser.parseNRF52(mfgData, result.rssi, result.device.address)
+        } ?: return null
+
+        if (!parsed.sensorType.isLpg) return null
+
         val bleDeviceName: String? = try {
             result.device?.name
         } catch (_: SecurityException) {
@@ -174,10 +183,7 @@ class BleManager @Inject constructor(
         return ScannedSensor(
             address = result.device.address,
             name = deviceName,
-            reading = parsed.reading,
-            sensorType = parsed.sensorType,
-            syncPressed = parsed.syncPressed,
-            rssi = result.rssi
+            parsed = parsed
         )
     }
 
@@ -202,10 +208,5 @@ class BleManager @Inject constructor(
         return null
     }
 
-    private fun getReadableByteArray(data: ByteArray):String {
-        return data.joinToString(
-            prefix = "[",
-            postfix = "]"
-        ) { (it.toInt() and 0xFF).toString() }
-    }
+    private enum class HwType { CC2540, NRF52 }
 }

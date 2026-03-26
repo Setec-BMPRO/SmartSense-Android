@@ -1,5 +1,7 @@
 package com.smartsense.app.ui.dashboard
 
+import android.R.attr.duration
+import android.R.attr.startDelay
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
@@ -192,4 +194,4 @@ class Sensor1CardAdapter(
     }
 }
 
-data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)
+

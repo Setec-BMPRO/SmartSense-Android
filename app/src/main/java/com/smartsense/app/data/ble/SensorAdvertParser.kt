@@ -40,90 +40,51 @@ object SensorAdvertParser {
 
     private const val TAG = "SensorAdvertParser"
 
-    // CC2540 payload sizes (after manufacturer ID stripped by Android)
-    private const val CC2540_PAYLOAD_SHORT = 20  // was 22 raw (minus 2-byte mfg ID)
-    private const val CC2540_PAYLOAD_LONG = 23   // was 25 raw
+    private const val CC2540_PAYLOAD_SHORT = 20
+    private const val CC2540_PAYLOAD_LONG = 23
+    private const val NRF52_PAYLOAD = 10
 
-    // NRF52 payload size (after manufacturer ID stripped)
-    private const val NRF52_PAYLOAD = 10         // was 12 raw
+    fun parse(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
+        return parseCC2540(data, rssi, bleAddress) ?: parseNRF52(data, rssi, bleAddress)
+    }
 
-    /**
-     * Try to parse CC2540-format manufacturer payload.
-     *
-     * From the decompiled source (dist.bundle.js, getTankCheckSensorMac_cc2540):
-     * Raw bytes included 2-byte mfg ID at [0..1]. Android strips those, so:
-     * - payload[0] = raw[2] — must NOT be 0xBB or 0xAA
-     * - payload[1] = raw[3] — brand filter: (val & 0xCF) must be 0x46 or 0x48 for BMPRO
-     * - payload[2] = raw[4] — battery (lower 7 bits / 32 = volts)
-     * - payload[3] = raw[5] — temperature (lower 7 bits, offset -40°C)
-     * - payload[4..5] = raw[6..7] — raw tank level (14-bit) + quality (bits 14-15)
-     * - Last 3 bytes: Duplicated MAC
-     */
     fun parseCC2540(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
         if (data.size != CC2540_PAYLOAD_SHORT && data.size != CC2540_PAYLOAD_LONG) return null
-        //Timber.i("-----parseCC2540-data:${getReadableByteArray(data)}")
+
         return try {
             val byte0 = data[0].toInt() and 0xFF
-            // Reject gateway/diagnostic packets
             if (byte0 == 0xBB || byte0 == 0xAA) return null
 
             val byte1 = data[1].toInt() and 0xFF
-            // BMPRO brand filter: (byte1 & 0xCF) must be 0x46 or 0x48
             val maskedByte1 = byte1 and 0xCF
-            if (maskedByte1 !in BleConstants.BMPRO_ACCEPTED_DEVICE_BYTES) {
-                return null
-            }
+            if (maskedByte1 !in BleConstants.BMPRO_ACCEPTED_DEVICE_BYTES) return null
 
-            // -----------------------------------------------------------
-            // MAC validation: Mopeka CC2540 sensors duplicate the last 3
-            // bytes of their MAC address at the end of the advertisement.
-            // This is THE key filter to reject non-Mopeka TI devices.
-            // -----------------------------------------------------------
-            val macBytes = parseMacBytes(bleAddress)
-            if (macBytes != null && data.size >= 3) {
-                val payloadMac = byteArrayOf(
-                    data[data.size - 3],
-                    data[data.size - 2],
-                    data[data.size - 1]
-                )
-                val deviceMac = byteArrayOf(macBytes[3], macBytes[4], macBytes[5])
-                if (!payloadMac.contentEquals(deviceMac)) {
-                    Log.d(TAG, "CC2540: MAC mismatch for $bleAddress — " +
-                            "payload=[%02X:%02X:%02X] vs device=[%02X:%02X:%02X]".format(
-                                payloadMac[0], payloadMac[1], payloadMac[2],
-                                deviceMac[0], deviceMac[1], deviceMac[2]))
-                    return null
-                }
-            }
+            // MAC validation — mandatory: last 3 bytes of payload must match last 3 of BLE address
+            val macBytes = parseMacBytes(bleAddress) ?: return null
+            val payloadMac = byteArrayOf(
+                data[data.size - 3],
+                data[data.size - 2],
+                data[data.size - 1]
+            )
+            val deviceMac = byteArrayOf(macBytes[3], macBytes[4], macBytes[5])
+            if (!payloadMac.contentEquals(deviceMac)) return null
 
-            // Quality: bits 4-5 of byte 1 (hardware/device flags byte)
             val quality = (byte1 shr 4) and 0x03
 
-            // Battery voltage: byte 2 — formula: (raw / 256) * 2 + 1.5
             val batteryRaw = data[2].toInt() and 0xFF
             val batteryVoltage = (batteryRaw / 256.0f) * 2.0f + 1.5f
 
-            // Byte 3: Temperature (bits 0-5), slowUpdateRate (bit 6), syncPressed (bit 7)
             val byte3raw = data[3].toInt() and 0xFF
             val syncPressed = (byte3raw and 0x80) != 0
-            val tempRaw = byte3raw and 0x3F  // 6-bit temperature
+            val tempRaw = byte3raw and 0x3F
             val temperatureCelsius = if (tempRaw == 0) -40.0f
-                else (1.776964f * (tempRaw - 25))
+            else (1.776964f * (tempRaw - 25))
 
-            // Byte 7: Raw tank level
-            val tankLevelPercentage = data[7]
-
-            // Bytes 4+ contain multiple measurement samples (up to 8 for Gen2)
-            // Each sample encodes distance/time. For now extract first sample
-            // and use speed-of-sound based conversion.
-            // The raw level is in the measurement data, encoded per sample.
-            // For simplicity, use the average of available samples.
             val heightMeters = extractHeightFromSamples(data, 4, temperatureCelsius)
-
+            val tankLevelPercentage = data[7]
             Log.d(TAG, "CC2540 VALID $bleAddress: battery=${"%.2f".format(batteryVoltage)}V, " +
                     "temp=${"%.1f".format(temperatureCelsius)}°C, quality=$quality, " +
-                    "height=${"%.4f".format(heightMeters)}m, syncPressed=$syncPressed" +
-                    ",tankLevelPercentage=$tankLevelPercentage")
+                    "height=${"%.4f".format(heightMeters)}m")
 
             ParsedSensor(
                 reading = SensorReading(
@@ -150,26 +111,20 @@ object SensorAdvertParser {
         }
     }
 
-    /**
-     * Try to parse NRF52-format manufacturer payload (10 bytes after mfg ID stripped).
-     */
     fun parseNRF52(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
         if (data.size != NRF52_PAYLOAD) return null
 
         return try {
-            // MAC validation: NRF52 duplicates last 3 MAC bytes at positions 7-9
-            val macBytes = parseMacBytes(bleAddress)
-            if (macBytes != null && data.size >= 8) {
-                val payloadMac = byteArrayOf(data[5], data[6], data[7])
-                val deviceMac = byteArrayOf(macBytes[3], macBytes[4], macBytes[5])
-                if (!payloadMac.contentEquals(deviceMac)) {
-                    return null
-                }
-            }
+            // MAC validation — mandatory: bytes 5-7 must match last 3 of BLE address
+            val macBytes = parseMacBytes(bleAddress) ?: return null
+            val payloadMac = byteArrayOf(data[5], data[6], data[7])
+            val deviceMac = byteArrayOf(macBytes[3], macBytes[4], macBytes[5])
+            if (!payloadMac.contentEquals(deviceMac)) return null
 
-            val sensorType = data[0].toInt() and 0x7F
+            val byte0raw = data[0].toInt() and 0xFF
+            val sensorType = byte0raw and 0x7F
+            val extendedRange = (byte0raw and 0x80) != 0
 
-            // Validate sensor type
             val validTypes = setOf(
                 BleConstants.SensorType.STANDARD_BOTTOM_UP,
                 BleConstants.SensorType.TOP_DOWN_AIR_ABOVE,
@@ -178,41 +133,39 @@ object SensorAdvertParser {
                 BleConstants.SensorType.PLUS_BOTTOM_UP,
                 BleConstants.SensorType.PRO_UNIVERSAL
             )
-            if (sensorType !in validTypes) {
-                Log.d(TAG, "NRF52: Unknown sensor type 0x%02X".format(sensorType))
-                return null
-            }
+            if (sensorType !in validTypes) return null
 
-            // Battery voltage: byte 1 lower 7 bits, divide by 32 for volts
             val batteryRaw = data[1].toInt() and 0x7F
             val batteryVoltage = batteryRaw / 32.0f
 
-            // Temperature: byte 2 lower 7 bits, offset -40
-            // Bit 7 of byte 2 = syncPressed (physical button on sensor)
             val byte2raw = data[2].toInt() and 0xFF
             val syncPressed = (byte2raw and 0x80) != 0
             val tempRaw = byte2raw and 0x7F
             val temperatureCelsius = (tempRaw - 40).toFloat()
 
-            // Raw distance: 14-bit value from bytes 3-4
             val byte3 = data[3].toInt() and 0xFF
             val byte4 = data[4].toInt() and 0xFF
-            val rawLevel = byte3 or ((byte4 and 0x3F) shl 8)
+            var rawLevel = byte3 or ((byte4 and 0x3F) shl 8)
 
-            // Quality: upper 2 bits of byte 4
+            // Extended range: bit 7 of hw byte scales up the raw level
+            if (extendedRange) {
+                rawLevel = 16384 + (rawLevel shl 2)
+            }
+
             val quality = (byte4 shr 6) and 0x03
 
-            // Convert raw level to depth in mm using temperature coefficients
+            // Match decompiled: level = 1e-6 * rawLevel (time-of-flight in µs)
+            // Then apply temperature-compensated propane speed of sound / 2
+            val levelSeconds = rawLevel * 1e-6
             val coeffs = BleConstants.PROPANE_COEFFICIENTS
-            val depthMm = rawLevel * (coeffs[0] + coeffs[1] * temperatureCelsius + coeffs[2] * temperatureCelsius * temperatureCelsius)
-            val heightMeters = depthMm / 1000.0
+            val speedOfSound = (coeffs[0] + coeffs[1] * temperatureCelsius + coeffs[2] * temperatureCelsius * temperatureCelsius) * 2000.0
+            val heightMeters = levelSeconds * speedOfSound / 2.0
 
             val mopekaSensorType = MopekaSensorType.fromNrf52TypeByte(sensorType)
 
-            Log.d(TAG, "NRF52 OK: type=0x%02X (${mopekaSensorType.displayName}), ".format(sensorType) +
+            Log.d(TAG, "NRF52 OK $bleAddress: type=${mopekaSensorType.displayName}, " +
                     "battery=${"%.2f".format(batteryVoltage)}V, temp=${temperatureCelsius}°C, " +
-                    "rawLevel=$rawLevel, quality=$quality, depthMm=${"%.1f".format(depthMm)}, " +
-                    "syncPressed=$syncPressed")
+                    "rawLevel=$rawLevel, quality=$quality, height=${"%.4f".format(heightMeters)}m")
 
             ParsedSensor(
                 reading = SensorReading(
@@ -234,58 +187,84 @@ object SensorAdvertParser {
     }
 
     /**
-     * Try to parse manufacturer data from either hardware format.
-     * Tries CC2540 first (21/23 byte payload), then NRF52 (10 byte payload).
-     */
-    fun parse(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
-        return parseCC2540(data, rssi, bleAddress) ?: parseNRF52(data, rssi, bleAddress)
-    }
-
-    /**
-     * Extract fluid height from CC2540 Gen2 measurement samples.
-     * Samples are packed in bytes starting at [startIdx] up to end-3 (MAC bytes).
-     * Uses speed-of-sound temperature compensation.
+     * Extract fluid height from CC2540 advertisement data.
      *
-     * Each Gen2 sample is approx 2 bytes encoding time-of-flight in microseconds.
-     * Height = (time_us * speed_of_sound) / 2 (divide by 2 for round trip)
+     * Matches decompiled logic: data[1] (hwVersion byte) determines encoding.
+     * - hwVersion 0 or 1: simple 2-byte pairs (amplitude, intensity)
+     * - Other: 10-bit packed variable-length encoding
+     *
+     * The adv[] entries contain {amplitude, intensity} where intensity = 2 * distance_index.
+     * The highest-amplitude entry's distance is used as the raw level.
      */
     private fun extractHeightFromSamples(
         data: ByteArray,
         startIdx: Int,
         temperatureCelsius: Float
     ): Double {
-        // Speed of sound in propane gas, temperature-compensated
-        val temp = temperatureCelsius.toDouble()
-        val speedOfSound = 331.411 + 0.607 * temp - 0.00058865 * temp * temp // m/s
-
         val endIdx = data.size - 3 // Last 3 bytes are MAC
         if (startIdx >= endIdx) return 0.0
 
-        // Extract raw 16-bit samples (little-endian pairs)
-        val samples = mutableListOf<Double>()
-        var i = startIdx
-        while (i + 1 < endIdx) {
-            val lo = data[i].toInt() and 0xFF
-            val hi = data[i + 1].toInt() and 0xFF
-            val rawTimeUs = lo or (hi shl 8)
-            if (rawTimeUs > 0) {
-                // Convert time-of-flight (microseconds) to distance (meters)
-                // Divide by 2 for round trip, multiply by 1e-6 to convert us to seconds
-                val distanceMeters = (rawTimeUs * 1e-6 * speedOfSound) / 2.0
-                samples.add(distanceMeters)
+        val hwVersion = data[1].toInt() and 0xFF
+        val isXl = (hwVersion and 0x01) == 1
+
+        data class AdvEntry(val amplitude: Int, val distance: Int)
+        val adv = mutableListOf<AdvEntry>()
+
+        if (hwVersion == 0 || hwVersion == 1) {
+            // Simple encoding: 8 entries of 2-byte pairs
+            for (n in 0 until 8) {
+                val idx = startIdx + 2 * n
+                if (idx + 1 >= endIdx) break
+                val a = data[idx].toInt() and 0xFF
+                var i = data[idx + 1].toInt() and 0xFF
+                if (isXl) i *= 2
+                if (a > 0) adv.add(AdvEntry(a, i * 2))
             }
-            i += 2
+        } else {
+            // 10-bit packed variable-length encoding
+            var entryCount = 0
+            var cumDist = 0
+            for (o in 0 until 12) {
+                val bitOffset = 10 * o
+                val byteOffset = bitOffset / 8
+                val bitShift = bitOffset % 8
+                val absIdx = startIdx + byteOffset
+                if (absIdx + 1 >= endIdx) break
+
+                val lo = data[absIdx].toInt() and 0xFF
+                val hi = data[absIdx + 1].toInt() and 0xFF
+                var s = lo + 256 * hi
+                s = s shr bitShift
+
+                val u = 1 + (s and 0x1F) // 5-bit delta distance
+                s = s shr 5
+                val amplitude = s and 0x1F // 5-bit amplitude
+
+                cumDist += u
+                if (cumDist > 255) break
+
+                if (amplitude > 0) {
+                    val adjAmplitude = (amplitude - 1) * 4 + 6
+                    adv.add(AdvEntry(adjAmplitude, cumDist * 2))
+                    entryCount++
+                }
+            }
         }
 
-        // Return median sample height (most robust against outliers)
-        if (samples.isEmpty()) return 0.0
-        val sorted = samples.sorted()
-        return sorted[sorted.size / 2]
+        if (adv.isEmpty()) return 0.0
+
+        // Use the entry with the highest amplitude as the best reading
+        val best = adv.maxByOrNull { it.amplitude } ?: return 0.0
+        val rawLevel = best.distance
+
+        // Convert using propane speed of sound (same as NRF52)
+        val levelSeconds = rawLevel * 1e-6
+        val coeffs = BleConstants.PROPANE_COEFFICIENTS
+        val temp = temperatureCelsius.toDouble()
+        val speedOfSound = (coeffs[0] + coeffs[1] * temp + coeffs[2] * temp * temp) * 2000.0
+        return levelSeconds * speedOfSound / 2.0
     }
 
-    /**
-     * Parse a BLE MAC address string "AA:BB:CC:DD:EE:FF" into 6 bytes.
-     */
     private fun parseMacBytes(address: String): ByteArray? {
         return try {
             val parts = address.split(":")
@@ -294,12 +273,5 @@ object SensorAdvertParser {
         } catch (_: Exception) {
             null
         }
-    }
-
-    private fun getReadableByteArray(data: ByteArray):String {
-        return data.joinToString(
-            prefix = "[",
-            postfix = "]"
-        ) { (it.toInt() and 0xFF).toString() }
     }
 }

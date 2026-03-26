@@ -50,14 +50,16 @@
     <color name="logo_smart_text">#231A16</color>
 
     <!-- Tab bar -->
-    <color name="tab_bar_background">#D24520</color>
+    <color name="tab_bar_background">#F0F0F0</color>
+    <color name="tab_bar_fab_background">@color/primary</color>
     <color name="primary_50">#80D24520</color>
+    <color name="tab_color_fab">#FFFFFF</color>
 
     <!-- Gauge -->
     <color name="gauge_track">#D0C4BF</color>
     <color name="gauge_track_dark">#4A4A4A</color>
-    <color name="tab_color_selected">#FFFFFF</color>
-    <color name="tab_color_unselected">#80FFFFFF</color>
+    <color name="tab_color_selected">#000000</color>
+    <color name="tab_color_unselected">#80000000</color>
 
 
 </resources>

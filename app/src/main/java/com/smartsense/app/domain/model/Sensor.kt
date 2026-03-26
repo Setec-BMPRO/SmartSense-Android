@@ -10,7 +10,8 @@ data class Sensor(
     val temperatureCelsius: Float,
     val readQuality: ReadQuality,
     val lastUpdated: Long,
-    val isPaired: Boolean
+    val isPaired: Boolean,
+    val sensorTypeName: String = ""
 ) {
     val signalStrength: SignalStrength
         get() = when {

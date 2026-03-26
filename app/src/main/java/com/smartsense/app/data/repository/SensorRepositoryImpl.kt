@@ -52,6 +52,7 @@ class SensorRepositoryImpl @Inject constructor(
     }
 
     override suspend fun removeSensor(address: String) {
+        bleScanner.removePairedSensor(address)
         val current = removedAddresses.value.toMutableSet()
         current.add(address)
         removedAddresses.value = current
@@ -60,8 +61,15 @@ class SensorRepositoryImpl @Inject constructor(
     override fun scanForSensors(): Flow<List<Sensor>> {
         return bleScanner.startScan().map { sensors ->
             latestScanData.value = sensors
+
+            // If a sensor was removed but re-paired via sync button, un-remove it
             val removed = removedAddresses.value
-            val visible = sensors.filter { it.address !in removed }
+            val rePaired = sensors.filter { it.address in removed }.map { it.address }.toSet()
+            if (rePaired.isNotEmpty()) {
+                removedAddresses.value = removed - rePaired
+            }
+
+            val visible = sensors.filter { it.address !in (removed - rePaired) }
             _sensorCount.value = visible.size
             visible
         }

@@ -1,7 +1,9 @@
 package com.smartsense.app.domain.usecase
 
 import com.smartsense.app.domain.model.Tank
+import com.smartsense.app.domain.model.TankLevel
 import com.smartsense.app.domain.model.TankOrientation
+import com.smartsense.app.domain.model.TankPreset.TankType
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.max
@@ -26,39 +28,37 @@ class CalculateTankLevelUseCase @Inject constructor() {
      */
     fun calculate(
         rawHeightMeters: Double,
-        tank: Tank,
-        propaneRatio: Double = 1.0,
-        cAdjustment: Double = 1.0
-    ): Float {
-        val tankHeight = tank.effectiveHeightMeters
-        if (tankHeight <= 0) return 0f
+        tankHeightMm: Float,
+        tankType: TankType
+    ): TankLevel {
+        val tankHeightMeters = tankHeightMm / 1000.0
+        if (tankHeightMeters <= 0) return TankLevel(0f, 0f)
 
-        val adjustedHeight = rawHeightMeters * cAdjustment * propaneRatio
-        val effectiveHeight = tankHeight * SCALE_FACTOR
+        val effectiveHeight = tankHeightMeters * SCALE_FACTOR
 
-        // Below sensor dead zone = empty
-        if (adjustedHeight < MIN_OFFSET_METERS) return 0f
+        if (rawHeightMeters < MIN_OFFSET_METERS) return TankLevel(0f, 0f)
 
-        val percent = when (tank.effectiveOrientation) {
-            TankOrientation.VERTICAL -> {
-                // Linear: percent = (height - minOffset) / (effectiveHeight - minOffset) * 100
+        val percent = when (tankType) {
+            TankType.PROPANE_VERTICAL, TankType.CUSTOM -> {
                 if (MIN_OFFSET_METERS >= effectiveHeight) 100.0
-                else 100.0 * (adjustedHeight - MIN_OFFSET_METERS) / (effectiveHeight - MIN_OFFSET_METERS)
+                else 100.0 * (rawHeightMeters - MIN_OFFSET_METERS) / (effectiveHeight - MIN_OFFSET_METERS)
             }
-            TankOrientation.HORIZONTAL -> {
-                // Polynomial approximation for cylindrical cross-section
+            TankType.PROPANE_HORIZONTAL -> {
                 val diameter = effectiveHeight
-                if (adjustedHeight >= diameter) 100.0
-                else if (adjustedHeight <= 0) 0.0
+                if (rawHeightMeters >= diameter) 100.0
+                else if (rawHeightMeters <= 0) 0.0
                 else {
-                    val norm = adjustedHeight / diameter
+                    val norm = rawHeightMeters / diameter
                     val p = -1.16533 * norm.pow(3) + 1.7615 * norm.pow(2) + 0.40923 * norm
                     100.0 * p
                 }
             }
         }
 
-        return max(0f, min(100f, percent.toFloat()))
+        val clampedPercent = max(0f, min(100f, percent.toFloat()))
+        val heightMm = (rawHeightMeters * 1000.0).toFloat()
+
+        return TankLevel(clampedPercent, heightMm)
     }
 
      fun calculateRoundedGasTankLevel(rawTankLevel: Int): Int =

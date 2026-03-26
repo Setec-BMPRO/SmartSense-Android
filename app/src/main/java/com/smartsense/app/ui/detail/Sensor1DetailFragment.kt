@@ -2,7 +2,6 @@ package com.smartsense.app.ui.detail
 
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,18 +14,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentSensorDetailBinding
-import com.smartsense.app.domain.model.ReadQuality
-import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.TankPreset
-import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.dashboard.SignalInfo
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -76,7 +70,8 @@ class Sensor1DetailFragment : Fragment() {
     }
     private fun bindSensor(sensor: Sensor1) {
         binding.sensorName.text = sensor.name
-        binding.detailGauge.setLevel(sensor.level.percentage, sensor.level.status)
+
+        binding.detailGauge.setLevel(sensor.reading?.tankLevelPercentage?.toFloat()?:0F, sensor.level.status)
         val seconds = (System.currentTimeMillis() - sensor.lastSeenMillis) / 1000
         binding.lastUpdated.text = when {
             seconds < 10 -> "Updated just now"
@@ -102,7 +97,11 @@ class Sensor1DetailFragment : Fragment() {
 
         // Signal
         val signalInfo = when (sensor.signalStrength) {
-            SignalStrength.EXCELLENT -> SignalInfo(R.drawable.ic_signal_excellent, "Excellent", R.color.level_green)
+            SignalStrength.EXCELLENT -> SignalInfo(
+                R.drawable.ic_signal_excellent,
+                "Excellent",
+                R.color.level_green
+            )
             SignalStrength.GOOD -> SignalInfo(R.drawable.ic_signal_good, "Good", R.color.level_green)
             SignalStrength.FAIR -> SignalInfo(R.drawable.ic_signal_fair, "Fair", R.color.level_yellow)
             SignalStrength.WEAK -> SignalInfo(R.drawable.ic_signal_weak, "Weak", R.color.level_red)

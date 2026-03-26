@@ -52,7 +52,7 @@ class Sensor1Repository @Inject constructor(
             readings.values.map { scanned ->
                 val tankEntity = tankMap[scanned.address]
                 val tank = tankEntity?.toDomain()
-                val reading = scanned.reading?.let { r ->
+                val reading = scanned.parsed.reading.let { r ->
                     //if (tank != null) {
                         r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
                     //} else r
@@ -62,12 +62,12 @@ class Sensor1Repository @Inject constructor(
                     address = scanned.address,
                     name = scanned.name?:"New LPG Device",
                     advertisedName = scanned.name,
-                    sensorType = scanned.sensorType,
-                    syncPressed = scanned.syncPressed,
+                    sensorType = scanned.parsed.sensorType,
+                    syncPressed = scanned.parsed.syncPressed,
                     reading = reading,
                     tank = tank,
                     lastSeenMillis = scanned.timestampMillis,
-                    tankLevelPercentage = scanned.reading?.tankLevelPercentage?:0
+                    tankLevelPercentage = scanned.parsed.reading.levelPercent.toInt()
                 )
             }.sortedByDescending { it.lastSeenMillis }
         }
@@ -88,7 +88,7 @@ class Sensor1Repository @Inject constructor(
                 val scanned = readings[address]
                 val tankEntity = tankMap[address]
                 val tank = tankEntity?.toDomain()
-                val reading = scanned?.reading?.let { r ->
+                val reading = scanned?.parsed?.reading?.let { r ->
                     //if (tank != null) {
                         r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
                     //} else r
@@ -97,12 +97,12 @@ class Sensor1Repository @Inject constructor(
                     address = address,
                     name = scanned?.name?:"New LPG Device",
                     advertisedName = scanned?.name,
-                    sensorType = scanned?.sensorType ?: MopekaSensorType.UNKNOWN,
-                    syncPressed = scanned?.syncPressed ?: false,
+                    sensorType = scanned?.parsed?.sensorType ?: MopekaSensorType.UNKNOWN,
+                    syncPressed = scanned?.parsed?.syncPressed ?: false,
                     reading = reading,
                     tank = tank,
                     lastSeenMillis = scanned?.timestampMillis ?: 0L,
-                    tankLevelPercentage = scanned?.reading?.tankLevelPercentage?:0
+                    tankLevelPercentage = scanned?.parsed?.reading?.tankLevelPercentage?:0
                 )
             }.sortedBy { it.name }
         }
@@ -117,7 +117,7 @@ class Sensor1Repository @Inject constructor(
      * Used for auto-pairing the closest sensor.
      */
     fun getStrongestSensor(): ScannedSensor? {
-        return liveReadings.value.values.maxByOrNull { it.rssi }
+        return liveReadings.value.values.maxByOrNull { it.parsed.reading.rssi }
     }
 
     /**
@@ -157,21 +157,22 @@ class Sensor1Repository @Inject constructor(
         ) { readings, tankEntity ->
             val scanned = readings[address] ?: return@combine null
             val tank = tankEntity?.toDomain()
-            val reading = scanned.reading?.let { r ->
+            val reading = scanned.parsed.reading.let { r ->
                 //if (tank != null) {
-                    r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
+                    r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage)
+                        .toFloat())
                 //} else r
             }
             Sensor1(
                 address = scanned.address,
                 name = scanned.name?:"New LPG Device",
                 advertisedName = scanned.name,
-                sensorType = scanned.sensorType,
-                syncPressed = scanned.syncPressed,
-                reading = reading,
+                sensorType = scanned.parsed.sensorType,
+                syncPressed = scanned.parsed.syncPressed,
+                reading = scanned.parsed.reading,
                 tank = tank,
                 lastSeenMillis = scanned.timestampMillis,
-                tankLevelPercentage = scanned.reading?.tankLevelPercentage?:0
+                tankLevelPercentage = scanned.parsed.reading.tankLevelPercentage
             )
         }
     }
@@ -190,8 +191,8 @@ class Sensor1Repository @Inject constructor(
     val isBluetoothEnabled: Boolean
         get() = bleManager.isBluetoothEnabled
 
-    val isBluetoothSupported: Boolean
-        get() = bleManager.isBluetoothSupported
+//    val isBluetoothSupported: Boolean
+//        get() = bleManager. isBluetoothSupported
 
     // Mapping extensions
     private fun TankEntity.toDomain(): Tank = Tank(

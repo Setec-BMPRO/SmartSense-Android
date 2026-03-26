@@ -85,7 +85,7 @@ class SensorCardAdapter(
             val tempColor = ContextCompat.getColor(binding.root.context, tempColorRes)
             ImageViewCompat.setImageTintList(binding.sensorTempIcon, ColorStateList.valueOf(tempColor))
             binding.sensorTemperature.setTextColor(tempColor)
-            data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)
+
             val signalInfo = when (sensor.signalStrength) {
                 SignalStrength.EXCELLENT -> SignalInfo(R.drawable.ic_signal_excellent, "Excellent", R.color.level_green)
                 SignalStrength.GOOD -> SignalInfo(R.drawable.ic_signal_good, "Good", R.color.level_green)
@@ -179,3 +179,5 @@ class SensorCardAdapter(
             oldItem == newItem
     }
 }
+
+data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)
