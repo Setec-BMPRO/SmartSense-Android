@@ -56,6 +56,14 @@ class BleScannerImpl @Inject constructor(
         presetOverrides[address] = preset
     }
 
+    override fun removePairedSensor(address: String) {
+        pairedAddresses.remove(address)
+        val current = pairedSensors.value.toMutableMap()
+        current.remove(address)
+        pairedSensors.value = current
+        presetOverrides.remove(address)
+    }
+
     private fun handleScannedSensor(scanned: ScannedSensor) {
         val address = scanned.address
 

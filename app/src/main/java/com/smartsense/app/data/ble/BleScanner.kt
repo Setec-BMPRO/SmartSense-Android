@@ -9,4 +9,5 @@ interface BleScanner {
     fun stopScan()
     val isScanning: StateFlow<Boolean>
     fun getInitialSensors(): List<Sensor>
+    fun removePairedSensor(address: String) {}
 }
