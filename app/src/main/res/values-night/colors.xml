@@ -9,4 +9,5 @@
 
     <!-- Tab bar -->
     <color name="tab_bar_background">#1E1E1E</color>
+    <color name="tab_bar_icon">#FFFFFF</color>
 </resources>

@@ -1,6 +1,7 @@
 package com.smartsense.app.ui.views
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
@@ -13,9 +14,6 @@ import androidx.core.content.ContextCompat
 import com.smartsense.app.R
 import com.smartsense.app.domain.model.LevelStatus
 
-/**
- * Compact tank icon for list items. Same design as TankLevelView but without the percentage badge.
- */
 class TankLevelMiniView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -25,67 +23,56 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
 
-    // Tank fills the view more aggressively for the mini size
     private val tankLeftRatio = 0.15f
     private val tankRightRatio = 0.85f
     private val tankTopRatio = 0.15f
     private val tankBottomRatio = 0.85f
 
-    private val tankBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = 0xFF5A5A5A.toInt()
-    }
-
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val fillHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val valveBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = 0xFF6D6D6D.toInt()
-    }
-
-    private val valveCapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = 0xFF4A4A4A.toInt()
-    }
-
+    private val tankBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val fillHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val valveBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val valveCapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        color = 0xFF555555.toInt()
         strokeCap = Paint.Cap.ROUND
     }
-
-    private val rimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = 0xFFBBBBBB.toInt()
-    }
-
-    private val rimStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = 0xFF888888.toInt()
-    }
-
-    private val footPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-        color = 0xFF777777.toInt()
-    }
-
-    private val weldLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = 0x30000000
-    }
+    private val rimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val rimStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val footPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val weldLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
 
     private val tankPath = Path()
     private var lastWidth = 0f
+    private var lastDarkMode: Boolean? = null
+
+    private fun isDarkMode(): Boolean {
+        return (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    }
+
+    private fun applyThemeColors() {
+        val dark = isDarkMode()
+        if (dark) {
+            outlinePaint.color = 0xFFAAAAAA.toInt()
+            valveBodyPaint.color = 0xFF888888.toInt()
+            valveCapPaint.color = 0xFF999999.toInt()
+            handlePaint.color = 0xFF999999.toInt()
+            rimPaint.color = 0xFF666666.toInt()
+            rimStrokePaint.color = 0xFF999999.toInt()
+            footPaint.color = 0xFF888888.toInt()
+            weldLinePaint.color = 0x40FFFFFF
+        } else {
+            outlinePaint.color = 0xFF5A5A5A.toInt()
+            valveBodyPaint.color = 0xFF6D6D6D.toInt()
+            valveCapPaint.color = 0xFF4A4A4A.toInt()
+            handlePaint.color = 0xFF555555.toInt()
+            rimPaint.color = 0xFFBBBBBB.toInt()
+            rimStrokePaint.color = 0xFF888888.toInt()
+            footPaint.color = 0xFF777777.toInt()
+            weldLinePaint.color = 0x30000000
+        }
+    }
 
     fun setLevel(percentage: Float, status: LevelStatus) {
         this.percentage = percentage.coerceIn(0f, 100f)
@@ -105,7 +92,14 @@ class TankLevelMiniView @JvmOverloads constructor(
 
         val w = width.toFloat()
         val h = height.toFloat()
-        val scale = w / 56f // scaled relative to typical 56dp size
+        val scale = w / 56f
+        val dark = isDarkMode()
+
+        if (lastDarkMode != dark) {
+            lastDarkMode = dark
+            lastWidth = 0f
+            applyThemeColors()
+        }
 
         val tankLeft = w * tankLeftRatio
         val tankRight = w * tankRightRatio
@@ -115,26 +109,33 @@ class TankLevelMiniView @JvmOverloads constructor(
         val tankHeight = tankBottom - tankTop
         val cr = 4f * scale
 
-        // Scale stroke widths
         outlinePaint.strokeWidth = 1.5f * scale
         handlePaint.strokeWidth = 2.5f * scale
         rimStrokePaint.strokeWidth = 0.8f * scale
         weldLinePaint.strokeWidth = 0.8f * scale
 
-        // Tank body gradient
         if (w != lastWidth) {
             lastWidth = w
-            tankBodyPaint.shader = LinearGradient(
-                tankLeft, 0f, tankRight, 0f,
-                intArrayOf(0xFFE8E8E8.toInt(), 0xFFF5F5F5.toInt(), 0xFFE0E0E0.toInt()),
-                floatArrayOf(0f, 0.4f, 1f),
-                Shader.TileMode.CLAMP
-            )
+            tankBodyPaint.shader = if (dark) {
+                LinearGradient(
+                    tankLeft, 0f, tankRight, 0f,
+                    intArrayOf(0xFF3A3A3A.toInt(), 0xFF4A4A4A.toInt(), 0xFF333333.toInt()),
+                    floatArrayOf(0f, 0.4f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+            } else {
+                LinearGradient(
+                    tankLeft, 0f, tankRight, 0f,
+                    intArrayOf(0xFFE8E8E8.toInt(), 0xFFF5F5F5.toInt(), 0xFFE0E0E0.toInt()),
+                    floatArrayOf(0f, 0.4f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+            }
         }
 
         val cx = (tankLeft + tankRight) / 2f
 
-        // --- Valve assembly ---
+        // --- Valve ---
         val stemWidth = tankWidth * 0.14f
         val stemTop = tankTop - h * 0.05f
         val stemBottom = tankTop + cr * 0.5f
@@ -143,7 +144,6 @@ class TankLevelMiniView @JvmOverloads constructor(
             1.5f * scale, 1.5f * scale, valveBodyPaint
         )
 
-        // Valve cap
         val capWidth = tankWidth * 0.24f
         val capHeight = h * 0.03f
         val capTop = stemTop - capHeight * 0.3f
@@ -152,7 +152,6 @@ class TankLevelMiniView @JvmOverloads constructor(
             capHeight / 2, capHeight / 2, valveCapPaint
         )
 
-        // Handle arc
         val handleRadius = tankWidth * 0.15f
         val handleCy = capTop - 1f * scale
         val handleRect = RectF(
@@ -167,8 +166,6 @@ class TankLevelMiniView @JvmOverloads constructor(
             RectF(tankLeft, tankTop, tankRight, tankBottom),
             cr, cr, Path.Direction.CW
         )
-
-        // Tank body fill
         canvas.drawPath(tankPath, tankBodyPaint)
 
         // --- Liquid fill ---
@@ -178,7 +175,6 @@ class TankLevelMiniView @JvmOverloads constructor(
             canvas.clipPath(tankPath)
             canvas.drawRect(tankLeft, fillTop, tankRight, tankBottom, fillPaint)
 
-            // Subtle highlight
             fillHighlightPaint.shader = LinearGradient(
                 tankLeft, 0f, tankLeft + tankWidth * 0.4f, 0f,
                 0x30FFFFFF, 0x00FFFFFF,
@@ -196,7 +192,6 @@ class TankLevelMiniView @JvmOverloads constructor(
 
         // --- Rims ---
         val rimHeight = 2.5f * scale
-        // Top rim
         canvas.drawRoundRect(
             RectF(tankLeft - 0.5f * scale, tankTop - rimHeight * 0.3f,
                 tankRight + 0.5f * scale, tankTop + rimHeight * 0.7f),
@@ -207,7 +202,6 @@ class TankLevelMiniView @JvmOverloads constructor(
                 tankRight + 0.5f * scale, tankTop + rimHeight * 0.7f),
             rimHeight / 2, rimHeight / 2, rimStrokePaint
         )
-        // Bottom rim
         canvas.drawRoundRect(
             RectF(tankLeft - 0.5f * scale, tankBottom - rimHeight * 0.7f,
                 tankRight + 0.5f * scale, tankBottom + rimHeight * 0.3f),
@@ -219,7 +213,6 @@ class TankLevelMiniView @JvmOverloads constructor(
             rimHeight / 2, rimHeight / 2, rimStrokePaint
         )
 
-        // Tank outline
         canvas.drawPath(tankPath, outlinePaint)
 
         // --- Feet ---

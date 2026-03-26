@@ -50,7 +50,8 @@
     <color name="logo_smart_text">#231A16</color>
 
     <!-- Tab bar -->
-    <color name="tab_bar_background">#D24520</color>
+    <color name="tab_bar_background">#F0F0F0</color>
+    <color name="tab_bar_icon">#000000</color>
 
     <!-- Gauge -->
     <color name="gauge_track">#D0C4BF</color>

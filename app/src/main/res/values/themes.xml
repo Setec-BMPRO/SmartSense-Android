@@ -23,6 +23,7 @@
         <item name="colorOutlineVariant">@color/outline_variant</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/tab_bar_background</item>
+        <item name="android:windowLightNavigationBar">true</item>
         <item name="android:windowBackground">@android:color/white</item>
         <item name="elevationOverlayEnabled">false</item>
         <item name="colorSurfaceInverse">@color/on_surface</item>

@@ -68,7 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@color/surface_variant"
+            android:background="?attr/colorSurfaceVariant"
             android:paddingVertical="@dimen/spacing_sm">
 
             <!-- Battery -->

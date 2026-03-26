@@ -54,8 +54,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTabColors(activeId: Int) {
-        val activeColor = android.graphics.Color.WHITE
-        val inactiveColor = android.graphics.Color.argb(180, 255, 255, 255)
+        val activeColor = ContextCompat.getColor(this, R.color.tab_bar_icon)
+        val inactiveColor = android.graphics.Color.argb(
+            128,
+            android.graphics.Color.red(activeColor),
+            android.graphics.Color.green(activeColor),
+            android.graphics.Color.blue(activeColor)
+        )
 
         val isAccount = activeId == R.id.dashboardFragment
         val isSettings = activeId == R.id.settingsFragment
