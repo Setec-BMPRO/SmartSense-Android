@@ -61,6 +61,19 @@ class SensorDetailFragment : Fragment() {
             showTankPresetDialog()
         }
 
+        // Collapse/expand additional info section
+        binding.additionalInfoHeader.setOnClickListener {
+            val content = binding.additionalInfoContent
+            val arrow = binding.additionalInfoArrow
+            if (content.visibility == View.VISIBLE) {
+                content.visibility = View.GONE
+                arrow.animate().rotation(180f).setDuration(200).start()
+            } else {
+                content.visibility = View.VISIBLE
+                arrow.animate().rotation(0f).setDuration(200).start()
+            }
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(viewModel.sensor, viewModel.unitSystem) { sensor, unitSystem ->
