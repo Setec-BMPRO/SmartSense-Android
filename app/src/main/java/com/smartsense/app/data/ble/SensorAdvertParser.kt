@@ -80,7 +80,7 @@ object SensorAdvertParser {
             val temperatureCelsius = if (tempRaw == 0) -40.0f
             else (1.776964f * (tempRaw - 25))
 
-            val heightMeters = extractHeightFromSamples(data, 2, temperatureCelsius)
+            val heightMeters = extractHeightFromSamples(data, 3, temperatureCelsius)
 
 
             Log.d(TAG, "CC2540 VALID $bleAddress: battery=${"%.2f".format(batteryVoltage)}V, " +

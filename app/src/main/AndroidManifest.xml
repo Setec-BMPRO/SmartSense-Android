@@ -39,6 +39,5 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.detail.TankSettingsFragment" android:launchMode="singleTop"/>
     </application>
 </manifest>

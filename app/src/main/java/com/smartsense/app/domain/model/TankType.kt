@@ -47,6 +47,7 @@ enum class TankType(
     val orientation: TankOrientation,
     val region: String = ""
 ) {
+
     // North America vertical tanks
     LB_20("20 lb", 0.254, TankOrientation.VERTICAL),
     LB_30("30 lb", 0.381, TankOrientation.VERTICAL),

@@ -53,13 +53,6 @@ class Sensor1Repository @Inject constructor(
         ) { readings, tanks ->
             val tankMap = tanks.associateBy { it.sensorAddress }
             readings.values.map { scanned ->
-                val tankEntity = tankMap[scanned.address]
-                val tank = tankEntity?.toDomain()
-                val reading = scanned.parsed.reading.let { r ->
-                    //if (tank != null) {
-                        r.copy(tankLevelPercentage = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage))
-                    //} else r
-                }
                 _isScanning.value=false
                 Sensor1(
                     address = scanned.address,
@@ -67,7 +60,7 @@ class Sensor1Repository @Inject constructor(
                     advertisedName = scanned.name,
                     sensorType = scanned.parsed.sensorType,
                     syncPressed = scanned.parsed.syncPressed,
-                    reading = reading
+                    reading = scanned.parsed.reading
                 )
             }.sortedByDescending { it.reading?.timestampMillis }
         }
@@ -89,25 +82,10 @@ class Sensor1Repository @Inject constructor(
                 val tank=tankMap[address]?.toDomain()
                 val tankLevel = calculateLevel.calculate(
                     rawHeightMeters = scanned?.parsed?.reading?.rawHeightMeters?:0.0,
-                    tankHeightMm = when (tank?.type) {
-                        TankType.ARBITRARY -> tank.customHeightMeters.toFloat()
-                        else -> tank?.type?.heightMeters?.toFloat()?: TankType.KG_3_7.heightMeters.toFloat()},
-                    tankType = when (tank?.type?.orientation) {
-                        TankOrientation.VERTICAL -> TankPreset.TankType.PROPANE_VERTICAL
-                        TankOrientation.HORIZONTAL -> TankPreset.TankType.PROPANE_HORIZONTAL
-                        else -> TankPreset.TankType.CUSTOM
-                    }
+                    tankHeightMm = calculateTankHeightMm(tank),
+                    tankType = calculateTankType(tank)
                 )
-
-                val defaultName = if (scanned?.parsed?.sensorType?.isLpg?:true) {
-                    "New LPG Device"
-                } else if (scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER) {
-                    "New water sensor"
-                } else {
-                    "New ${scanned.parsed.sensorType?.displayName} Device"
-                }
-                val name = tank?.name ?: defaultName
-
+                val name = calculateName(scanned,tank)
                 Sensor1(
                     address = address,
                     name = name,
@@ -119,6 +97,31 @@ class Sensor1Repository @Inject constructor(
                 )
             }.sortedBy { it.name }
         }
+    }
+
+    fun calculateName(scanned: ScannedSensor?,tank: Tank?): String {
+        val defaultName=if (scanned?.parsed?.sensorType?.isLpg ?: true) {
+            "New LPG Device"
+        } else if (scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER) {
+            "New water sensor"
+        } else {
+            "New ${scanned.parsed.sensorType?.displayName} Device"
+        }
+        return tank?.name ?: defaultName
+    }
+
+    fun calculateTankHeightMm(tank: Tank?) = when (val type = tank?.type) {
+        TankType.ARBITRARY -> tank.customHeightMeters.toFloat()
+        else -> type?.heightMeters?.toFloat()
+    } ?: TankType.KG_3_7.heightMeters.toFloat()
+
+    fun calculateTankType(tank: Tank?) = when (
+        tank?.let {
+            if (it.type == TankType.ARBITRARY) it.orientation else it.type.orientation
+        } ?: TankType.KG_3_7.orientation
+    ) {
+        TankOrientation.VERTICAL -> TankPreset.TankType.PROPANE_VERTICAL
+        else -> TankPreset.TankType.PROPANE_HORIZONTAL
     }
 
     fun stopScan() {
@@ -162,31 +165,18 @@ class Sensor1Repository @Inject constructor(
         ) { readings, tankEntity ->
             val scanned = readings[address] ?: return@combine null
             val tank = tankEntity?.toDomain()
+            Timber.i("-----observeSensorForDetail-----")
             val tankLevel = calculateLevel.calculate(
                 rawHeightMeters = scanned.parsed.reading.rawHeightMeters,
-                tankHeightMm = when (tank?.type) {
-                    TankType.ARBITRARY -> tank.customHeightMeters.toFloat()
-                    else -> tank?.type?.heightMeters?.toFloat()?: TankType.KG_3_7.heightMeters.toFloat()},
-                tankType = when (tank?.type?.orientation) {
-                    TankOrientation.VERTICAL -> TankPreset.TankType.PROPANE_VERTICAL
-                    TankOrientation.HORIZONTAL -> TankPreset.TankType.PROPANE_HORIZONTAL
-                    else -> TankPreset.TankType.CUSTOM
-                }
+                tankHeightMm =calculateTankHeightMm(tank),
+                tankType = calculateTankType(tank)
             )
             val readQuality = when (scanned.parsed.reading.quality) {
                 3 -> ReadQuality.GOOD
                 2 -> ReadQuality.FAIR
                 else -> ReadQuality.POOR
             }
-            // Name
-            val defaultName = if (scanned.parsed.sensorType.isLpg) {
-                "New LPG Device"
-            } else if (scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER) {
-                "New water sensor"
-            } else {
-                "New ${scanned.parsed.sensorType.displayName} Device"
-            }
-            val name = tank?.name ?: defaultName
+            val name = calculateName(scanned,tank)
             Sensor1(
                 address = scanned.address,
                 name = name,
