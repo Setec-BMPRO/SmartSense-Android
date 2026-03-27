@@ -8,12 +8,15 @@ import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
+import com.smartsense.app.domain.model.TankPreset
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
+import com.smartsense.app.domain.model.TriggerAlarmUnit
 import com.smartsense.app.domain.usecase.CalculateTankLevelUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,7 +32,7 @@ import javax.inject.Singleton
 class Sensor1Repository @Inject constructor(
     private val bleManager: BleManager,
     private val sensorDao: SensorDao,
-    private val calculateLevel: CalculateTankLevelUseCase
+    val calculateLevel: CalculateTankLevelUseCase
 ) {
 
 
@@ -54,7 +57,7 @@ class Sensor1Repository @Inject constructor(
                 val tank = tankEntity?.toDomain()
                 val reading = scanned.parsed.reading.let { r ->
                     //if (tank != null) {
-                        r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
+                        r.copy(tankLevelPercentage = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage))
                     //} else r
                 }
                 _isScanning.value=false
@@ -64,12 +67,9 @@ class Sensor1Repository @Inject constructor(
                     advertisedName = scanned.name,
                     sensorType = scanned.parsed.sensorType,
                     syncPressed = scanned.parsed.syncPressed,
-                    reading = reading,
-                    tank = tank,
-                    lastSeenMillis = scanned.timestampMillis,
-                    tankLevelPercentage = scanned.parsed.reading.levelPercent.toInt()
+                    reading = reading
                 )
-            }.sortedByDescending { it.lastSeenMillis }
+            }.sortedByDescending { it.reading?.timestampMillis }
         }
     }
 
@@ -84,25 +84,38 @@ class Sensor1Repository @Inject constructor(
             sensorDao.observeAllTanks()
         ) { registeredAddresses, readings, tanks ->
             val tankMap = tanks.associateBy { it.sensorAddress }
-            registeredAddresses.mapNotNull { address ->
+            registeredAddresses.map { address ->
                 val scanned = readings[address]
-                val tankEntity = tankMap[address]
-                val tank = tankEntity?.toDomain()
-                val reading = scanned?.parsed?.reading?.let { r ->
-                    //if (tank != null) {
-                        r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage).toFloat())
-                    //} else r
+                val tank=tankMap[address]?.toDomain()
+                val tankLevel = calculateLevel.calculate(
+                    rawHeightMeters = scanned?.parsed?.reading?.rawHeightMeters?:0.0,
+                    tankHeightMm = when (tank?.type) {
+                        TankType.ARBITRARY -> tank.customHeightMeters.toFloat()
+                        else -> tank?.type?.heightMeters?.toFloat()?: TankType.KG_3_7.heightMeters.toFloat()},
+                    tankType = when (tank?.type?.orientation) {
+                        TankOrientation.VERTICAL -> TankPreset.TankType.PROPANE_VERTICAL
+                        TankOrientation.HORIZONTAL -> TankPreset.TankType.PROPANE_HORIZONTAL
+                        else -> TankPreset.TankType.CUSTOM
+                    }
+                )
+
+                val defaultName = if (scanned?.parsed?.sensorType?.isLpg?:true) {
+                    "New LPG Device"
+                } else if (scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER) {
+                    "New water sensor"
+                } else {
+                    "New ${scanned.parsed.sensorType?.displayName} Device"
                 }
+                val name = tank?.name ?: defaultName
+
                 Sensor1(
                     address = address,
-                    name = scanned?.name?:"New LPG Device",
+                    name = name,
                     advertisedName = scanned?.name,
                     sensorType = scanned?.parsed?.sensorType ?: MopekaSensorType.UNKNOWN,
                     syncPressed = scanned?.parsed?.syncPressed ?: false,
-                    reading = reading,
-                    tank = tank,
-                    lastSeenMillis = scanned?.timestampMillis ?: 0L,
-                    tankLevelPercentage = scanned?.parsed?.reading?.tankLevelPercentage?:0
+                    reading = scanned?.parsed?.reading,
+                    tankLevel = tankLevel
                 )
             }.sortedBy { it.name }
         }
@@ -110,14 +123,6 @@ class Sensor1Repository @Inject constructor(
 
     fun stopScan() {
         bleManager.stopScan()
-    }
-
-    /**
-     * Get the strongest-signal sensor currently in the BLE cache.
-     * Used for auto-pairing the closest sensor.
-     */
-    fun getStrongestSensor(): ScannedSensor? {
-        return liveReadings.value.values.maxByOrNull { it.parsed.reading.rssi }
     }
 
     /**
@@ -150,29 +155,47 @@ class Sensor1Repository @Inject constructor(
     /**
      * Observe a single sensor by address, combining live readings with stored config.
      */
-    fun observeSensor(address: String): Flow<Sensor1?> {
+    fun observeSensorForDetail(address: String): Flow<Sensor1?> {
         return combine(
             liveReadings,
             sensorDao.observeTank(address)
         ) { readings, tankEntity ->
             val scanned = readings[address] ?: return@combine null
             val tank = tankEntity?.toDomain()
-            val reading = scanned.parsed.reading.let { r ->
-                //if (tank != null) {
-                    r.copy(levelPercent = calculateLevel.calculateRoundedGasTankLevel(r.tankLevelPercentage)
-                        .toFloat())
-                //} else r
+            val tankLevel = calculateLevel.calculate(
+                rawHeightMeters = scanned.parsed.reading.rawHeightMeters,
+                tankHeightMm = when (tank?.type) {
+                    TankType.ARBITRARY -> tank.customHeightMeters.toFloat()
+                    else -> tank?.type?.heightMeters?.toFloat()?: TankType.KG_3_7.heightMeters.toFloat()},
+                tankType = when (tank?.type?.orientation) {
+                    TankOrientation.VERTICAL -> TankPreset.TankType.PROPANE_VERTICAL
+                    TankOrientation.HORIZONTAL -> TankPreset.TankType.PROPANE_HORIZONTAL
+                    else -> TankPreset.TankType.CUSTOM
+                }
+            )
+            val readQuality = when (scanned.parsed.reading.quality) {
+                3 -> ReadQuality.GOOD
+                2 -> ReadQuality.FAIR
+                else -> ReadQuality.POOR
             }
+            // Name
+            val defaultName = if (scanned.parsed.sensorType.isLpg) {
+                "New LPG Device"
+            } else if (scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER) {
+                "New water sensor"
+            } else {
+                "New ${scanned.parsed.sensorType.displayName} Device"
+            }
+            val name = tank?.name ?: defaultName
             Sensor1(
                 address = scanned.address,
-                name = scanned.name?:"New LPG Device",
+                name = name,
                 advertisedName = scanned.name,
                 sensorType = scanned.parsed.sensorType,
                 syncPressed = scanned.parsed.syncPressed,
                 reading = scanned.parsed.reading,
-                tank = tank,
-                lastSeenMillis = scanned.timestampMillis,
-                tankLevelPercentage = scanned.parsed.reading.tankLevelPercentage
+                tankLevel=tankLevel,
+                readQuality = readQuality
             )
         }
     }
@@ -202,10 +225,11 @@ class Sensor1Repository @Inject constructor(
         customHeightMeters = customHeightMeters,
         orientation = try { TankOrientation.valueOf(orientation) } catch (_: Exception) { TankOrientation.VERTICAL },
         alarmThresholdPercent = alarmThresholdPercent,
-        region = try { TankRegion.valueOf(region) } catch (_: Exception) { TankRegion.AUSTRALIA },
+        region = try { TankRegion.valueOf(region) } catch (_: Exception) { TankRegion.UNITED_STATE },
         levelUnit = try { TankLevelUnit.valueOf(levelUnit) } catch (_: Exception) { TankLevelUnit.PERCENT },
         notificationsEnabled = notificationsEnabled,
-        notificationFrequency = try { NotificationFrequency.valueOf(notificationFrequency) } catch (_: Exception) { NotificationFrequency.EVERY_12_HOURS }
+        notificationFrequency = try { NotificationFrequency.valueOf(notificationFrequency) } catch (_: Exception) { NotificationFrequency.EVERY_12_HOURS },
+        triggerAlarmUnit = try { TriggerAlarmUnit.valueOf(triggerAlarmUnit) } catch (_: Exception) { TriggerAlarmUnit.ABOVE }
     )
 
     private fun Tank.toEntity(): TankEntity = TankEntity(
@@ -218,7 +242,8 @@ class Sensor1Repository @Inject constructor(
         region = region.name,
         levelUnit = levelUnit.name,
         notificationsEnabled = notificationsEnabled,
-        notificationFrequency = notificationFrequency.name
+        notificationFrequency = notificationFrequency.name,
+        triggerAlarmUnit = triggerAlarmUnit.name
     )
 
     private val _isScanning = MutableStateFlow(false)

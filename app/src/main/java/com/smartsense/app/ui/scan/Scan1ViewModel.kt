@@ -1,25 +1,19 @@
 package com.smartsense.app.ui.scan
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.preferences.UserPreferences
 
-import com.smartsense.app.data.repository.Sensor1Repository
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
-import com.smartsense.app.domain.usecase.ScanForSensors1UseCase
-import com.smartsense.app.domain.usecase.ScanForSensorsUseCase
+import com.smartsense.app.domain.usecase.SensorScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -38,8 +32,7 @@ data class SensorListUiState(
 
 @HiltViewModel
 class Scan1ViewModel @Inject constructor(
-    private val scanForSensors: ScanForSensors1UseCase,
-    private val repository: Sensor1Repository,
+    private val userCase: SensorScanUseCase,
     userPreferences: UserPreferences
 ) : ViewModel() {
 
@@ -60,7 +53,7 @@ class Scan1ViewModel @Inject constructor(
 
     init {
         _uiState.update {
-            it.copy(isBluetoothEnabled = repository.isBluetoothEnabled)
+            it.copy(isBluetoothEnabled = userCase.isBluetoothEnabled)
         }
         observeRegistered()
     }
@@ -78,7 +71,7 @@ class Scan1ViewModel @Inject constructor(
 
     private fun observeRegistered() {
         registeredJob = viewModelScope.launch {
-            repository.observeRegisteredSensors()
+            userCase.observeRegisteredSensors()
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     // Mark auto-pair done if we already have sensors
@@ -93,7 +86,7 @@ class Scan1ViewModel @Inject constructor(
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
 
-            scanForSensors.startScan()
+            userCase.startScan()
                 .catch { e -> _uiState.update { it.copy(error = e.message, isScanning = false) } }
                 .collect { freshlyScannedSensors ->
 
@@ -133,7 +126,7 @@ class Scan1ViewModel @Inject constructor(
     fun registerSensor(address: String, name: String) {
         viewModelScope.launch {
             autoPairDone = true
-            repository.registerSensor(address, name)
+            userCase.registerSensor(address, name)
             //closeDiscovery()
         }
     }
@@ -157,6 +150,6 @@ class Scan1ViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         scanJob?.cancel()
-        scanForSensors.stopScan()
+        userCase.stopScan()
     }
 }

@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val showBar = destination.id != R.id.sensorDetailFragment
+            val showBar = (destination.id != R.id.sensorDetailFragment) && (destination.id != R.id.tankSettingFragment)
             binding.bottomAppBar.visibility = if (showBar) View.VISIBLE else View.GONE
             binding.fabSmartsense.visibility = if (showBar) View.VISIBLE else View.GONE
 

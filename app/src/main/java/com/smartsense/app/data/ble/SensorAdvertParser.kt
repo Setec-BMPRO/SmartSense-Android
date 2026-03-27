@@ -80,26 +80,25 @@ object SensorAdvertParser {
             val temperatureCelsius = if (tempRaw == 0) -40.0f
             else (1.776964f * (tempRaw - 25))
 
-            val heightMeters = extractHeightFromSamples(data, 4, temperatureCelsius)
-            val tankLevelPercentage = data[7]
+            val heightMeters = extractHeightFromSamples(data, 2, temperatureCelsius)
+
+
             Log.d(TAG, "CC2540 VALID $bleAddress: battery=${"%.2f".format(batteryVoltage)}V, " +
                     "temp=${"%.1f".format(temperatureCelsius)}°C, quality=$quality, " +
                     "height=${"%.4f".format(heightMeters)}m")
 
             ParsedSensor(
                 reading = SensorReading(
-                    levelPercent = 0f,
                     rawHeightMeters = heightMeters,
                     batteryVoltage = batteryVoltage,
                     rssi = rssi,
                     quality = quality,
                     temperatureCelsius = temperatureCelsius,
                     firmwareVersion = "",
-                    tankLevelPercentage = tankLevelPercentage.toInt() and 0xFF,
-                    deviceMAC = macBytes?.let {
+                    deviceMAC = macBytes.let {
                         byteArrayOf(it[3], it[4], it[5])
                             .joinToString(":") { byte -> "%02X".format(byte) }
-                    } ?: ""
+                    }
 
                 ),
                 sensorType = MopekaSensorType.fromCC2540DeviceByte(byte1),
@@ -169,7 +168,7 @@ object SensorAdvertParser {
 
             ParsedSensor(
                 reading = SensorReading(
-                    levelPercent = 0f,
+
                     rawHeightMeters = heightMeters,
                     batteryVoltage = batteryVoltage,
                     rssi = rssi,

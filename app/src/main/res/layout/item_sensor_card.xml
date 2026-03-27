@@ -68,10 +68,10 @@
                 android:id="@+id/sensor_level"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:textAppearance="?attr/textAppearanceLabelMedium"
                 android:textStyle="bold"
-                android:layout_marginTop="2dp"
-                tools:text="75%"/>
+                tools:text="75%" />
         </LinearLayout>
 
         <!-- Sensor info -->

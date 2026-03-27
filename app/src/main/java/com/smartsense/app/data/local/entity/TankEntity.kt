@@ -15,5 +15,6 @@ data class TankEntity(
     val region: String = "AUSTRALIA", // TankRegion enum name
     val levelUnit: String = "PERCENT", // TankLevelUnit enum name
     val notificationsEnabled: Boolean = true,
-    val notificationFrequency: String = "EVERY_12_HOURS" // NotificationFrequency enum name
+    val notificationFrequency: String = "EVERY_12_HOURS", // NotificationFrequency enum name
+    val triggerAlarmUnit: String="ABOVE"
 )

@@ -34,6 +34,7 @@
     <string name="temperature">Temperature</string>
     <string name="read_quality">Read Quality</string>
     <string name="device_mac">Device MAC</string>
+    <string name="tank_type">Tank Type</string>
     <string name="change">Change</string>
     <string name="remove_sensor">Remove Sensor</string>
     <string name="remove_confirm_title">Remove Sensor?</string>
@@ -45,6 +46,15 @@
     <string name="quality_good">Good</string>
     <string name="quality_fair">Fair</string>
     <string name="quality_poor">Poor</string>
+    <string name="quality_warning_poor">Low Quality: Tank empty or sensor is incorrectly positioned. (Tap for more info)</string>
+    <string name="quality_warning_fair">Fair Quality: Signal may be weak. Check sensor position.</string>
+
+    <!-- Additional Info -->
+    <string name="additional_info">Additional Info</string>
+    <string name="update_rate">Update Rate</string>
+    <string name="sensor_type">Sensor Type</string>
+    <string name="device_address">Device Address</string>
+    <string name="format_seconds">%1$.1f seconds</string>
 
     <!-- Signal -->
     <string name="signal_excellent">Excellent</string>
@@ -77,4 +87,27 @@
     <string name="permission_bluetooth_title">Bluetooth Required</string>
     <string name="permission_bluetooth_message">SmartSense needs Bluetooth permission to discover and connect to tank sensors.</string>
     <string name="grant_permission">Grant Permission</string>
+    <string name="settings">Settings</string>
+
+    <!-- Help Info -->
+    <string name="help_quality">The Quality indicator shown on a sensor’s home screen (3 star scale) is used to understand if the sensor’s ultrasonic measurement system is working correctly. Typically, if quality is low, (1 star or less) the sensor is mounted poorly: poorly positioned on the center bottom of tank, has debris on the tank in front of the rubber pad interfering with performance, or is lacking adequate sonic grease. Therefore, it is important to check Quality, especially during the first installation and setup. Typically, once installed correctly, with Quality at least 2 stars, it will not need change unless tank is disturbed such that it is no longer standing upright &amp; level.</string>
+    <string name="help_device_name">Set a friendly name for this sensor and tank so that you can easily identify it.  This name is only saved on your phone, so if you use multiple phones you will need to assign the name on each.</string>
+    <string name="help_tank_size">Set the size of your tank so that the app can display a percentage read-out. For unlisted sizes or horizontal tanks, you should measure the tank\'s height and enter it into the "Arbitrary" field.  For horizontal tanks the percentage displayed will be the measured fluid height relative to the height you enter in the "Arbitrary" field.</string>
+    <string name="help_tank_level_unit">Change the units that are displayed on the main and detailed tank information pages for your tank level.</string>
+    <string name="help_alarm_threshold">et a low-level alarm threshold for your tank.  When the level crosses below this alarm you will be sent a notification on your phone (if enabled in the main menu).  The app will also show you a warning icon and options to help you refill your tank.</string>
+    <string name="ok">Ok</string>
+    <string name="low_quality">Low Quality</string>
+    <string name="device_name">Device Name</string>
+    <string name="tank_size">Tank Size</string>
+    <string name="quality_threshold">Quality Threshold</string>
+    <string name="tank_level_units">Tank Level Units</string>
+    <string name="notifications">Notifications</string>
+    <string name="trigger_alarm_above_or_below_threshold">Trigger alarm above or below threshold ?</string>
+    <string name="percent">Percent</string>
+    <string name="centimeter">Centimeter</string>
+    <string name="above">Above</string>
+    <string name="below">Below</string>
+    <string name="inches">Inches</string>
+    <string name="alarm_threshold">Alarm Threshold</string>
+    <string name="notification_frequency">Notification Frequency</string>
 </resources>

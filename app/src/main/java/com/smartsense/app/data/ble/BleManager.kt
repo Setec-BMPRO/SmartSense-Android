@@ -13,6 +13,8 @@ import android.os.ParcelUuid
 import android.util.Log
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.SensorReading
+import com.smartsense.app.domain.model.TankPreset
+import com.smartsense.app.domain.usecase.CalculateTankLevelUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -179,6 +181,7 @@ class BleManager @Inject constructor(
 
         Log.d(TAG, "MOPEKA_LPG ${result.device.address}: " +
                 "type=${parsed.sensorType.displayName}, rssi=${result.rssi}")
+
 
         return ScannedSensor(
             address = result.device.address,

@@ -1,7 +1,7 @@
 package com.smartsense.app.domain.model
 
 data class TankLevel(
-    val percentage: Float,
+    var percentage: Float,
     val heightMm: Float=0F
 ) {
     val status: LevelStatus

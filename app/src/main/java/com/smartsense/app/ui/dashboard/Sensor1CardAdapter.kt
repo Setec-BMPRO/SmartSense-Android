@@ -1,7 +1,5 @@
 package com.smartsense.app.ui.dashboard
 
-import android.R.attr.duration
-import android.R.attr.startDelay
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
@@ -19,13 +17,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.smartsense.app.R
 import com.smartsense.app.databinding.ItemSensorCardBinding
 import com.smartsense.app.domain.model.LevelStatus
-import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.UnitSystem
-import timber.log.Timber
-import kotlin.compareTo
-import kotlin.div
+import com.smartsense.app.util.TimeUtils
 
 class Sensor1CardAdapter(
     val unitSystem: UnitSystem=UnitSystem.METRIC ,
@@ -44,29 +40,32 @@ class Sensor1CardAdapter(
             binding.sensorName.text = sensor.name
 
             // Level
+            val levelPercent: Float = sensor.tankLevel?.percentage?:0F
+//            val levelPercent= (0..100).random()
+
             val levelText = when {
-                sensor.reading == null -> "No Signal"
-                sensor.reading.levelPercent <= 0f -> "Empty"
-                else -> "${sensor.reading.levelPercent.toInt()}%"
+                sensor.tankLevel == null -> "No Signal"
+                levelPercent <= 0f -> "Empty"
+                else -> "${levelPercent.toInt()}%"
             }
             binding.sensorLevel.text = levelText
-            val tintColor = when (sensor.level.status) {
+            val tintColor = when (sensor.tankLevel?.status) {
                 LevelStatus.GREEN -> ContextCompat.getColor(binding.root.context, R.color.level_green)
                 LevelStatus.YELLOW -> ContextCompat.getColor(binding.root.context, R.color.level_yellow)
-                LevelStatus.RED -> ContextCompat.getColor(binding.root.context, R.color.level_red)
-            }
-            // Clip the fill image from top based on level percentage
-            val level = (sensor.reading?.levelPercent?:0F).coerceIn(0f, 100f)
-            binding.sensorTankFill.post {
-                val h = binding.sensorTankFill.height
-                val clipTop = ((100f - level) / 100f * h).toInt()
-                binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
+                else -> ContextCompat.getColor(binding.root.context, R.color.level_red)
             }
             binding.sensorLevel.setTextColor(tintColor)
+            // Clip the fill image from top based on level percentage
+            binding.sensorTankFill.post {
+                val h = binding.sensorTankFill.height
+                val clipTop = ((100f - levelPercent) / 100f * h).toInt()
+                binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
+            }
+
 
             // Battery percent
-            val batteryPercent = sensor.reading?.batteryPercent?:0F
-            binding.sensorBattery.text = batteryPercent.toInt().toString() + "%"
+            val batteryPercent = sensor.batteryPercent
+            binding.sensorBattery.text = "$batteryPercent%"
             val (battIcon, battColorRes) = when {
                 batteryPercent <= 15F -> R.drawable.ic_battery_critical to R.color.level_red
                 batteryPercent <= 40 -> R.drawable.ic_battery_low to R.color.level_yellow
@@ -110,16 +109,13 @@ class Sensor1CardAdapter(
             binding.sensorSignal.setTextColor(signalColor)
 
             // Last update
-            val seconds = (System.currentTimeMillis() - sensor.lastSeenMillis) / 1000
-            binding.sensorLastUpdated.text = when {
-                seconds < 10 -> "Updated just now"
-                seconds < 60 -> "Updated ${seconds}s ago"
-                seconds < 3600 -> "Updated ${seconds / 60}m ago"
-                else -> "Updated ${seconds / 3600}h ago"
-            }
+            binding.sensorLastUpdated.text =
+                TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
 
             // Tank type
-            binding.sensorType.text=sensor.tank?.type?.displayName?:"STANDARD"
+            binding.sensorType.text=
+                if(sensor.sensorType?.displayName.equals(MopekaSensorType.CC2540_STD.displayName,true))
+                    "STANDARD" else sensor.sensorType?.displayName
             binding.root.setOnClickListener { onSensorClick(sensor) }
         }
 

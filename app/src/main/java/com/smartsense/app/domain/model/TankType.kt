@@ -5,10 +5,15 @@ enum class TankOrientation {
     HORIZONTAL
 }
 
-enum class TankLevelUnit(val displayName: String) {
-    PERCENT("Percent"),
-    CENTIMETERS("Centimeters"),
-    INCHES("Inches")
+enum class TankLevelUnit(val displayName: String,val shortName: String) {
+    PERCENT("Percent","cm."),
+    CENTIMETERS("Centimeters","cm."),
+    INCHES("Inches","in.")
+}
+
+enum class TriggerAlarmUnit(val displayName: String) {
+    ABOVE("Above"),
+    BELOW("Below")
 }
 
 enum class NotificationFrequency(val displayName: String) {
@@ -19,13 +24,20 @@ enum class NotificationFrequency(val displayName: String) {
 }
 
 enum class TankRegion(val displayName: String) {
-    NORTH_AMERICA("North America"),
-    AUSTRALIA("Australia");
+
+    AUSTRALIA("Australia"),
+    CANADA("Canada"),
+    NEW_ZEALAND("New Zealand"),
+    UNITED_STATE("United States"),
+    OTHER_NORTH_AMERICA("Other-North America");
 
     val regionCode: String
         get() = when (this) {
-            NORTH_AMERICA -> "en"
             AUSTRALIA -> "au"
+            CANADA -> ""
+            NEW_ZEALAND -> ""
+            UNITED_STATE -> ""
+            OTHER_NORTH_AMERICA -> "" // Common shorthand for North America
         }
 }
 
@@ -33,21 +45,22 @@ enum class TankType(
     val displayName: String,
     val heightMeters: Double,
     val orientation: TankOrientation,
-    val region: String = "en"
+    val region: String = ""
 ) {
     // North America vertical tanks
     LB_20("20 lb", 0.254, TankOrientation.VERTICAL),
     LB_30("30 lb", 0.381, TankOrientation.VERTICAL),
     LB_40("40 lb", 0.508, TankOrientation.VERTICAL),
-    LB_100("100 lb", 0.8128, TankOrientation.VERTICAL),
-    GAL_120_V("120 gal vertical", 1.2192 * 0.8, TankOrientation.VERTICAL),
 
-    // North America horizontal tanks
-    GAL_120_H("120 gal horizontal", 0.6096, TankOrientation.HORIZONTAL),
-    GAL_150_H("150 gal horizontal", 0.6096, TankOrientation.HORIZONTAL),
-    GAL_250_H("250 gal horizontal", 0.762, TankOrientation.HORIZONTAL),
-    GAL_500_H("500 gal horizontal", 0.9398, TankOrientation.HORIZONTAL),
-    GAL_1000_H("1000 gal horizontal", 1.0414, TankOrientation.HORIZONTAL),
+//    LB_100("100 lb", 0.8128, TankOrientation.VERTICAL),
+//    GAL_120_V("120 gal vertical", 1.2192 * 0.8, TankOrientation.VERTICAL),
+//
+//    // North America horizontal tanks
+//    GAL_120_H("120 gal horizontal", 0.6096, TankOrientation.HORIZONTAL),
+//    GAL_150_H("150 gal horizontal", 0.6096, TankOrientation.HORIZONTAL),
+//    GAL_250_H("250 gal horizontal", 0.762, TankOrientation.HORIZONTAL),
+//    GAL_500_H("500 gal horizontal", 0.9398, TankOrientation.HORIZONTAL),
+//    GAL_1000_H("1000 gal horizontal", 1.0414, TankOrientation.HORIZONTAL),
 
     // Australia/NZ tanks
     KG_3_7("3.7 kg", 0.235, TankOrientation.VERTICAL, "au"),
@@ -65,4 +78,10 @@ enum class TankType(
             return forRegion(tankRegion.regionCode)
         }
     }
+}
+
+enum class QualityThreshold(val displayName: String) {
+    DISABLE("Disable"),
+    ONE("1"),
+    TWO("2")
 }

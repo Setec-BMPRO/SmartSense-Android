@@ -7,17 +7,13 @@ data class Sensor1(
     val sensorType: MopekaSensorType?,
     val syncPressed: Boolean = false,
     val reading: SensorReading?=null,
-    val tank: Tank?=null,
-    val lastSeenMillis: Long = System.currentTimeMillis(),
-    val level: TankLevel= TankLevel(reading?.levelPercent?:0F),
-    val tankLevelPercentage: Int=0,
-    val readQuality: String? = when {
-        reading?.quality == 3 -> "Excellent"
-        reading?.quality == 2 -> "Good"
-        reading?.quality == 1 -> "Poor"
-        else -> "No Signal"
-    }
-){
+    val tankLevel: TankLevel?=null,
+    val tankPreset: TankPreset= TankPreset.defaults.first(),
+    val readQuality: ReadQuality? =null,
+
+    ){
+    val batteryPercent: Int= (((reading?.batteryVoltage?:0f) - 2.2f)
+            / 0.65f * 100f).coerceIn(0f, 100f).toInt()
     val signalStrength: SignalStrength
         get() = when {
             (reading?.rssi?:0) >= -50 -> SignalStrength.EXCELLENT

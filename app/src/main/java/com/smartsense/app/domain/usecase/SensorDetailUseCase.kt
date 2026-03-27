@@ -4,9 +4,9 @@ import com.smartsense.app.domain.model.Sensor1
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetSensorReadingsUseCase @Inject constructor(
+class SensorDetailUseCase @Inject constructor(
     private val repository: Sensor1Repository
 ) {
-    fun observe(sensorAddress: String): Flow<Sensor1?> =
-        repository.observeSensor(sensorAddress)
+    fun observeSensorForDetail(address: String): Flow<Sensor1?> = repository.observeSensorForDetail(address)
+    suspend fun unregisterSensor(address: String) = repository.unregisterSensor(address)
 }

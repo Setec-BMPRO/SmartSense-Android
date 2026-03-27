@@ -10,16 +10,18 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/spacing_md">
+        android:orientation="vertical">
 
-        <!-- Back button and title -->
+        <!-- Toolbar with back, title, settings -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="@dimen/spacing_sm">
+            android:paddingHorizontal="@dimen/spacing_sm"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:background="?attr/colorSurface"
+            android:elevation="2dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_back"
@@ -32,23 +34,136 @@
                 app:iconPadding="0dp"
                 style="@style/Widget.Material3.Button.IconButton"/>
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/sensor_name"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                android:layout_marginStart="@dimen/spacing_sm"
-                tools:text="Propane - BBQ"/>
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tank Info"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="New LPG Device"/>
+            </LinearLayout>
+
+            <!-- Spacer to balance the back button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_setting"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:icon="@drawable/ic_settings"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                style="@style/Widget.Material3.Button.IconButton"/>
         </LinearLayout>
 
-        <!-- Large gauge -->
-        <com.smartsense.app.ui.views.TankGaugeView
-            android:id="@+id/detail_gauge"
-            android:layout_width="@dimen/gauge_size_large"
-            android:layout_height="@dimen/gauge_size_large"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="@dimen/spacing_md"
-            app:gaugeStrokeWidth="@dimen/gauge_stroke_width_large"/>
+        <!-- Top row: Battery | Quality | Signal -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="?attr/colorSurfaceVariant"
+            android:paddingVertical="@dimen/spacing_sm">
+
+            <!-- Battery -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/detail_battery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    tools:text="92%"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/battery"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+
+            <!-- Quality -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/detail_quality"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    tools:text="Good"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/read_quality"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+
+            <!-- Signal -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/detail_signal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    tools:text="-45"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/signal_strength"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"/>
+
+        <!-- Large tank with fill level -->
+        <com.smartsense.app.ui.views.TankLevelView
+            android:id="@+id/detail_tank"
+            android:layout_width="200dp"
+            android:layout_height="200dp" android:layout_gravity="center"
+            android:layout_marginHorizontal="@dimen/spacing_lg"
+            android:layout_marginTop="@dimen/spacing_md"/>
 
         <!-- Last updated -->
         <com.google.android.material.textview.MaterialTextView
@@ -59,253 +174,228 @@
             android:layout_marginTop="@dimen/spacing_sm"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
-            tools:text="Updated 5s ago"/>
+            tools:text="Updated just now"/>
 
-        <!-- Tank Level card -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Quality warning banner -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/quality_warning"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_lg"
-            app:cardCornerRadius="12dp"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:padding="@dimen/spacing_md"
+            android:background="@drawable/bg_quality_warning"
+            android:textColor="#B71C1C"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
             android:visibility="gone"
-            style="@style/Widget.Material3.CardView.Filled">
+            tools:text="Low Quality: Tank empty or sensor is incorrectly positioned."
+            tools:visibility="visible"/>
 
+        <!-- Divider before Additional Info -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="@dimen/spacing_lg"
+            android:background="?attr/colorOutlineVariant"/>
+
+        <!-- Additional Info header -->
+        <LinearLayout
+            android:id="@+id/additional_info_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="@dimen/spacing_md"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/additional_info"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textStyle="bold"/>
+
+            <ImageView
+                android:id="@+id/additional_info_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_expand_less"
+                app:tint="?attr/colorOnSurfaceVariant"
+                android:contentDescription="Toggle"/>
+        </LinearLayout>
+
+        <!-- Additional Info content -->
+        <LinearLayout
+            android:id="@+id/additional_info_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/spacing_md">
+
+            <!-- Update Rate | Sensor Type row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="@dimen/card_padding">
+                android:paddingVertical="@dimen/spacing_sm">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_tank"
-                    app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/tank_level"/>
-
-                <com.google.android.material.textview.MaterialTextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_md"
-                    android:text="@string/tank_level"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"/>
+                    android:orientation="vertical">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/update_rate"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/detail_update_rate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="10.5 seconds"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="end">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sensor_type"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/detail_sensor_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="Std"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant"/>
+
+            <!-- Device Address -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingVertical="@dimen/spacing_sm">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/detail_level_height"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/device_address"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textStyle="bold"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/detail_device_address"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:text="182 mm"/>
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    tools:text="76:FC:54"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Battery card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_sm"
-            app:cardCornerRadius="12dp"
-            style="@style/Widget.Material3.CardView.Filled">
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant"/>
 
+            <!-- Temperature -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="@dimen/card_padding">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:id="@+id/img_battery"
-                    android:src="@drawable/ic_battery"
-                    app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/battery"/>
+                android:orientation="vertical"
+                android:paddingVertical="@dimen/spacing_sm">
 
                 <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_md"
-                    android:text="@string/battery"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/detail_battery"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:text="95%"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Signal card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_sm"
-            app:cardCornerRadius="12dp"
-            style="@style/Widget.Material3.CardView.Filled">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="@dimen/card_padding">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:id="@+id/img_signal"
-                    android:src="@drawable/ic_signal"
-                    app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/signal_strength"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_md"
-                    android:text="@string/signal_strength"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/detail_signal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:text="Good (-45 dBm)"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Temperature card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_sm"
-            app:cardCornerRadius="12dp"
-            style="@style/Widget.Material3.CardView.Filled">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="@dimen/card_padding">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:id="@+id/img_temperature"
-                    android:src="@drawable/ic_temperature"
-                    app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/temperature"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_md"
                     android:text="@string/temperature"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"/>
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textStyle="bold"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/detail_temperature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="22.5°C"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
-        <!-- Read Quality card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_sm"
-            app:cardCornerRadius="12dp"
-            style="@style/Widget.Material3.CardView.Filled">
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?attr/colorOutlineVariant"/>
 
+            <!-- Tank Type (clickable) -->
             <LinearLayout
+                android:id="@+id/tank_type_row"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="@dimen/card_padding">
+                android:paddingVertical="@dimen/spacing_sm"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="?attr/selectableItemBackground">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_signal"
-                    app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/read_quality"/>
-
-                <com.google.android.material.textview.MaterialTextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_md"
-                    android:text="@string/read_quality"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"/>
+                    android:orientation="vertical">
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/detail_quality_chip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="Good"
-                    style="@style/Widget.Material3.Chip.Assist"/>
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tank_type"
+                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        android:textStyle="bold"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/detail_tank_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorPrimary"
+                        tools:text="20 lb (BBQ)"/>
+                </LinearLayout>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
-        <!-- Tank type card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/spacing_sm"
-            app:cardCornerRadius="12dp"
-            style="@style/Widget.Material3.CardView.Filled">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="@dimen/card_padding">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_tank"
-                    app:tint="?attr/colorPrimary"
-                    android:contentDescription="@string/device_mac"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/spacing_md"
-                    android:text="@string/device_mac"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/detail_device_mac"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorPrimary"
-                    tools:text="00:00:00"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Unpair button -->
+        <!-- Remove button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_unpair"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/spacing_md"
             android:layout_marginTop="@dimen/spacing_lg"
+            android:layout_marginBottom="@dimen/spacing_lg"
             android:text="@string/remove_sensor"
             android:textColor="?attr/colorError"
             app:iconTint="?attr/colorError"
