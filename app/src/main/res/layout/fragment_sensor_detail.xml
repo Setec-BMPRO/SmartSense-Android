@@ -160,8 +160,8 @@
         <!-- Large tank with fill level -->
         <com.smartsense.app.ui.views.TankLevelView
             android:id="@+id/detail_tank"
-            android:layout_width="200dp"
-            android:layout_height="200dp" android:layout_gravity="center"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content" android:layout_gravity="center"
             android:layout_marginHorizontal="@dimen/spacing_lg"
             android:layout_marginTop="@dimen/spacing_md"/>
 

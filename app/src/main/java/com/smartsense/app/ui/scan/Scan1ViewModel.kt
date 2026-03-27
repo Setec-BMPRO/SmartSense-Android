@@ -55,7 +55,7 @@ class Scan1ViewModel @Inject constructor(
         _uiState.update {
             it.copy(isBluetoothEnabled = userCase.isBluetoothEnabled)
         }
-        observeRegistered()
+
     }
 
     fun onPermissionsGranted() {
@@ -69,7 +69,7 @@ class Scan1ViewModel @Inject constructor(
         }
     }
 
-    private fun observeRegistered() {
+    fun startObserveRegisteredSensors() {
         registeredJob = viewModelScope.launch {
             userCase.observeRegisteredSensors()
                 .collect { sensors ->
@@ -80,30 +80,21 @@ class Scan1ViewModel @Inject constructor(
         }
     }
 
+    fun stopObserveRegisteredSensors() {
+        registeredJob?.cancel() // This "stops" the flow
+    }
+
     private fun autoStartScan() {
         if (scanJob?.isActive == true) return
 
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
-
             userCase.startScan()
                 .catch { e -> _uiState.update { it.copy(error = e.message, isScanning = false) } }
                 .collect { freshlyScannedSensors ->
-
-                    // 1. Logic check: Auto-pair sync sensor
                     handleAutoPairing(freshlyScannedSensors)
-
-//                    // 2. Filter out already registered sensors
-//                    val registeredAddresses = _uiState.value.sensors.map { it.address }.toSet()
-//                    val unregistered = freshlyScannedSensors.filter { it.address !in registeredAddresses }
-
-                    // 3. STABILIZE THE LIST:
-                    // To prevent flickering, we only update if the count or specific data changes
-                    // significantly, or we use a more stable sorting (like by Address or Name)
                     _uiState.update { state ->
                         state.copy(
-                            // Sort by RSSI initially, but consider sorting by Address
-                            // to keep the list items in the same physical spot in the UI
                             discoveredSensors = freshlyScannedSensors.sortedByDescending { it.address }
                         )
                     }

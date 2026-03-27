@@ -76,6 +76,7 @@ class Sensor1Repository @Inject constructor(
             liveReadings,
             sensorDao.observeAllTanks()
         ) { registeredAddresses, readings, tanks ->
+            Timber.i("-----observeRegisteredSensors-----")
             val tankMap = tanks.associateBy { it.sensorAddress }
             registeredAddresses.map { address ->
                 val scanned = readings[address]

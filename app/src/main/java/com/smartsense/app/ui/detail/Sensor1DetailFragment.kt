@@ -44,7 +44,6 @@ class Sensor1DetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupClickListeners()
         observeViewModel()
-        viewModel.loadSensor()
     }
 
     private fun setupClickListeners() {
@@ -167,5 +166,16 @@ class Sensor1DetailFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.startObserveDetailSensor()
+    }
+
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopObserveDetailSensor()
     }
 }

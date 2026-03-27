@@ -170,11 +170,19 @@ class Scan1Fragment : Fragment() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.startObserveRegisteredSensors()
+    }
 
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopObserveRegisteredSensors()
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-
     }
 }

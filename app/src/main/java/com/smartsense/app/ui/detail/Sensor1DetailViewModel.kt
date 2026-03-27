@@ -10,6 +10,7 @@ import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.domain.usecase.SensorDetailUseCase
 
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,9 +36,16 @@ class Sensor1DetailViewModel @Inject constructor(
     }
     private val _uiState = MutableStateFlow(SensorDetailUiState())
     val uiState: StateFlow<SensorDetailUiState> = _uiState.asStateFlow()
+    private var detailJob: Job? = null
 
-    fun loadSensor() {
+    fun unregisterSensor() {
         viewModelScope.launch {
+            userCase.unregisterSensor(sensorAddress)
+        }
+    }
+
+    fun startObserveDetailSensor() {
+        detailJob=viewModelScope.launch {
             userCase.observeSensorForDetail(sensorAddress)
                 .collect { sensor ->
                     _uiState.update {
@@ -47,11 +55,10 @@ class Sensor1DetailViewModel @Inject constructor(
         }
     }
 
-    fun unregisterSensor() {
-        viewModelScope.launch {
-            userCase.unregisterSensor(sensorAddress)
-        }
+    fun stopObserveDetailSensor() {
+        detailJob?.cancel() // This "stops" the flow
     }
+
 }
 
 
