@@ -177,8 +177,8 @@ class Scan1Fragment : Fragment() {
 
 
     override fun onStop() {
-        super.onStop()
         viewModel.stopObserveRegisteredSensors()
+        super.onStop()
     }
 
     override fun onDestroyView() {

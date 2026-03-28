@@ -22,6 +22,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.text.ifEmpty
 
 @AndroidEntryPoint
@@ -52,19 +53,22 @@ class Sensor1DetailFragment : Fragment() {
         observeViewModel()
     }
 
+
     override fun onStart() {
         super.onStart()
         viewModel.startObserveDetailSensor()
     }
 
     override fun onStop() {
-        super.onStop()
         viewModel.stopObserveDetailSensor()
+        super.onStop()
+
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        Timber.i("-----Sensor1DetailFragment-onDestroyView")
     }
 
     // --------------------------------------
@@ -98,7 +102,6 @@ class Sensor1DetailFragment : Fragment() {
         qualityWarning.setOnClickListener { showQualityDialog() }
 
         btnSetting.setOnClickListener {
-            viewModel.stopScan()
             navigateToSettings()
         }
     }
@@ -219,4 +222,6 @@ class Sensor1DetailFragment : Fragment() {
             parts.takeLast(3).joinToString(":")
         } else address
     }
+
+
 }

@@ -48,7 +48,7 @@ class Scan1ViewModel @Inject constructor(
     }
 
     private var scanJob: Job? = null
-    private var registeredJob: Job? = null
+    private var observeJob: Job? = null
     private var autoPairDone = false
 
     init {
@@ -70,8 +70,9 @@ class Scan1ViewModel @Inject constructor(
     }
 
     fun startObserveRegisteredSensors() {
-        registeredJob = viewModelScope.launch {
-            userCase.observeRegisteredSensors(0)
+        if(observeJob?.isActive==true) return
+        observeJob = viewModelScope.launch {
+            userCase.observeRegisteredSensors(userPreferences.scanInterval.first().toLong()*1000)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     // Mark auto-pair done if we already have sensors
@@ -81,14 +82,15 @@ class Scan1ViewModel @Inject constructor(
     }
 
     fun stopObserveRegisteredSensors() {
-        registeredJob?.cancel() // This "stops" the flow
+        observeJob?.cancel() // This "stops" the flow
+        observeJob=null
     }
 
     private fun autoStartScan() {
         if (scanJob?.isActive == true) return
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
-            userCase.startScan(5000)
+            userCase.startScan(userPreferences.scanInterval.first().toLong()*1000)
                 .catch { e -> _uiState.update { it.copy(error = e.message, isScanning = false) } }
                 .collect { freshlyScannedSensors ->
                     handleAutoPairing(freshlyScannedSensors)

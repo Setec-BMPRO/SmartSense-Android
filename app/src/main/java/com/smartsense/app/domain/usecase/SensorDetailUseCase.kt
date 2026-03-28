@@ -10,8 +10,8 @@ import javax.inject.Inject
 class SensorDetailUseCase @Inject constructor(
     private val repository: Sensor1Repository
 ) {
-    fun observeSensorForDetail(address: String): Flow<Sensor1?> =
-        repository.observeSensorForDetail(address)
+    fun observeSensorForDetail(address: String,scanIntervalMillis: Long): Flow<Sensor1?> =
+        repository.observeSensorForDetail(address,scanIntervalMillis)
 
     suspend fun unregisterSensor(address: String) = repository.unregisterSensor(address)
 }

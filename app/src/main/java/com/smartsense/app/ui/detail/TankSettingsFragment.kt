@@ -45,7 +45,6 @@ class TankSettingsFragment : Fragment() {
     private val viewModel: DetailTankSettingsViewModel by viewModels()
 
 
-
     // --------------------------------------
     // 🧱 LIFECYCLE
     // --------------------------------------

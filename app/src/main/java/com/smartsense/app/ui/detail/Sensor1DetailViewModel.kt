@@ -42,37 +42,32 @@ class Sensor1DetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SensorDetailUiState())
     val uiState: StateFlow<SensorDetailUiState> = _uiState.asStateFlow()
 
-    private var scanJob: Job? = null
+    private var observeJob: Job? = null
 
     // --------------------------------------
     // 🔍 SENSOR OBSERVATION
     // --------------------------------------
 
     fun startObserveDetailSensor() {
-        if (scanJob?.isActive == true) return
+        if (observeJob?.isActive == true) return
 
-        scanJob = userCase.observeSensorForDetail(sensorAddress)
-            .onStart {
-                sensorScanUseCase.startScanIfNeeded(userPreferences.scanInterval.first().toLong()*1000)
-            }
-            .onEach { sensor ->
-                _uiState.update {
-                    it.copy(
-                        sensor = sensor,
-                        isLoading = false
-                    )
+        observeJob = viewModelScope.launch {
+            // Get the interval once
+            val interval = userPreferences.scanInterval.first().toLong() * 1000
+
+            // Collect the flow directly
+            userCase.observeSensorForDetail(sensorAddress, interval)
+                .collect { sensor ->
+                    _uiState.update {
+                        it.copy(sensor = sensor, isLoading = false)
+                    }
                 }
-            }
-            .launchIn(viewModelScope)
+        }
     }
 
     fun stopObserveDetailSensor() {
-        scanJob?.cancel()
-        scanJob = null
-    }
-
-    fun stopScan() {
-        sensorScanUseCase.stopScan()
+        observeJob?.cancel()
+        observeJob = null
     }
 
     // --------------------------------------

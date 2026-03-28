@@ -14,9 +14,7 @@ class SensorScanUseCase @Inject constructor(
 
     fun stopScan() = repository.stopScan()
 
-    fun startScanIfNeeded(scanIntervalMillis: Long) = repository.startScanIfNeeded(scanIntervalMillis)
-
-    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> = repository.observeRegisteredSensors()
+    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> = repository.observeRegisteredSensors(scanIntervalMillis)
 
     suspend fun registerSensor(address: String, name: String) = repository.registerSensor(address,name)
 }

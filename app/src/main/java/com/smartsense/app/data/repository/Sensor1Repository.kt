@@ -1,5 +1,6 @@
 package com.smartsense.app.data.repository
 
+import android.util.Log
 import com.smartsense.app.data.ble.BleManager
 import com.smartsense.app.data.ble.ScannedSensor
 import com.smartsense.app.domain.model.MopekaSensorType
@@ -8,11 +9,13 @@ import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.di.ApplicationScope
 import com.smartsense.app.domain.model.QualityThreshold
 import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.Tank
+import com.smartsense.app.domain.model.TankLevel
 import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankRegion
@@ -20,18 +23,26 @@ import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
 import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -39,10 +50,11 @@ import javax.inject.Singleton
 class Sensor1Repository @Inject constructor(
     private val bleManager: BleManager,
     private val sensorDao: SensorDao,
-    private val calculateTankUseCase: CalculateTankUseCase,
-    @param:ApplicationScope private val externalScope: CoroutineScope
+    private val calculateTankUseCase: CalculateTankUseCase
 ) {
-
+    companion object {
+        private const val TAG = "Sensor1Repository"
+    }
     private val liveReadings = MutableStateFlow<Map<String, ScannedSensor>>(emptyMap())
 
     private val _isScanning = MutableStateFlow(false)
@@ -56,17 +68,22 @@ class Sensor1Repository @Inject constructor(
         return bleManager.startScan()
             .onStart { _isScanning.value = true }
             .onEach(::cacheReading)
-            .map { mapToSensorList(liveReadings.value) }
+            .sample(scanIntervalMillis)
+            .map {
+                Log.i(TAG,"discoverSensors")
+                mapToSensorList(liveReadings.value)
+            }
             .onCompletion { _isScanning.value = false }
+            .distinctUntilChanged()
     }
 
-    fun startScanIfNeeded(scanIntervalMillis: Long) {
-        bleManager.startScan()
-            .onStart { _isScanning.value = true }
-            .onEach(::cacheReading)
-            .onCompletion { _isScanning.value = false }
-            .launchIn(externalScope)
-    }
+//    fun startScanIfNeeded() {
+//        bleManager.startScan()
+//            .onStart { _isScanning.value = true }
+//            .onEach(::cacheReading)
+//            .onCompletion { _isScanning.value = false }
+//            .launchIn(externalScope)
+//    }
 
     fun stopScan() {
         bleManager.stopScan()
@@ -83,34 +100,57 @@ class Sensor1Repository @Inject constructor(
     // 📡 OBSERVE REGISTERED SENSORS
     // --------------------------------------
 
-    fun observeRegisteredSensors(): Flow<List<Sensor1>> {
-        return combine(
-            sensorDao.observeRegisteredAddresses(),
-            liveReadings,
-            sensorDao.observeAllTanks()
-        ) { addresses, readings, tanks ->
-
-            val tankMap = tanks.associateBy { it.sensorAddress }
-
-            addresses.mapNotNull { address ->
-                val scanned = readings[address] ?: return@mapNotNull null
-                val tank = tankMap[address]?.toDomain()
-
-                mapToSensor(scanned, tank)
-            }.sortedBy { it.name }
+    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> {
+        // 1. Create the ticker based on your interval
+        val ticker = flow {
+            while (currentCoroutineContext().isActive) {
+                emit(Unit)
+                delay(scanIntervalMillis)
+            }
+        }
+        return ticker.flatMapLatest {
+            combine(
+                sensorDao.observeRegisteredAddresses().take(1),
+                liveReadings.take(1),
+                sensorDao.observeAllTanks().take(1)
+            ) { addresses, readings, tanks ->
+                val tankMap = tanks.associateBy { it.sensorAddress }
+                addresses.mapNotNull { address ->
+                    val scanned = readings[address] ?: return@mapNotNull null
+                    val tank = tankMap[address]?.toDomain()
+                    Log.i(TAG,"observeRegisteredSensors")
+                    mapToSensor(
+                        scanned = scanned,
+                        tank = tank,
+                        mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
+                    )
+                }.sortedBy { it.name }
+            }.distinctUntilChanged()
         }
     }
 
-    fun observeSensorForDetail(address: String): Flow<Sensor1?> {
-        return combine(
-            liveReadings,
-            sensorDao.observeTank(address)
-        ) { readings, tankEntity ->
+    fun observeSensorForDetail(address: String,scanIntervalMillis: Long): Flow<Sensor1?> {
+        // 1. Create the ticker based on your interval
+        val ticker = flow {
+            while (currentCoroutineContext().isActive) {
+                emit(Unit)
+                delay(scanIntervalMillis)
+            }
+        }
+        return ticker.flatMapLatest {
+            combine(
+                liveReadings.take(1),
+                sensorDao.observeTank(address).take(1),
+            ) { readings, tankEntity ->
 
-            val scanned = readings[address] ?: return@combine null
-            val tank = tankEntity?.toDomain()
-
-            mapToSensor(scanned, tank, includeQuality = true)
+                val scanned = readings[address] ?: return@combine null
+                val tank = tankEntity?.toDomain()
+                Log.i(TAG,"observeSensorForDetail")
+                mapToSensor(
+                    scanned, tank,
+                    mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
+                )
+            }
         }
     }
 
@@ -120,24 +160,36 @@ class Sensor1Repository @Inject constructor(
 
     private fun mapToSensorList(readings: Map<String, ScannedSensor>): List<Sensor1> {
         return readings.values.map { scanned ->
-            mapToSensor(scanned, tank = null)
+            mapToSensor(
+                scanned = scanned,
+                mapToSensorEnum = MapToSensorEnum.DISCOVER
+            )
         }.sortedByDescending { it.reading?.timestampMillis }
     }
 
     private fun mapToSensor(
         scanned: ScannedSensor,
-        tank: Tank?,
-        includeQuality: Boolean = false
+        tank: Tank?=null,
+        mapToSensorEnum:MapToSensorEnum
     ): Sensor1 {
-
         val reading = scanned.parsed.reading
+        // 1. Extract calculations to scoped variables to avoid repetition
+        val tankLevel = when (mapToSensorEnum) {
+            MapToSensorEnum.OBSERVE_REGISTERED, MapToSensorEnum.OBSERVE_DETAIL -> {
+                calculateTankUseCase.calculateTankLevel(
+                    rawHeightMeters = reading.rawHeightMeters,
+                    tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
+                    tankType = calculateTankUseCase.calculateTankType(tank)
+                )
+            }
+            MapToSensorEnum.DISCOVER -> null
+        }
 
-        val tankLevel = calculateTankUseCase.calculateTankLevel(
-            rawHeightMeters = reading.rawHeightMeters,
-            tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
-            tankType = calculateTankUseCase.calculateTankType(tank)
-        )
+        val readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) {
+            reading.quality.toQuality()
+        } else null
 
+        // 2. Return using named arguments
         return Sensor1(
             address = scanned.address,
             name = calculateName(scanned, tank),
@@ -146,7 +198,7 @@ class Sensor1Repository @Inject constructor(
             syncPressed = scanned.parsed.syncPressed,
             reading = reading,
             tankLevel = tankLevel,
-            readQuality = if (includeQuality) reading.quality.toQuality() else null
+            readQuality = readQuality
         )
     }
 
@@ -247,5 +299,9 @@ class Sensor1Repository @Inject constructor(
         } catch (_: Exception) {
             default
         }
+    }
+
+    enum class MapToSensorEnum{
+        DISCOVER,OBSERVE_REGISTERED,OBSERVE_DETAIL
     }
 }
