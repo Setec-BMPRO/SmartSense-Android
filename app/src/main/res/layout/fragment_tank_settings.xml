@@ -61,9 +61,16 @@
             </LinearLayout>
 
             <!-- Spacer to balance the back button -->
-            <View
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
                 android:layout_width="48dp"
-                android:layout_height="48dp"/>
+                android:layout_height="48dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                style="@style/Widget.Material3.Button.IconButton"/>
         </LinearLayout>
 
         <!-- Top row: Battery | Quality | Signal -->
@@ -118,7 +125,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/settings"
+                android:text="@string/region"
                 android:textAppearance="?attr/textAppearanceTitleSmall"
                 android:textColor="?attr/colorPrimary"/>
 
@@ -220,14 +227,14 @@
                 android:orientation="horizontal" >
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="120dp"
+                    android:layout_width="170dp"
                     android:layout_height="wrap_content">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etHeight"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Height"
+                        android:hint="Set Tank Height"
                         android:imeOptions="actionDone"
                         android:selectAllOnFocus="true"
                         android:inputType="numberDecimal"/>
@@ -332,8 +339,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notifications"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
-                android:textColor="?attr/colorPrimary"/>
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="?attr/colorAccent"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -346,6 +353,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textColor="?attr/colorPrimary"
                     android:text="@string/notifications"/>
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -416,7 +425,6 @@
                 android:layout_height="wrap_content"
                 android:text="50%"
                 android:textAppearance="?attr/textAppearanceTitleSmall"
-                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 android:layout_marginTop="4dp"/>
 
@@ -460,14 +468,5 @@
         </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
-    <!-- FAB -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabSave"
-        android:layout_gravity="bottom|end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:layout_anchorGravity="bottom|end"
-        app:srcCompat="@drawable/ic_check"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

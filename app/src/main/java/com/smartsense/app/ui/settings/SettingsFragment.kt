@@ -13,7 +13,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.smartsense.app.R
 import com.smartsense.app.SmartSenseApplication
 import com.smartsense.app.databinding.FragmentSettingsBinding
+import com.smartsense.app.domain.model.QualityThreshold
 import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.ui.detail.SelectedAdapter
+import com.smartsense.app.util.uppercaseFirst
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -44,23 +47,24 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupDropdowns() {
-        val unitAdapter = ArrayAdapter(
+        val units = resources.getStringArray(R.array.unit_systems).toList()
+        binding.unitSystemDropdown.setAdapter(SelectedAdapter(
             requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            resources.getStringArray(R.array.unit_systems)
+            items = units
+        ){
+            Timber.i("-----units:${viewModel.unitSystem.value.name}-list:${units}")
+            units.indexOf(viewModel.unitSystem.value.name.lowercase().uppercaseFirst())}
         )
-        binding.unitSystemDropdown.setAdapter(unitAdapter)
         binding.unitSystemDropdown.setOnItemClickListener { _, _, position, _ ->
             val unitSystem = if (position == 0) UnitSystem.METRIC else UnitSystem.IMPERIAL
             viewModel.setUnitSystem(unitSystem)
         }
 
-        val intervalAdapter = ArrayAdapter(
+        val scanIntervals = resources.getStringArray(R.array.scan_intervals).toList()
+        binding.scanIntervalDropdown.setAdapter(SelectedAdapter(
             requireContext(),
-            android.R.layout.simple_dropdown_item_1line,
-            resources.getStringArray(R.array.scan_intervals)
-        )
-        binding.scanIntervalDropdown.setAdapter(intervalAdapter)
+            items = scanIntervals
+        ){scanIntervals.indexOf(viewModel.scanInterval.value.toString()+" seconds")})
         binding.scanIntervalDropdown.setOnItemClickListener { _, _, position, _ ->
             val values = resources.getIntArray(R.array.scan_interval_values)
             viewModel.setScanInterval(values[position])

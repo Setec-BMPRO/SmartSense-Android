@@ -110,4 +110,5 @@
     <string name="inches">Inches</string>
     <string name="alarm_threshold">Alarm Threshold</string>
     <string name="notification_frequency">Notification Frequency</string>
+    <string name="region">Region</string>
 </resources>

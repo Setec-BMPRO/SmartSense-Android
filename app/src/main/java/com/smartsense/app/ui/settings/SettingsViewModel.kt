@@ -17,10 +17,10 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val unitSystem: StateFlow<UnitSystem> = userPreferences.unitSystem
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UnitSystem.METRIC)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UnitSystem.METRIC)
 
     val scanInterval: StateFlow<Int> = userPreferences.scanInterval
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 5)
 
     val appTheme: StateFlow<String> = userPreferences.appTheme
         .stateIn(viewModelScope, SharingStarted.Eagerly, "System")

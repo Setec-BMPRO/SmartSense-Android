@@ -10,11 +10,13 @@ class SensorScanUseCase @Inject constructor(
 ) {
     val isBluetoothEnabled=repository.isBluetoothEnabled
 
-    fun startScan(): Flow<List<Sensor1>> = repository.discoverSensors()
+    fun startScan(scanIntervalMillis: Long): Flow<List<Sensor1>> = repository.discoverSensors(scanIntervalMillis)
 
     fun stopScan() = repository.stopScan()
 
-    fun observeRegisteredSensors(): Flow<List<Sensor1>> = repository.observeRegisteredSensors()
+    fun startScanIfNeeded(scanIntervalMillis: Long) = repository.startScanIfNeeded(scanIntervalMillis)
+
+    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> = repository.observeRegisteredSensors()
 
     suspend fun registerSensor(address: String, name: String) = repository.registerSensor(address,name)
 }

@@ -33,7 +33,7 @@ data class SensorListUiState(
 @HiltViewModel
 class Scan1ViewModel @Inject constructor(
     private val userCase: SensorScanUseCase,
-    userPreferences: UserPreferences
+    val userPreferences: UserPreferences
 ) : ViewModel() {
 
     companion object {
@@ -71,7 +71,7 @@ class Scan1ViewModel @Inject constructor(
 
     fun startObserveRegisteredSensors() {
         registeredJob = viewModelScope.launch {
-            userCase.observeRegisteredSensors()
+            userCase.observeRegisteredSensors(0)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     // Mark auto-pair done if we already have sensors
@@ -86,10 +86,9 @@ class Scan1ViewModel @Inject constructor(
 
     private fun autoStartScan() {
         if (scanJob?.isActive == true) return
-
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
-            userCase.startScan()
+            userCase.startScan(5000)
                 .catch { e -> _uiState.update { it.copy(error = e.message, isScanning = false) } }
                 .collect { freshlyScannedSensors ->
                     handleAutoPairing(freshlyScannedSensors)

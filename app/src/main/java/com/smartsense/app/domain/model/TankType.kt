@@ -35,7 +35,7 @@ enum class TankRegion(val displayName: String) {
         get() = when (this) {
             AUSTRALIA -> "au"
             CANADA -> ""
-            NEW_ZEALAND -> ""
+            NEW_ZEALAND -> "au"
             UNITED_STATE -> ""
             OTHER_NORTH_AMERICA -> "" // Common shorthand for North America
         }
@@ -49,9 +49,9 @@ enum class TankType(
 ) {
 
     // North America vertical tanks
-    LB_20("20 lb", 0.254, TankOrientation.VERTICAL),
-    LB_30("30 lb", 0.381, TankOrientation.VERTICAL),
-    LB_40("40 lb", 0.508, TankOrientation.VERTICAL),
+    LB_20("20 lb, Vertical", 0.254, TankOrientation.VERTICAL),
+    LB_30("30 lb, Vertical", 0.381, TankOrientation.VERTICAL),
+    LB_40("40 lb, Vertical", 0.508, TankOrientation.VERTICAL),
 
 //    LB_100("100 lb", 0.8128, TankOrientation.VERTICAL),
 //    GAL_120_V("120 gal vertical", 1.2192 * 0.8, TankOrientation.VERTICAL),
@@ -68,7 +68,7 @@ enum class TankType(
     KG_8_5("8.5 kg", 0.342, TankOrientation.VERTICAL, "au"),
 
     // Custom
-    ARBITRARY("Custom", 0.0, TankOrientation.VERTICAL);
+    ARBITRARY("Arbitrary", 0.0, TankOrientation.VERTICAL);
 
     companion object {
         fun forRegion(region: String): List<TankType> {

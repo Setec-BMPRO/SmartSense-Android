@@ -5,7 +5,7 @@ import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.TankPreset
-import com.smartsense.app.domain.usecase.CalculateTankLevelUseCase
+import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class BleScannerImpl @Inject constructor(
     private val bleManager: BleManager,
-    private val calculateTankLevel: CalculateTankLevelUseCase
+    private val calculateTankLevel: CalculateTankUseCase
 ) : BleScanner {
 
     companion object {
@@ -88,7 +88,7 @@ class BleScannerImpl @Inject constructor(
             ?: pairedSensors.value[address]?.tankPreset
             ?: TankPreset.defaults.first()
 
-        val level = calculateTankLevel.calculate(
+        val level = calculateTankLevel.calculateTankLevel(
             rawHeightMeters = parsed.reading.rawHeightMeters,
             tankHeightMm = preset.heightMm,
             tankType = preset.type

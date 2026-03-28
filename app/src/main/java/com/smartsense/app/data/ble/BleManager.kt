@@ -11,10 +11,6 @@ import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.os.ParcelUuid
 import android.util.Log
-import com.smartsense.app.domain.model.MopekaSensorType
-import com.smartsense.app.domain.model.SensorReading
-import com.smartsense.app.domain.model.TankPreset
-import com.smartsense.app.domain.usecase.CalculateTankLevelUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -22,17 +18,12 @@ import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class ScannedSensor(
-    val address: String,
-    val name: String?,
-    val parsed: ParsedSensor,
-    val timestampMillis: Long = System.currentTimeMillis()
-)
 
 @Singleton
 class BleManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
+
     companion object {
         private const val TAG = "BleManager"
     }
@@ -46,142 +37,132 @@ class BleManager @Inject constructor(
     private val scanner: BluetoothLeScanner?
         get() = bluetoothAdapter?.bluetoothLeScanner
 
-    private var currentCallback: ScanCallback? = null
+    // Persistent reference to the active callback to ensure stopScan works
+    private var activeScanCallback: ScanCallback? = null
 
     val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
 
-    val isBluetoothSupported: Boolean
-        get() = bluetoothAdapter != null
+    // --------------------------------------
+    // 🔍 SCAN
+    // --------------------------------------
 
-    /**
-     * Start scanning for Mopeka BLE sensors.
-     * Emits ScannedSensor objects as they are discovered.
-     */
     @SuppressLint("MissingPermission")
     fun startScan(): Flow<ScannedSensor> = callbackFlow {
-        val leScanner = scanner
-        if (leScanner == null) {
+        val leScanner = scanner ?: run {
             Log.w(TAG, "BLE scanner not available")
             close()
             return@callbackFlow
         }
 
-        val scanSettings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-            .setReportDelay(0)
-            .build()
+        // 1. Stop any existing scan before starting a new one
+        stopScan()
 
-        // Filter by Mopeka service UUIDs: ADA0 (CC2540) and FEE5 (NRF52)
-        val scanFilters = listOf(
-            ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_CC2540))
-                .build(),
-            ScanFilter.Builder()
-                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_NRF52))
-                .build()
-        )
-
+        // 2. Define the callback instance
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val sensor = parseScanResult(result)
-                if (sensor != null) {
-                    trySend(sensor)
-                }
+                parseScanResult(result)?.let { trySend(it) }
             }
 
             override fun onBatchScanResults(results: List<ScanResult>) {
                 results.forEach { result ->
-                    val sensor = parseScanResult(result)
-                    if (sensor != null) {
-                        trySend(sensor)
-                    }
+                    parseScanResult(result)?.let { trySend(it) }
                 }
             }
 
             override fun onScanFailed(errorCode: Int) {
-                Log.e(TAG, "BLE scan failed with error code: $errorCode")
-                close(Exception("BLE scan failed: $errorCode"))
+                Log.e(TAG, "BLE scan failed: $errorCode")
+                // You could choose to close(Exception("Scan failed $errorCode")) here
             }
         }
 
-        currentCallback = callback
+        // 3. Store reference and start
+        activeScanCallback = callback
 
         try {
-            leScanner.startScan(scanFilters, scanSettings, callback)
+            leScanner.startScan(buildScanFilters(), buildScanSettings(), callback)
             Log.d(TAG, "BLE scan started")
-        } catch (e: SecurityException) {
-            Log.e(TAG, "Missing BLE permissions", e)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start scan", e)
             close(e)
-            return@callbackFlow
         }
 
+        // 4. Cleanup when flow is cancelled or closed
         awaitClose {
-            stopScanInternal(leScanner, callback)
+            Log.d(TAG, "Flow collection ended, stopping scan...")
+            stopScan()
         }
     }
 
+    /**
+     * Public method to manually stop the scan.
+     * Can be called from UI or via awaitClose.
+     */
     @SuppressLint("MissingPermission")
     fun stopScan() {
-        val callback = currentCallback ?: return
         val leScanner = scanner ?: return
-        stopScanInternal(leScanner, callback)
+        val callback = activeScanCallback ?: return
+
+        // Verify Bluetooth is still ON before trying to stop
+        if (bluetoothAdapter?.state == BluetoothAdapter.STATE_ON) {
+            try {
+                leScanner.stopScan(callback)
+                Log.d(TAG, "BLE scan stopped successfully")
+            } catch (e: Exception) {
+                Log.w(TAG, "Error while calling stopScan: ${e.message}")
+            }
+        } else {
+            Log.w(TAG, "Bluetooth is OFF, stopScan call skipped (hardware handled)")
+        }
+
+        activeScanCallback = null
     }
 
-    @SuppressLint("MissingPermission")
-    private fun stopScanInternal(leScanner: BluetoothLeScanner, callback: ScanCallback) {
-        try {
-            leScanner.stopScan(callback)
-            Log.d(TAG, "BLE scan stopped")
-        } catch (e: Exception) {
-            Log.w(TAG, "Error stopping scan", e)
-        }
-        if (currentCallback === callback) {
-            currentCallback = null
-        }
-    }
+    // --------------------------------------
+    // 🏗️ BUILDERS
+    // --------------------------------------
+
+    private fun buildScanSettings(): ScanSettings =
+        ScanSettings.Builder()
+            // SCAN_MODE_LOW_LATENCY: Continuous scanning (High battery use)
+            // SCAN_MODE_BALANCED: Scans for ~2s, pauses for ~3s
+            // SCAN_MODE_LOW_POWER: Scans for ~0.5s, pauses for ~4.5s
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
+            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+            .setReportDelay(0)
+            .build()
+
+    private fun buildScanFilters(): List<ScanFilter> =
+        listOf(
+            createFilter(BleConstants.SERVICE_UUID_CC2540),
+            createFilter(BleConstants.SERVICE_UUID_NRF52)
+        )
+
+    private fun createFilter(uuid: java.util.UUID): ScanFilter =
+        ScanFilter.Builder()
+            .setServiceUuid(ParcelUuid(uuid))
+            .build()
+
+    // --------------------------------------
+    // 🔎 PARSING
+    // --------------------------------------
 
     @SuppressLint("MissingPermission")
     private fun parseScanResult(result: ScanResult): ScannedSensor? {
         val record = result.scanRecord ?: return null
 
-        // RSSI threshold filter
-        if (result.rssi < BleConstants.DEFAULT_RSSI_THRESHOLD) return null
+        if (!isValidRssi(result.rssi)) return null
 
-        // Determine hardware type by service UUID and get correct manufacturer data
-        val serviceUuids = record.serviceUuids
-        val hwType = when {
-            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_CC2540 } == true -> HwType.CC2540
-            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_NRF52 } == true -> HwType.NRF52
-            else -> return null
-        }
+        val hwType = detectHardwareType(record.serviceUuids) ?: return null
+        val mfgData = getManufacturerData(record, hwType) ?: return null
+        val parsed = parseAdvertData(hwType, mfgData, result) ?: return null
 
-        // Get manufacturer data using the correct manufacturer ID for each hardware type
-        val mfgData = when (hwType) {
-            HwType.CC2540 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_CC2540)
-            HwType.NRF52 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_NRF52)
-        } ?: return null
-
-        // Parse using the format matching the hardware type
-        val parsed = when (hwType) {
-            HwType.CC2540 -> SensorAdvertParser.parseCC2540(mfgData, result.rssi, result.device.address)
-            HwType.NRF52 -> SensorAdvertParser.parseNRF52(mfgData, result.rssi, result.device.address)
-        } ?: return null
-
+        // Specific filtering for LPG sensors
         if (!parsed.sensorType.isLpg) return null
 
-        val bleDeviceName: String? = try {
-            result.device?.name
-        } catch (_: SecurityException) {
-            null
-        }
-        val scanRecordName = record.deviceName
-        val rawLocalName = parseLocalNameFromBytes(record.bytes)
-        val deviceName = bleDeviceName ?: scanRecordName ?: rawLocalName
-
-        Log.d(TAG, "MOPEKA_LPG ${result.device.address}: " +
-                "type=${parsed.sensorType.displayName}, rssi=${result.rssi}")
-
+        val deviceName = resolveDeviceName(result, record)
+        logScan(result, parsed)
 
         return ScannedSensor(
             address = result.device.address,
@@ -190,10 +171,46 @@ class BleManager @Inject constructor(
         )
     }
 
-    /**
-     * Parse the Complete Local Name (0x09) or Shortened Local Name (0x08) from
-     * raw BLE advertisement bytes as a fallback when ScanRecord.deviceName is null.
-     */
+    private fun isValidRssi(rssi: Int): Boolean =
+        rssi >= BleConstants.DEFAULT_RSSI_THRESHOLD
+
+    private fun detectHardwareType(serviceUuids: List<ParcelUuid>?): HwType? {
+        return when {
+            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_CC2540 } == true -> HwType.CC2540
+            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_NRF52 } == true -> HwType.NRF52
+            else -> null
+        }
+    }
+
+    private fun getManufacturerData(record: android.bluetooth.le.ScanRecord, hwType: HwType): ByteArray? {
+        return when (hwType) {
+            HwType.CC2540 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_CC2540)
+            HwType.NRF52 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_NRF52)
+        }
+    }
+
+    private fun parseAdvertData(hwType: HwType, data: ByteArray, result: ScanResult) =
+        when (hwType) {
+            HwType.CC2540 -> SensorAdvertParser.parseCC2540(data, result.rssi, result.device.address)
+            HwType.NRF52 -> SensorAdvertParser.parseNRF52(data, result.rssi, result.device.address)
+        }
+
+    private fun resolveDeviceName(result: ScanResult, record: android.bluetooth.le.ScanRecord): String? {
+        val bleName = try {
+            result.device?.name
+        } catch (_: SecurityException) {
+            null
+        }
+
+        return bleName
+            ?: record.deviceName
+            ?: parseLocalNameFromBytes(record.bytes)
+    }
+
+    private fun logScan(result: ScanResult, parsed: ParsedSensor) {
+        Log.d(TAG, "SCAN [${parsed.sensorType.displayName}] ${result.device.address} | RSSI: ${result.rssi}")
+    }
+
     private fun parseLocalNameFromBytes(bytes: ByteArray?): String? {
         if (bytes == null) return null
         var offset = 0
@@ -201,6 +218,7 @@ class BleManager @Inject constructor(
             val length = bytes[offset].toInt() and 0xFF
             if (length == 0) break
             if (offset + length >= bytes.size) break
+
             val type = bytes[offset + 1].toInt() and 0xFF
             if (type == 0x09 || type == 0x08) {
                 val nameBytes = bytes.copyOfRange(offset + 2, offset + 1 + length)
@@ -213,3 +231,13 @@ class BleManager @Inject constructor(
 
     private enum class HwType { CC2540, NRF52 }
 }
+
+/**
+ * Data model for a detected sensor
+ */
+data class ScannedSensor(
+    val address: String,
+    val name: String?,
+    val parsed: ParsedSensor,
+    val timestampMillis: Long = System.currentTimeMillis()
+)

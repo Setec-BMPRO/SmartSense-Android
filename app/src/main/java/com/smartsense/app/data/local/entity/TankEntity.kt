@@ -16,5 +16,6 @@ data class TankEntity(
     val levelUnit: String = "PERCENT", // TankLevelUnit enum name
     val notificationsEnabled: Boolean = true,
     val notificationFrequency: String = "EVERY_12_HOURS", // NotificationFrequency enum name
-    val triggerAlarmUnit: String="ABOVE"
+    val triggerAlarmUnit: String="ABOVE",
+    val qualityThreshold: String="DISABLE"
 )
