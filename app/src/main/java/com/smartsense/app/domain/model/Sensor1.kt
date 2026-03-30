@@ -8,8 +8,9 @@ data class Sensor1(
     val syncPressed: Boolean = false,
     val reading: SensorReading?=null,
     val tankLevel: TankLevel?=null,
-    val tankPreset: TankPreset= TankPreset.defaults.first(),
     val readQuality: ReadQuality? =null,
+    val tankType: String?=null
+
 
     ){
     val batteryPercent: Int= (((reading?.batteryVoltage?:0f) - 2.2f)

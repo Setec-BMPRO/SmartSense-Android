@@ -172,7 +172,7 @@ class Sensor1DetailFragment : Fragment() {
         detailSensorType.text = sensor.sensorType?.displayName?.ifEmpty { "--" }
         detailDeviceAddress.text = formatShortAddress(sensor.address)
         detailTemperature.text = sensor.temperatureFormatted(viewModel.unitSystem)
-        detailTankType.text = sensor.tankPreset.name
+        detailTankType.text = sensor.tankType
     }
 
     private fun FragmentSensorDetailBinding.updateRefreshRate() {

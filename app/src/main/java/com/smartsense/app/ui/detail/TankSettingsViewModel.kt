@@ -184,7 +184,7 @@ data class TankSettingsUiState(
     val sensorAddress: String = "",
     val name: String = "",
     val region: TankRegion = TankRegion.AUSTRALIA,
-    val tankType: TankType = TankType.KG_3_7,
+    val tankType: TankType = TankType.default(),
     val customHeightMeters: Double = 0.0,
     val orientation: TankOrientation = TankOrientation.VERTICAL,
     val qualityThreshold: QualityThreshold = QualityThreshold.DISABLE,

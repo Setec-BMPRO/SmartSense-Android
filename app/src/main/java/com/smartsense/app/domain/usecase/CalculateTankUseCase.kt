@@ -151,7 +151,7 @@ class CalculateTankUseCase @Inject constructor() {
 
             else ->
                 type?.heightMeters?.toFloat()
-        } ?: com.smartsense.app.domain.model.TankType.KG_3_7.heightMeters.toFloat()
+        } ?: com.smartsense.app.domain.model.TankType.default().heightMeters.toFloat()
 
     fun calculateTankType(tank: Tank?) =
         when (
@@ -160,7 +160,7 @@ class CalculateTankUseCase @Inject constructor() {
                     it.orientation
                 else
                     it.type.orientation
-            } ?: com.smartsense.app.domain.model.TankType.KG_3_7.orientation
+            } ?: com.smartsense.app.domain.model.TankType.default().orientation
         ) {
             TankOrientation.VERTICAL -> TankType.PROPANE_VERTICAL
             else -> TankType.PROPANE_HORIZONTAL

@@ -18,10 +18,12 @@ import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevel
 import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
+import com.smartsense.app.domain.model.TankPreset
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
 import com.smartsense.app.domain.usecase.CalculateTankUseCase
+import com.smartsense.app.util.uppercaseFirst
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -145,7 +147,7 @@ class Sensor1Repository @Inject constructor(
 
                 val scanned = readings[address] ?: return@combine null
                 val tank = tankEntity?.toDomain()
-                Log.i(TAG,"observeSensorForDetail")
+                Log.i(TAG,"observeSensorForDetail-tankEntity:${tankEntity}-tank:${tank}")
                 mapToSensor(
                     scanned, tank,
                     mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
@@ -184,10 +186,15 @@ class Sensor1Repository @Inject constructor(
             }
             MapToSensorEnum.DISCOVER -> null
         }
+        var readQuality: ReadQuality?=null
+        var tankType: String?=null
 
-        val readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) {
-            reading.quality.toQuality()
-        } else null
+        if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) {
+            readQuality=reading.quality.toQuality()
+            tankType= if(tank?.type== TankType.ARBITRARY)
+                tank.type.displayName+" "+tank.type.orientation.name.uppercaseFirst()
+            else tank?.type?.displayName
+        }
 
         // 2. Return using named arguments
         return Sensor1(
@@ -198,7 +205,8 @@ class Sensor1Repository @Inject constructor(
             syncPressed = scanned.parsed.syncPressed,
             reading = reading,
             tankLevel = tankLevel,
-            readQuality = readQuality
+            readQuality = readQuality,
+            tankType=tankType
         )
     }
 
@@ -234,6 +242,9 @@ class Sensor1Repository @Inject constructor(
                 isRegistered = true
             )
         )
+        sensorDao.insertTank(
+            TankEntity(sensorAddress = address)
+        )
     }
 
     suspend fun unregisterSensor(address: String) {
@@ -266,7 +277,7 @@ class Sensor1Repository @Inject constructor(
     private fun TankEntity.toDomain(): Tank = Tank(
         sensorAddress = sensorAddress,
         name = name,
-        type = enumOrDefault(tankType, TankType.KG_3_7),
+        type = enumOrDefault(tankType, TankType.default()),
         customHeightMeters = customHeightMeters,
         orientation = enumOrDefault(orientation, TankOrientation.VERTICAL),
         alarmThresholdPercent = alarmThresholdPercent,

@@ -359,10 +359,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:paddingVertical="@dimen/spacing_sm"
-                android:clickable="true"
-                android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:paddingVertical="@dimen/spacing_sm">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -380,10 +377,10 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/detail_tank_type"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="39dp"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorPrimary"
-                        tools:text="20 lb (BBQ)"/>
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="20 lb (BBQ)" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

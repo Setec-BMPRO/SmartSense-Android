@@ -1,26 +1,46 @@
 package com.smartsense.app.domain.model
 
+import com.smartsense.app.domain.model.QualityThreshold.DISABLE
+import com.smartsense.app.domain.model.TankType.ARBITRARY
+import com.smartsense.app.domain.model.TankType.KG_3_7
+
 enum class TankOrientation {
     VERTICAL,
-    HORIZONTAL
+    HORIZONTAL;
+
+    companion object {
+        fun default():TankOrientation=VERTICAL
+    }
 }
 
 enum class TankLevelUnit(val displayName: String,val shortName: String) {
     PERCENT("Percent","cm."),
     CENTIMETERS("Centimeters","cm."),
-    INCHES("Inches","in.")
+    INCHES("Inches","in.");
+
+    companion object{
+        fun default():TankLevelUnit=PERCENT
+    }
+
 }
 
 enum class TriggerAlarmUnit(val displayName: String) {
     ABOVE("Above"),
-    BELOW("Below")
+    BELOW("Below");
+    companion object{
+        fun default():TriggerAlarmUnit=ABOVE
+    }
 }
 
 enum class NotificationFrequency(val displayName: String) {
     EVERY_HOUR("Every Hour"),
     EVERY_6_HOURS("Every 6 Hours"),
     EVERY_12_HOURS("Every 12 Hours"),
-    EVERY_24_HOURS("Every 24 Hours")
+    EVERY_24_HOURS("Every 24 Hours");
+    companion object{
+        fun default():NotificationFrequency=EVERY_12_HOURS
+    }
+
 }
 
 enum class TankRegion(val displayName: String) {
@@ -39,6 +59,9 @@ enum class TankRegion(val displayName: String) {
             UNITED_STATE -> ""
             OTHER_NORTH_AMERICA -> "" // Common shorthand for North America
         }
+    companion object{
+        fun default(): TankRegion=AUSTRALIA
+    }
 }
 
 enum class TankType(
@@ -78,11 +101,20 @@ enum class TankType(
         fun forTankRegion(tankRegion: TankRegion): List<TankType> {
             return forRegion(tankRegion.regionCode)
         }
+
+        fun default():TankType=KG_3_7
     }
 }
 
 enum class QualityThreshold(val displayName: String) {
     DISABLE("Disable"),
     ONE("1"),
-    TWO("2")
+    TWO("2");
+
+    companion object{
+        fun default(): QualityThreshold= DISABLE
+    }
 }
+
+const val DEFAULT_ALARM_THRESHOLD_PERCENT = 20
+const val DEFAULT_NOTIFICATION_ENABLED = true
