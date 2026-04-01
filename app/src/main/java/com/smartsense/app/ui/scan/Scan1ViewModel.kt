@@ -11,10 +11,15 @@ import com.smartsense.app.domain.usecase.SensorScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -46,6 +51,39 @@ class Scan1ViewModel @Inject constructor(
 
     val unitSystem: UnitSystem = runBlocking {
         userPreferences.unitSystem.first()
+    }
+
+    val deviceSearchFilterEnabled: Boolean = runBlocking {
+        userPreferences.deviceSearchFilterEnabled.first()
+    }
+
+    val groupFilterEnabled: Boolean = runBlocking {
+        userPreferences.groupFilterEnabled.first()
+    }
+
+    private val _filterQuery = MutableStateFlow("")
+
+    // The UI should observe THIS instead of uiState.sensors
+    val filteredSensors: StateFlow<List<Sensor1>> = combine(
+        uiState.map { it.sensors }.distinctUntilChanged(),
+        _filterQuery
+    ) { sensors, query ->
+        if (query.isBlank()) {
+            sensors
+        } else {
+            sensors.filter { sensor ->
+                sensor.name?.contains(query, ignoreCase = true) == true ||
+                        sensor.address.contains(query, ignoreCase = true)
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    fun setFilterQuery(query: String) {
+        _filterQuery.value = query
     }
 
     private var scanJob: Job? = null
@@ -136,9 +174,11 @@ class Scan1ViewModel @Inject constructor(
 //        }
 //    }
 
+
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
+
 
     override fun onCleared() {
         super.onCleared()

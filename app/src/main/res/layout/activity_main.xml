@@ -54,13 +54,13 @@
                     android:id="@+id/tab_account_label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
                     android:drawableTop="@drawable/ic_account"
                     android:drawableTint="@color/bottom_tab_color"
-                    android:layout_marginTop="2dp"
                     android:text="@string/nav_account"
-                    app:rippleColor="#FFFFFF33"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
-                    android:textColor="@color/bottom_tab_color" />
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textColor="@color/bottom_tab_color"
+                    app:rippleColor="#FFFFFF33" />
             </LinearLayout>
 
             <!-- Spacer for center FAB -->
@@ -90,7 +90,7 @@
                     android:drawableTop="@drawable/ic_settings"
                     android:text="@string/nav_settings"
                     android:drawableTint="@color/bottom_tab_color"
-                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
                     android:textColor="@color/bottom_tab_color" />
             </LinearLayout>
         </LinearLayout>

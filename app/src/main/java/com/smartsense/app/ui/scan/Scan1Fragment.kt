@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScan1Binding
+import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.ui.dashboard.Sensor1CardAdapter
 
 import com.smartsense.app.ui.helper.BlePermissionManager
@@ -71,7 +73,6 @@ class Scan1Fragment : Fragment() {
     }
 
     private fun setupViews() {
-        Timber.i("-----setupViews:${viewModel.unitSystem}")
         // Setup Adapter & RecyclerView
         sensorAdapter = Sensor1CardAdapter(viewModel.unitSystem) { sensor ->
             //viewModel.registerSensor(sensor.address,sensor.name!!)
@@ -99,6 +100,14 @@ class Scan1Fragment : Fragment() {
             )
         }
         binding.smartsenseLogo.logoText.text = logoText
+
+        // Filter Sensor
+        binding.filterEditText.doOnTextChanged { text, _, _, _ ->
+            viewModel.setFilterQuery(text.toString())
+        }
+        binding.filterLayout.isVisible=viewModel.deviceSearchFilterEnabled
+
+        // Group Filter
     }
 
     private fun observeViewModel() {
@@ -126,6 +135,7 @@ class Scan1Fragment : Fragment() {
                             scanningState.isVisible = !hasSensors
                             sensorList.isVisible = hasSensors
                             sensorCount.isVisible = hasSensors
+                            layoutSensor.isVisible=hasSensors
                             if (hasSensors) {
                                 sensorAdapter.submitList(sensors)
                                 sensorCount.text = getString(
@@ -137,18 +147,7 @@ class Scan1Fragment : Fragment() {
                     }
             }
         }
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                viewModel.uiState
-//                    .map { it.isBluetoothEnabled to it.sensors.isNotEmpty() }
-//                    .distinctUntilChanged()
-//                    .collect { (isEnabled, hasSensors) ->
-//                        if (isEnabled && hasSensors) {
-//                            // Start background BLE scan
-//                        }
-//                    }
-//            }
-//        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState
@@ -165,6 +164,20 @@ class Scan1Fragment : Fragment() {
                             }
                             scanHint.isVisible = isScanning
                         }
+                    }
+            }
+        }
+
+        // Filter Sensor
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.filteredSensors // Collect the filtered flow here
+                    .collect { sensors ->
+                        sensorAdapter.submitList(sensors)
+                        binding.sensorCount.text = getString(R.string.sensor_count_label, sensors.size)
+
+                        // Toggle list visibility without affecting scanning status
+                        binding.sensorList.isVisible = sensors.isNotEmpty()
                     }
             }
         }
