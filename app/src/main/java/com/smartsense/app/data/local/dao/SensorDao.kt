@@ -30,6 +30,10 @@ interface SensorDao {
     @Query("DELETE FROM sensors")
     suspend fun deleteAllSensors()
 
+    @Query("DELETE FROM tanks")
+    suspend fun deleteAllTanks()
+
+
     // Tank operations
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTank(tank: TankEntity)

@@ -66,7 +66,7 @@ class SettingsViewModel @Inject constructor(
 
     fun setDeviceSearchFilterEnabled(enabled: Boolean) = viewModelScope.launch { userPreferences.setDeviceSearchFilterEnabled(enabled) }
 
-    fun deleteAllSensors() = viewModelScope.launch { /* sensorRepository.deleteAll() */ }
+    fun deleteAllSensors() = viewModelScope.launch {  settingsUseCase.unregisterAllSensors()  }
 
 
 

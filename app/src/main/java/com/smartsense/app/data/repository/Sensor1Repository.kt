@@ -255,7 +255,8 @@ class Sensor1Repository @Inject constructor(
     }
 
     suspend fun unregisterSensor(address: String) {
-        sensorDao.deleteAllSensors()
+        sensorDao.deleteSensor(address)
+        sensorDao.deleteTank(address)
     }
 
     suspend fun saveTankConfig(tank: Tank) {
@@ -271,6 +272,7 @@ class Sensor1Repository @Inject constructor(
 
     suspend fun unregisterAllSensors() {
         sensorDao.deleteAllSensors()
+        sensorDao.deleteAllTanks()
     }
 
 
