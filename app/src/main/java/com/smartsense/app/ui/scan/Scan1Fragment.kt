@@ -21,10 +21,16 @@ import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScan1Binding
 import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.ui.dashboard.HeaderItem
 import com.smartsense.app.ui.dashboard.ScanItem
 import com.smartsense.app.ui.dashboard.Sensor1CardAdapter
+import com.smartsense.app.ui.dashboard.SensorItem
 
 import com.smartsense.app.ui.helper.BlePermissionManager
+import com.xwray.groupie.ExpandableGroup
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
+import com.xwray.groupie.Section
 
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -39,7 +45,8 @@ class Scan1Fragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: Scan1ViewModel by viewModels()
-    private lateinit var sensorAdapter: Sensor1CardAdapter
+    //private lateinit var sensorAdapter: Sensor1CardAdapter
+    private val groupAdapter = GroupAdapter<GroupieViewHolder>()
     // Initialize the helper
     private lateinit var blePermissionManager: BlePermissionManager
 
@@ -75,21 +82,21 @@ class Scan1Fragment : Fragment() {
 
     private fun setupViews() {
         // Setup Adapter & RecyclerView
-        sensorAdapter = Sensor1CardAdapter(
-            onGroupClick = { groupName ->
-                // Tell ViewModel to toggle this group
-                //viewModel.toggleGroup(groupName)
-            },
-            onSensorClick = { sensor ->
-                // Navigate to Detail Screen
-                val bundle = Bundle().apply { putString("sensorAddress", sensor.address) }
-                findNavController().navigate(R.id.action_scan_to_detail, bundle)
-            }
-        )
+//        sensorAdapter = Sensor1CardAdapter(
+//            onGroupClick = { groupName ->
+//                // Tell ViewModel to toggle this group
+//                //viewModel.toggleGroup(groupName)
+//            },
+//            onSensorClick = { sensor ->
+//                // Navigate to Detail Screen
+//                val bundle = Bundle().apply { putString("sensorAddress", sensor.address) }
+//                findNavController().navigate(R.id.action_scan_to_detail, bundle)
+//            }
+//        )
 
         binding.sensorList.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = sensorAdapter
+            adapter = groupAdapter
         }
 
         // Setup Logo Branding
@@ -128,32 +135,7 @@ class Scan1Fragment : Fragment() {
                     }
             }
         }
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//                viewModel.uiState
-//                    .map { it.sensors }
-//                    .distinctUntilChanged()
-//                    .collect { sensors ->
-//                        val hasSensors = sensors.isNotEmpty()
-//                        binding.apply {
-//                            scanningState.isVisible = !hasSensors
-//                            sensorList.isVisible = hasSensors
-//                            sensorCount.isVisible = hasSensors
-//                            layoutSensor.isVisible=hasSensors
-//                            if (hasSensors) {
-//                                val scanItems=listOf(
-//                                    ScanItem.Sensor(sensors.first()))
-//                                sensorAdapter.submitList(scanItems)
-//                                sensorCount.text = getString(
-//                                    R.string.sensor_count_label,
-//                                    sensors.size
-//                                )
-//                                Timber.i("-----viewModel.uiState-----")
-//                            }
-//                        }
-//                    }
-//            }
-//        }
+
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -179,17 +161,35 @@ class Scan1Fragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.filteredSensors.collect { sensors ->
-                    val scanItems: List<ScanItem> = if (sensors.isEmpty()) {
-                        emptyList()
-                    } else {
-                        val sensorScanItems = sensors.map { ScanItem.Sensor(it) }
-                        if (viewModel.groupFilterEnabled) {
-                            listOf(ScanItem.Header("Bottom Mount - LPG", true)) + sensorScanItems
-                        } else {
-                            sensorScanItems
+                    val displayGroups = mutableListOf<com.xwray.groupie.Group>()
+
+                    // 1. Group the sensors by their category
+                    sensors.groupBy { it.name ?: "Other" }.forEach { (groupName, list) ->
+
+                        // 2. Create an ExpandableGroup with the Header
+                        val expandableGroup = ExpandableGroup(HeaderItem(groupName,{
+                        }), true)
+
+                        // 3. Add all sensors as children
+                        val sensorHeaderList=list.map { sensor ->
+                            SensorItem(sensor, viewModel.unitSystem) { selected ->
+                                // Navigate to detail
+                                val bundle = Bundle().apply { putString("sensorAddress", sensor.address) }
+                                findNavController().navigate(R.id.action_scan_to_detail, bundle)
+                            }
+                        }
+                        if(viewModel.groupFilterEnabled) {
+                            expandableGroup.addAll(sensorHeaderList)
+                            displayGroups.add(expandableGroup)
+                        }
+                        else {
+                            val section = Section() // No header passed here
+                            section.addAll(sensorHeaderList)
+                            displayGroups.add(section)
                         }
                     }
-                    sensorAdapter.submitList(scanItems)
+                    // 4. Update the entire list at once (Groupie handles DiffUtil internally)
+                    groupAdapter.update(displayGroups)
 
                     // 1. Get the 'Raw' count from the main UI State
 
@@ -209,8 +209,6 @@ class Scan1Fragment : Fragment() {
                         } else {
                             sensorCount.isVisible = false
                         }
-                        // OPTIONAL: Show a "No results found" text if total > 0 but filtered == 0
-                        // tvNoResults.isVisible = totalSensorsRegistered > 0 && filteredCount == 0
                     }
                 }
             }

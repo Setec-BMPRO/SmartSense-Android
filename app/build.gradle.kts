@@ -81,4 +81,7 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+    implementation("com.github.lisawray.groupie:groupie:2.10.1")
+    implementation("com.github.lisawray.groupie:groupie-viewbinding:2.10.1")
 }

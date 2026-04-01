@@ -129,7 +129,6 @@
     </com.google.android.material.textfield.TextInputLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/sensor_list"
-        android:layout_marginTop="@dimen/spacing_md"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
