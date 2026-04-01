@@ -4,7 +4,6 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.res.ColorStateList
 import android.graphics.Rect
-import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,33 +15,77 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.smartsense.app.R
 import com.smartsense.app.databinding.ItemSensorCardBinding
-import com.smartsense.app.domain.model.LevelStatus
-import com.smartsense.app.domain.model.MopekaSensorType
-import com.smartsense.app.domain.model.Sensor1
-import com.smartsense.app.domain.model.SignalStrength
-import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.databinding.LayoutGroupHeaderBinding
+import com.smartsense.app.domain.model.*
 import com.smartsense.app.util.TimeUtils
 
 class Sensor1CardAdapter(
-    val unitSystem: UnitSystem=UnitSystem.METRIC ,
+    var unitSystem: UnitSystem = UnitSystem.METRIC,
+    private val onGroupClick: (String) -> Unit,
     private val onSensorClick: (Sensor1) -> Unit
-) : ListAdapter<Sensor1, Sensor1CardAdapter.ViewHolder>(SensorDiffCallback()) {
+) : ListAdapter<ScanItem, RecyclerView.ViewHolder>(ScanItemDiffCallback()) {
 
+    companion object {
+        private const val TYPE_HEADER = 0
+        private const val TYPE_SENSOR = 1
+    }
 
     private val animatedAddresses = mutableSetOf<String>()
 
-    inner class ViewHolder(
-        private val binding: ItemSensorCardBinding
-    ) : RecyclerView.ViewHolder(binding.root) {
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is ScanItem.Header -> TYPE_HEADER
+            is ScanItem.Sensor -> TYPE_SENSOR
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        return when (viewType) {
+            TYPE_HEADER -> {
+                val binding = LayoutGroupHeaderBinding.inflate(inflater, parent, false)
+                HeaderViewHolder(binding)
+            }
+            else -> {
+                val binding = ItemSensorCardBinding.inflate(inflater, parent, false)
+                SensorViewHolder(binding)
+            }
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (val item = getItem(position)) {
+            is ScanItem.Header -> (holder as HeaderViewHolder).bind(item)
+            is ScanItem.Sensor -> (holder as SensorViewHolder).bind(item.data)
+        }
+    }
+
+    // --- Header ViewHolder (Expand/Collapse Logic) ---
+    inner class HeaderViewHolder(private val binding: LayoutGroupHeaderBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(header: ScanItem.Header) {
+            binding.headerTitle.text = header.title
+
+            // Rotate chevron based on expansion state
+            // Assuming your XML has an ImageView with ID ivChevron
+            val rotation = if (header.isExpanded) 0f else 180f
+            binding.ivChevron.animate().rotation(rotation).setDuration(200).start()
+
+            binding.root.setOnClickListener { onGroupClick(header.title) }
+        }
+    }
+
+    // --- Sensor ViewHolder (Your Original Binding Logic) ---
+    inner class SensorViewHolder(private val binding: ItemSensorCardBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(sensor: Sensor1) {
             // Name
             binding.sensorName.text = sensor.name
 
             // Level
-            val levelPercent: Float = sensor.tankLevel?.percentage?:0F
-//            val levelPercent= (0..100).random()
-
+            val levelPercent: Float = sensor.tankLevel?.percentage ?: 0F
             val levelText = when {
                 sensor.tankLevel == null -> "No Signal"
                 levelPercent <= 0f -> "Empty"
@@ -55,23 +98,21 @@ class Sensor1CardAdapter(
                 else -> ContextCompat.getColor(binding.root.context, R.color.level_red)
             }
             binding.sensorLevel.setTextColor(tintColor)
-            // Clip the fill image from top based on level percentage
+
             binding.sensorTankFill.post {
                 val h = binding.sensorTankFill.height
-                val clipTop = ((100f - levelPercent) / 100f * h).toInt()
-                binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
+                if (h > 0) {
+                    val clipTop = ((100f - levelPercent) / 100f * h).toInt()
+                    binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
+                }
             }
 
-
-            // Battery percent
+            // Battery
             val batteryPercent = sensor.batteryPercent
             binding.sensorBattery.text = "$batteryPercent%"
             val (battIcon, battColorRes) = when {
                 batteryPercent <= 15F -> R.drawable.ic_battery_critical to R.color.level_red
                 batteryPercent <= 40 -> R.drawable.ic_battery_low to R.color.level_yellow
-                batteryPercent <= 70 -> {
-                    R.drawable.ic_battery_medium to R.color.level_green
-                }
                 else -> R.drawable.ic_battery_full to R.color.level_green
             }
             binding.sensorBatteryIcon.setImageResource(battIcon)
@@ -81,13 +122,10 @@ class Sensor1CardAdapter(
 
             // Temperature
             binding.sensorTemperature.text = sensor.temperatureFormatted(unitSystem)
-            val tempC = sensor.reading?.temperatureCelsius?:0F
+            val tempC = sensor.reading?.temperatureCelsius ?: 0F
             val (tempIcon, tempColorRes) = when {
                 tempC <= 10F -> R.drawable.ic_temp_cold to R.color.temp_cold
-                tempC <= 20f -> R.drawable.ic_temp_cool to R.color.temp_cool
-                tempC <= 30f -> {
-                    R.drawable.ic_temp_warm to R.color.temp_warm
-                }
+                tempC <= 30f -> R.drawable.ic_temp_warm to R.color.temp_warm
                 else -> R.drawable.ic_temp_hot to R.color.temp_hot
             }
             binding.sensorTempIcon.setImageResource(tempIcon)
@@ -108,86 +146,69 @@ class Sensor1CardAdapter(
             binding.sensorSignal.text = signalInfo.text
             binding.sensorSignal.setTextColor(signalColor)
 
-            // Last update
-            binding.sensorLastUpdated.text =
-                TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+            binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+            binding.sensorType.text = if (sensor.sensorType?.displayName.equals(MopekaSensorType.CC2540_STD.displayName, true))
+                "STANDARD" else sensor.sensorType?.displayName
 
-            // Tank type
-            binding.sensorType.text=
-                if(sensor.sensorType?.displayName.equals(MopekaSensorType.CC2540_STD.displayName,true))
-                    "STANDARD" else sensor.sensorType?.displayName
             binding.root.setOnClickListener { onSensorClick(sensor) }
-        }
 
-        fun animateEntrance() {
-            val view = itemView
-            val card = binding.root
-
-            // Start state: invisible, shifted down, scaled small
-            view.alpha = 0f
-            view.translationY = 120f
-            card.scaleX = 0.8f
-            card.scaleY = 0.8f
-
-            val overshoot = OvershootInterpolator(1.2f)
-
-            // Card slides up and fades in
-            val slideUp = ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, 120f, 0f).apply {
-                duration = 500
-                interpolator = overshoot
-            }
-            val fadeIn = ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).apply {
-                duration = 350
-            }
-
-            // Card scales up with overshoot bounce
-            val scaleX = ObjectAnimator.ofFloat(card, View.SCALE_X, 0.8f, 1f).apply {
-                duration = 500
-                interpolator = overshoot
-            }
-            val scaleY = ObjectAnimator.ofFloat(card, View.SCALE_Y, 0.8f, 1f).apply {
-                duration = 500
-                interpolator = overshoot
-            }
-
-            // Tank image fades in after card lands
-            val tankAlpha = ObjectAnimator.ofFloat(binding.sensorTankFill, View.ALPHA, 0f, 1f).apply {
-                duration = 300
-                startDelay = 250
-            }
-            binding.sensorTankFill.alpha = 0f
-
-            AnimatorSet().apply {
-                playTogether(slideUp, fadeIn, scaleX, scaleY, tankAlpha)
-                start()
+            // Animation
+            if (sensor.address !in animatedAddresses) {
+                animatedAddresses.add(sensor.address)
+                animateEntrance(this)
             }
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ItemSensorCardBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return ViewHolder(binding)
-    }
+    private fun animateEntrance(holder: SensorViewHolder) {
+        val view = holder.itemView
+        view.alpha = 0f
+        view.translationY = 120f
+        val overshoot = OvershootInterpolator(1.2f)
+        val slideUp = ObjectAnimator.ofFloat(view, View.TRANSLATION_Y, 120f, 0f).setDuration(500)
+        slideUp.interpolator = overshoot
+        val fadeIn = ObjectAnimator.ofFloat(view, View.ALPHA, 0f, 1f).setDuration(350)
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val sensor = getItem(position)
-        holder.bind(sensor)
-
-        if (sensor.address !in animatedAddresses) {
-            animatedAddresses.add(sensor.address)
-            holder.animateEntrance()
+        AnimatorSet().apply {
+            playTogether(slideUp, fadeIn)
+            start()
         }
     }
 
-    private class SensorDiffCallback : DiffUtil.ItemCallback<Sensor1>() {
-        override fun areItemsTheSame(oldItem: Sensor1, newItem: Sensor1): Boolean =
-            oldItem.address == newItem.address
+    private data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)
+}
 
-        override fun areContentsTheSame(oldItem: Sensor1, newItem: Sensor1): Boolean =
-            oldItem == newItem
+// --- DiffUtil for ScanItem ---
+class ScanItemDiffCallback : DiffUtil.ItemCallback<ScanItem>() {
+    override fun areItemsTheSame(oldItem: ScanItem, newItem: ScanItem): Boolean {
+        return when {
+            oldItem is ScanItem.Header && newItem is ScanItem.Header -> oldItem.title == newItem.title
+            oldItem is ScanItem.Sensor && newItem is ScanItem.Sensor -> oldItem.data.address == newItem.data.address
+            else -> false
+        }
+    }
+
+    override fun areContentsTheSame(oldItem: ScanItem, newItem: ScanItem): Boolean {
+        return oldItem == newItem
     }
 }
 
 
+/**
+ * Sealed class representing the different types of rows
+ * displayed in the Sensor Scan list.
+ */
+sealed class ScanItem {
+
+    // Represents a Group Section Header (e.g., "Bottom Mount - LPG")
+    // isExpanded tells the UI whether to show the sensors under this header
+    data class Header(
+        val title: String,
+        val isExpanded: Boolean = true
+    ) : ScanItem()
+
+    // Represents an actual Sensor Card with all its telemetry data
+    data class Sensor(
+        val data: Sensor1
+    ) : ScanItem()
+}

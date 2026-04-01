@@ -21,6 +21,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScan1Binding
 import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.ui.dashboard.ScanItem
 import com.smartsense.app.ui.dashboard.Sensor1CardAdapter
 
 import com.smartsense.app.ui.helper.BlePermissionManager
@@ -74,14 +75,17 @@ class Scan1Fragment : Fragment() {
 
     private fun setupViews() {
         // Setup Adapter & RecyclerView
-        sensorAdapter = Sensor1CardAdapter(viewModel.unitSystem) { sensor ->
-            //viewModel.registerSensor(sensor.address,sensor.name!!)
-            val bundle = Bundle().apply {
-                putString("sensorAddress", sensor.address)
+        sensorAdapter = Sensor1CardAdapter(
+            onGroupClick = { groupName ->
+                // Tell ViewModel to toggle this group
+                //viewModel.toggleGroup(groupName)
+            },
+            onSensorClick = { sensor ->
+                // Navigate to Detail Screen
+                val bundle = Bundle().apply { putString("sensorAddress", sensor.address) }
+                findNavController().navigate(R.id.action_scan_to_detail, bundle)
             }
-            findNavController().navigate(R.id.action_scan_to_detail, bundle)
-
-        }
+        )
 
         binding.sensorList.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -124,29 +128,32 @@ class Scan1Fragment : Fragment() {
                     }
             }
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState
-                    .map { it.sensors }
-                    .distinctUntilChanged()
-                    .collect { sensors ->
-                        val hasSensors = sensors.isNotEmpty()
-                        binding.apply {
-                            scanningState.isVisible = !hasSensors
-                            sensorList.isVisible = hasSensors
-                            sensorCount.isVisible = hasSensors
-                            layoutSensor.isVisible=hasSensors
-                            if (hasSensors) {
-                                sensorAdapter.submitList(sensors)
-                                sensorCount.text = getString(
-                                    R.string.sensor_count_label,
-                                    sensors.size
-                                )
-                            }
-                        }
-                    }
-            }
-        }
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                viewModel.uiState
+//                    .map { it.sensors }
+//                    .distinctUntilChanged()
+//                    .collect { sensors ->
+//                        val hasSensors = sensors.isNotEmpty()
+//                        binding.apply {
+//                            scanningState.isVisible = !hasSensors
+//                            sensorList.isVisible = hasSensors
+//                            sensorCount.isVisible = hasSensors
+//                            layoutSensor.isVisible=hasSensors
+//                            if (hasSensors) {
+//                                val scanItems=listOf(
+//                                    ScanItem.Sensor(sensors.first()))
+//                                sensorAdapter.submitList(scanItems)
+//                                sensorCount.text = getString(
+//                                    R.string.sensor_count_label,
+//                                    sensors.size
+//                                )
+//                                Timber.i("-----viewModel.uiState-----")
+//                            }
+//                        }
+//                    }
+//            }
+//        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -171,14 +178,41 @@ class Scan1Fragment : Fragment() {
         // Filter Sensor
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.filteredSensors // Collect the filtered flow here
-                    .collect { sensors ->
-                        sensorAdapter.submitList(sensors)
-                        binding.sensorCount.text = getString(R.string.sensor_count_label, sensors.size)
-
-                        // Toggle list visibility without affecting scanning status
-                        binding.sensorList.isVisible = sensors.isNotEmpty()
+                viewModel.filteredSensors.collect { sensors ->
+                    val scanItems: List<ScanItem> = if (sensors.isEmpty()) {
+                        emptyList()
+                    } else {
+                        val sensorScanItems = sensors.map { ScanItem.Sensor(it) }
+                        if (viewModel.groupFilterEnabled) {
+                            listOf(ScanItem.Header("Bottom Mount - LPG", true)) + sensorScanItems
+                        } else {
+                            sensorScanItems
+                        }
                     }
+                    sensorAdapter.submitList(scanItems)
+
+                    // 1. Get the 'Raw' count from the main UI State
+
+                    val filteredCount = sensors.size
+
+                    binding.apply {
+                        // 2. ONLY show the big "Scanning/Empty" state if the app has 0 sensors total
+                        val totalSensorsRegistered = viewModel.uiState.value.sensors.size
+                        scanningState.isVisible = totalSensorsRegistered == 0
+                        binding.layoutSensor.isVisible = totalSensorsRegistered>0
+                        // 3. Show the list if we have filtered results
+                        sensorList.isVisible = filteredCount > 0
+                        // 4. Update the count text
+                        if (filteredCount > 0) {
+                            sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
+                            sensorCount.isVisible = true
+                        } else {
+                            sensorCount.isVisible = false
+                        }
+                        // OPTIONAL: Show a "No results found" text if total > 0 but filtered == 0
+                        // tvNoResults.isVisible = totalSensorsRegistered > 0 && filteredCount == 0
+                    }
+                }
             }
         }
     }
