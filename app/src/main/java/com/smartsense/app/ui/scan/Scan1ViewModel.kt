@@ -26,16 +26,6 @@ import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
-data class SensorListUiState(
-    val sensors: List<Sensor1> = emptyList(),
-    val discoveredSensors: List<Sensor1> = emptyList(),
-    val isScanning: Boolean = false,
-    val showDiscovery: Boolean = false,
-    val isBluetoothEnabled: Boolean = true,
-    val error: String? = null,
-    val sortByLevel: Boolean = false
-)
-
 @HiltViewModel
 class Scan1ViewModel @Inject constructor(
     private val userCase: SensorScanUseCase,
@@ -43,94 +33,99 @@ class Scan1ViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object {
-        private const val TAG = "SensorListVM"
+        private const val STOP_TIMEOUT_MILLIS = 5000L
     }
 
+    // --- Private State Holders ---
     private val _uiState = MutableStateFlow(SensorListUiState())
+    private val _filterQuery = MutableStateFlow("")
+    private val _collapsedGroups = MutableStateFlow<Set<String>>(emptySet())
+
+    // --- Public Observables ---
     val uiState: StateFlow<SensorListUiState> = _uiState.asStateFlow()
+    val collapsedGroups = _collapsedGroups.asStateFlow()
 
-    val unitSystem: UnitSystem = runBlocking {
-        userPreferences.unitSystem.first()
-    }
+    // Reactive Preferences (No longer blocking)
+    val unitSystem = userPreferences.unitSystem
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UnitSystem.METRIC)
 
-    val deviceSearchFilterEnabled: Boolean = runBlocking {
+    val groupFilterEnabled = userPreferences.groupFilterEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val deviceSearchFilterEnabled = runBlocking {
         userPreferences.deviceSearchFilterEnabled.first()
     }
 
-    val groupFilterEnabled: Boolean = runBlocking {
-        userPreferences.groupFilterEnabled.first()
-    }
-
-    private val _filterQuery = MutableStateFlow("")
-
-    // The UI should observe THIS instead of uiState.sensors
+    // Single Source of Truth for the List
     val filteredSensors: StateFlow<List<Sensor1>> = combine(
         uiState.map { it.sensors }.distinctUntilChanged(),
         _filterQuery
     ) { sensors, query ->
-        if (query.isBlank()) {
-            sensors
-        } else {
-            sensors.filter { sensor ->
-                sensor.name?.contains(query, ignoreCase = true) == true ||
-                        sensor.address.contains(query, ignoreCase = true)
-            }
+        if (query.isBlank()) sensors
+        else sensors.filter { sensor ->
+            sensor.name?.contains(query, ignoreCase = true) == true ||
+                    sensor.address.contains(query, ignoreCase = true)
         }
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
         initialValue = emptyList()
     )
-
-    fun setFilterQuery(query: String) {
-        _filterQuery.value = query
-    }
 
     private var scanJob: Job? = null
     private var observeJob: Job? = null
     private var autoPairDone = false
 
     init {
-        _uiState.update {
-            it.copy(isBluetoothEnabled = userCase.isBluetoothEnabled)
-        }
+        _uiState.update { it.copy(isBluetoothEnabled = userCase.isBluetoothEnabled) }
+    }
 
+    // --- Action Methods ---
+
+    fun setFilterQuery(query: String) {
+        _filterQuery.value = query
+    }
+
+    fun toggleGroup(groupName: String) {
+        _collapsedGroups.update { current ->
+            if (current.contains(groupName)) current - groupName else current + groupName
+        }
     }
 
     fun onPermissionsGranted() {
         if (scanJob?.isActive != true) {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isScanning = true
-                )
-            }
             autoStartScan()
         }
     }
 
     fun startObserveRegisteredSensors() {
-        if(observeJob?.isActive==true) return
+        if (observeJob?.isActive == true) return
         observeJob = viewModelScope.launch {
-            userCase.observeRegisteredSensors(userPreferences.scanInterval.first().value.toLong()*1000)
+            val interval = userPreferences.scanInterval.first().value.toLong() * 1000
+            userCase.observeRegisteredSensors(interval)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
-                    // Mark auto-pair done if we already have sensors
                     if (sensors.isNotEmpty()) autoPairDone = true
                 }
         }
     }
 
     fun stopObserveRegisteredSensors() {
-        observeJob?.cancel() // This "stops" the flow
-        observeJob=null
+        observeJob?.cancel()
+        observeJob = null
     }
 
     private fun autoStartScan() {
         if (scanJob?.isActive == true) return
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
-            userCase.startScan(userPreferences.scanInterval.first().value.toLong()*1000)
-                .catch { e -> _uiState.update { it.copy(error = e.message, isScanning = false) } }
+            val interval = userPreferences.scanInterval.first().value.toLong() * 1000
+
+            userCase.startScan(interval)
+                .catch { e ->
+                    Timber.e(e, "Scan failed")
+                    _uiState.update { it.copy(error = e.message, isScanning = false) }
+                }
                 .collect { freshlyScannedSensors ->
                     handleAutoPairing(freshlyScannedSensors)
                     _uiState.update { state ->
@@ -143,46 +138,36 @@ class Scan1ViewModel @Inject constructor(
     }
 
     private fun handleAutoPairing(sensors: List<Sensor1>) {
-        // Auto-pair: if syncPressed detected and no sensors registered yet,
-        // and will auto close discovery after registered
-        //if (!autoPairDone && _uiState.value.sensors.isEmpty()) {
-            sensors.firstOrNull { it.syncPressed }?.let { syncSensor ->
-                Timber.d("Auto-pairing syncPressed sensor: ${syncSensor.address}")
-                autoPairDone = true
-                registerSensor(syncSensor.address, "New LPG Device")
-            }
-        //}
+        sensors.firstOrNull { it.syncPressed }?.let { syncSensor ->
+            Timber.d("Auto-pairing syncPressed sensor: ${syncSensor.address}")
+            autoPairDone = true
+            registerSensor(syncSensor.address, "New LPG Device")
+        }
     }
 
     fun registerSensor(address: String, name: String) {
         viewModelScope.launch {
             autoPairDone = true
             userCase.registerSensor(address, name)
-            //closeDiscovery()
         }
     }
-
-//    fun toggleSort() {
-//        _uiState.update { state ->
-//            val newSortByLevel = !state.sortByLevel
-//            val sorted = if (newSortByLevel) {
-//                state.sensors.sortedByDescending { it.reading?.levelPercent ?: 0f }
-//            } else {
-//                state.sensors.sortedBy { it.name }
-//            }
-//            state.copy(sortByLevel = newSortByLevel, sensors = sorted)
-//        }
-//    }
-
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
     }
 
-
     override fun onCleared() {
-        super.onCleared()
-        scanJob?.cancel()
         userCase.stopScan()
+        super.onCleared()
     }
 }
+
+data class SensorListUiState(
+    val sensors: List<Sensor1> = emptyList(),
+    val discoveredSensors: List<Sensor1> = emptyList(),
+    val isScanning: Boolean = false,
+    val showDiscovery: Boolean = false,
+    val isBluetoothEnabled: Boolean = true,
+    val error: String? = null,
+    val sortByLevel: Boolean = false
+)

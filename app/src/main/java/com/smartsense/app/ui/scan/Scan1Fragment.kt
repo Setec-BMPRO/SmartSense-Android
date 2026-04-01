@@ -22,8 +22,7 @@ import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScan1Binding
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.ui.dashboard.HeaderItem
-import com.smartsense.app.ui.dashboard.ScanItem
-import com.smartsense.app.ui.dashboard.Sensor1CardAdapter
+
 import com.smartsense.app.ui.dashboard.SensorItem
 
 import com.smartsense.app.ui.helper.BlePermissionManager
@@ -33,10 +32,10 @@ import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Section
 
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class Scan1Fragment : Fragment() {
@@ -45,7 +44,6 @@ class Scan1Fragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: Scan1ViewModel by viewModels()
-    //private lateinit var sensorAdapter: Sensor1CardAdapter
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
     // Initialize the helper
     private lateinit var blePermissionManager: BlePermissionManager
@@ -160,57 +158,67 @@ class Scan1Fragment : Fragment() {
         // Filter Sensor
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.filteredSensors.collect { sensors ->
-                    val displayGroups = mutableListOf<com.xwray.groupie.Group>()
-
-                    // 1. Group the sensors by their category
-                    sensors.groupBy { it.name ?: "Other" }.forEach { (groupName, list) ->
-
-                        // 2. Create an ExpandableGroup with the Header
-                        val expandableGroup = ExpandableGroup(HeaderItem(groupName,{
-                        }), true)
-
-                        // 3. Add all sensors as children
-                        val sensorHeaderList=list.map { sensor ->
-                            SensorItem(sensor, viewModel.unitSystem) { selected ->
-                                // Navigate to detail
-                                val bundle = Bundle().apply { putString("sensorAddress", sensor.address) }
-                                findNavController().navigate(R.id.action_scan_to_detail, bundle)
-                            }
-                        }
-                        if(viewModel.groupFilterEnabled) {
-                            expandableGroup.addAll(sensorHeaderList)
-                            displayGroups.add(expandableGroup)
-                        }
-                        else {
-                            val section = Section() // No header passed here
-                            section.addAll(sensorHeaderList)
-                            displayGroups.add(section)
-                        }
-                    }
-                    // 4. Update the entire list at once (Groupie handles DiffUtil internally)
-                    groupAdapter.update(displayGroups)
-
-                    // 1. Get the 'Raw' count from the main UI State
-
-                    val filteredCount = sensors.size
-
-                    binding.apply {
-                        // 2. ONLY show the big "Scanning/Empty" state if the app has 0 sensors total
-                        val totalSensorsRegistered = viewModel.uiState.value.sensors.size
-                        scanningState.isVisible = totalSensorsRegistered == 0
-                        binding.layoutSensor.isVisible = totalSensorsRegistered>0
-                        // 3. Show the list if we have filtered results
-                        sensorList.isVisible = filteredCount > 0
-                        // 4. Update the count text
-                        if (filteredCount > 0) {
-                            sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
-                            sensorCount.isVisible = true
-                        } else {
-                            sensorCount.isVisible = false
-                        }
-                    }
+                combine(
+                    viewModel.filteredSensors,
+                    viewModel.collapsedGroups
+                ) { sensors, collapsed ->
+                    // Transform raw data into Groupie items
+                    buildDisplayGroups(sensors, collapsed) to sensors.size
+                }.collect { (displayGroups, filteredCount) ->
+                    updateUI(displayGroups, filteredCount)
                 }
+            }
+        }
+    }
+
+    /**
+     * Maps the domain models to Groupie items based on current UI state.
+     */
+    private fun buildDisplayGroups(
+        sensors: List<Sensor1>,
+        collapsed: Set<String>
+    ): List<com.xwray.groupie.Group> {
+        return sensors.groupBy { it.groudName }.map { (groupName, list) ->
+            val sensorItems = list.map { sensor ->
+                SensorItem(sensor, viewModel.unitSystem.value) { selected ->
+                    val bundle = Bundle().apply { putString("sensorAddress", selected.address) }
+                    findNavController().navigate(R.id.action_scan_to_detail, bundle)
+                }
+            }
+
+            if (viewModel.groupFilterEnabled.value) {
+                val isExpanded = !collapsed.contains(groupName)
+
+                ExpandableGroup(HeaderItem(groupName) {
+                    viewModel.toggleGroup(groupName)
+                }, isExpanded).apply {
+                    // Ensure internal Groupie state matches ViewModel source of truth
+                    if (this.isExpanded != isExpanded) {
+                        onToggleExpanded()
+                    }
+                    addAll(sensorItems)
+                }
+            } else {
+                Section().apply { addAll(sensorItems) }
+            }
+        }
+    }
+
+    /**
+     * Updates the Adapter and visibility of static UI elements.
+     */
+    private fun updateUI(displayGroups: List<com.xwray.groupie.Group>, filteredCount: Int) {
+        groupAdapter.update(displayGroups)
+
+        val totalInSystem = viewModel.uiState.value.sensors.size
+        binding.apply {
+            scanningState.isVisible = totalInSystem == 0
+            layoutSensor.isVisible = totalInSystem > 0
+            sensorList.isVisible = filteredCount > 0
+            sensorCount.isVisible = filteredCount > 0
+
+            if (filteredCount > 0) {
+                sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
             }
         }
     }

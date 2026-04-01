@@ -38,4 +38,15 @@ data class Sensor1(
         }
     }
 
+    val groudName: String= when {
+        sensorType?.isLpg == true -> {
+            "Bottom Mount - LPG"
+        }
+        sensorType == MopekaSensorType.BOTTOM_UP_WATER -> {
+            "Bottom Up - Water"
+        }
+        else -> {
+            "Others"
+        }
+    }
 }

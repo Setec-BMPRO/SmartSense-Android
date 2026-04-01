@@ -27,7 +27,7 @@ class SmartSenseApplication : Application() {
         super.onCreate()
         applicationScope.launch {
             val theme = userPreferences.appTheme.first()
-            applyTheme(theme.name)
+            applyTheme(theme.displayName)
         }
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())

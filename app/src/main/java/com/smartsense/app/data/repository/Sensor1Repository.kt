@@ -9,9 +9,11 @@ import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.domain.model.QualityThreshold
 import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -44,7 +47,8 @@ import javax.inject.Singleton
 class Sensor1Repository @Inject constructor(
     private val bleManager: BleManager,
     private val sensorDao: SensorDao,
-    private val calculateTankUseCase: CalculateTankUseCase
+    private val calculateTankUseCase: CalculateTankUseCase,
+    private val userPreferences: UserPreferences
 ) {
     companion object {
         private const val TAG = "Sensor1Repository"
@@ -93,34 +97,45 @@ class Sensor1Repository @Inject constructor(
     // --------------------------------------
     // 📡 OBSERVE REGISTERED SENSORS
     // --------------------------------------
-
     fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> {
-        // 1. Create the ticker based on your interval
+        // 1. Create the ticker to pulse updates
         val ticker = flow {
             while (currentCoroutineContext().isActive) {
                 emit(Unit)
                 delay(scanIntervalMillis)
             }
         }
+
         return ticker.flatMapLatest {
             combine(
                 sensorDao.observeRegisteredAddresses().take(1),
                 liveReadings.take(1),
-                sensorDao.observeAllTanks().take(1)
-            ) { addresses, readings, tanks ->
+                sensorDao.observeAllTanks().take(1),
+                userPreferences.sortPreference // 2. Add Sort Preference to the stream
+            ) { addresses, readings, tanks, sortPref ->
+
                 val tankMap = tanks.associateBy { it.sensorAddress }
-                addresses.mapNotNull { address ->
+
+                val mappedSensors = addresses.mapNotNull { address ->
                     val scanned = readings[address] ?: return@mapNotNull null
                     val tank = tankMap[address]?.toDomain()
-                    Log.i(TAG,"observeRegisteredSensors")
+
                     mapToSensor(
                         scanned = scanned,
                         tank = tank,
                         mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
                     )
-                }.sortedBy { it.name }
-            }.distinctUntilChanged()
-        }
+                }
+
+                // 3. Sort reactively without using .first()
+                if (sortPref == SortPreference.NAME) {
+                    mappedSensors.sortedBy { it.name ?: "" }
+                } else {
+                    // Usually for levels, you want Highest at the top
+                    mappedSensors.sortedByDescending { it.tankLevel?.percentage ?: 0f }
+                }
+            }
+        }.distinctUntilChanged()
     }
 
     fun observeSensorForDetail(address: String,scanIntervalMillis: Long): Flow<Sensor1?> {
