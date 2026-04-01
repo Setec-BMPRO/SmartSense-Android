@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.preferences.UserPreferences
 
+
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.domain.usecase.SensorScanUseCase
@@ -72,7 +73,7 @@ class Scan1ViewModel @Inject constructor(
     fun startObserveRegisteredSensors() {
         if(observeJob?.isActive==true) return
         observeJob = viewModelScope.launch {
-            userCase.observeRegisteredSensors(userPreferences.scanInterval.first().toLong()*1000)
+            userCase.observeRegisteredSensors(userPreferences.scanInterval.first().value.toLong()*1000)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     // Mark auto-pair done if we already have sensors
@@ -90,13 +91,13 @@ class Scan1ViewModel @Inject constructor(
         if (scanJob?.isActive == true) return
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
-            userCase.startScan(userPreferences.scanInterval.first().toLong()*1000)
+            userCase.startScan(userPreferences.scanInterval.first().value.toLong()*1000)
                 .catch { e -> _uiState.update { it.copy(error = e.message, isScanning = false) } }
                 .collect { freshlyScannedSensors ->
                     handleAutoPairing(freshlyScannedSensors)
                     _uiState.update { state ->
                         state.copy(
-                            discoveredSensors = freshlyScannedSensors.sortedByDescending { it.address }
+                            discoveredSensors = freshlyScannedSensors.sortedByDescending { it.name }
                         )
                     }
                 }

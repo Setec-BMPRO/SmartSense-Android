@@ -206,8 +206,8 @@ class Sensor1DetailFragment : Fragment() {
 
     private fun showUnpairConfirmationDialog() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.remove_confirm_title)
-            .setMessage(R.string.remove_confirm_message)
+            .setTitle(R.string.remove_sensor_confirm_title)
+            .setMessage(R.string.remove_sensor_confirm)
             .setPositiveButton(R.string.remove) { _, _ ->
                 viewModel.unregisterSensor()
                 findNavController().popBackStack()

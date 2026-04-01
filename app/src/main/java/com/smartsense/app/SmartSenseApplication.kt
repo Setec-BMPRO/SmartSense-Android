@@ -3,6 +3,8 @@ package com.smartsense.app
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import com.smartsense.app.data.preferences.UserPreferences
+import com.smartsense.app.domain.model.AppTheme
+
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +27,7 @@ class SmartSenseApplication : Application() {
         super.onCreate()
         applicationScope.launch {
             val theme = userPreferences.appTheme.first()
-            applyTheme(theme)
+            applyTheme(theme.name)
         }
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
@@ -35,9 +37,10 @@ class SmartSenseApplication : Application() {
     companion object {
         fun applyTheme(theme: String) {
             when (theme) {
-                "Light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                "Dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                AppTheme.LIGHT.displayName -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                AppTheme.DARK.displayName-> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                 else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+
             }
         }
     }

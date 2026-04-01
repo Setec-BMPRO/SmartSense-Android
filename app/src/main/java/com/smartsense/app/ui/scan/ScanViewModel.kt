@@ -3,9 +3,9 @@ package com.smartsense.app.ui.scan
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.preferences.UserPreferences
+
 import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.model.Sensor
-import com.smartsense.app.domain.model.UnitSystem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

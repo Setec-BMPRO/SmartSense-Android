@@ -47,8 +47,8 @@ class SensorDetailFragment : Fragment() {
 
         binding.btnUnpair.setOnClickListener {
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.remove_confirm_title)
-                .setMessage(R.string.remove_confirm_message)
+                .setTitle(R.string.remove_sensor_confirm_title)
+                .setMessage(R.string.remove_sensor_confirm)
                 .setPositiveButton(R.string.remove) { _, _ ->
                     viewModel.removeSensor()
                     findNavController().popBackStack()

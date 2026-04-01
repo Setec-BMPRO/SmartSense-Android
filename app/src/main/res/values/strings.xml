@@ -37,8 +37,9 @@
     <string name="tank_type">Tank Type</string>
     <string name="change">Change</string>
     <string name="remove_sensor">Remove Sensor</string>
-    <string name="remove_confirm_title">Remove Sensor?</string>
-    <string name="remove_confirm_message">This sensor will be hidden from your dashboard. It will reappear on the next scan.</string>
+    <string name="remove_sensor_confirm_title">Remove Sensor(s)</string>
+    <string name="remove_sensor_confirm">This sensor will be hidden from your dashboard. It will reappear on the next scan.</string>
+    <string name="remove_all_sensors_confirm">This will permanently remove all saved sensors from your list. You will need to scan again to find them.</string>
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
 
@@ -112,4 +113,9 @@
     <string name="notification_frequency">Notification Frequency</string>
     <string name="region">Region</string>
     <string name="tank_height">Tank Height</string>
+    <string name="upload_sensor_data">Upload Sensor Data</string>
+    <string name="device_search_filter">Device Search Filter</string>
+    <string name="group_sensors">Group Sensors</string>
+    <string name="sort_preferences">Sort Preferences</string>
+    <string name="forget_all_devices">Forget All Devices</string>
 </resources>

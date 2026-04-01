@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.smartsense.app.data.local.MopekaDatabase
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.preferences.UserPreferences
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

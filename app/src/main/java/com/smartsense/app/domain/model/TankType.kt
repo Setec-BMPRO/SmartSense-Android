@@ -40,7 +40,6 @@ enum class NotificationFrequency(val displayName: String) {
     companion object{
         fun default():NotificationFrequency=EVERY_12_HOURS
     }
-
 }
 
 enum class TankRegion(val displayName: String) {

@@ -14,7 +14,6 @@
         android:orientation="vertical"
         android:padding="@dimen/spacing_md">
 
-        <!-- Header -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -22,55 +21,190 @@
             android:textAppearance="?attr/textAppearanceHeadlineMedium"
             android:paddingBottom="@dimen/spacing_md"/>
 
-        <!-- Unit System -->
-        <com.google.android.material.textview.MaterialTextView
+        <!-- Unit Setting -->
+        <LinearLayout
+            android:gravity="center_vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/setting_units"
-            android:textAppearance="?attr/textAppearanceTitleSmall"
-            android:textColor="?attr/colorPrimary"
-            android:paddingBottom="@dimen/spacing_sm"/>
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:orientation="horizontal">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/unit_system_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/spacing_lg"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-            <AutoCompleteTextView
-                android:id="@+id/unit_system_dropdown"
-                android:layout_width="match_parent"
+            <!-- Unit System -->
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:inputType="none"
-                tools:text="Metric"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:text="@string/setting_units"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/unit_system_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/unit_system_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    tools:text="Metric"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <!-- Scan Interval -->
-        <com.google.android.material.textview.MaterialTextView
+        <LinearLayout
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:gravity="center_vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/setting_scan_interval"
-            android:visibility="visible"
-            android:textAppearance="?attr/textAppearanceTitleSmall"
-            android:textColor="?attr/colorPrimary"
-            android:paddingBottom="@dimen/spacing_sm"/>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/scan_interval_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
-            android:layout_marginBottom="@dimen/spacing_lg"
-            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-            <AutoCompleteTextView
-                android:id="@+id/scan_interval_dropdown"
-                android:layout_width="match_parent"
+            android:orientation="horizontal">
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:inputType="none"
-                tools:text="5 seconds"/>
-        </com.google.android.material.textfield.TextInputLayout>
+                android:text="@string/setting_scan_interval"
+                android:visibility="visible"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/scan_interval_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/scan_interval_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    tools:text="5 seconds"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+
+        <!-- Notification -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/notifications"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchNotifications"
+                android:layout_width="wrap_content"
+                app:useMaterialThemeColors="true" android:checked="true"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Upload sensor data -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/upload_sensor_data"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_upload_sensor_data"
+                android:layout_width="wrap_content"
+                app:useMaterialThemeColors="true"
+                android:checked="true"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Device Search Filter -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/device_search_filter"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSearchFilter"
+                android:layout_width="wrap_content"
+                app:useMaterialThemeColors="true"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Group Sensors -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/group_sensors"/>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchGroupSensor"
+                android:layout_width="wrap_content"
+                app:useMaterialThemeColors="true"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Sort Preference -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp" android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textColor="?attr/colorPrimary"
+                android:text="@string/sort_preferences"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/sort_preference_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/sort_preferences_dropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    tools:text="Name"/>
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
 
         <!-- Appearance -->
         <com.google.android.material.textview.MaterialTextView
@@ -139,6 +273,17 @@
 
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- Forget All Devices -->
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/spacing_md"
+            android:id="@+id/btn_forget_all_device"
+            android:textAppearance="?attr/textAppearanceButton"
+            android:textColor="?attr/colorOnSurfaceInverse"
+            android:text="Forget All Devices"/>
 
         <!-- App version -->
         <com.google.android.material.textview.MaterialTextView

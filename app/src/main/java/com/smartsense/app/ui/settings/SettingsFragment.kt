@@ -4,22 +4,24 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.SmartSenseApplication
 import com.smartsense.app.databinding.FragmentSettingsBinding
-import com.smartsense.app.domain.model.QualityThreshold
+import com.smartsense.app.domain.model.AppTheme
+import com.smartsense.app.domain.model.ScanIntervals
+import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.detail.SelectedAdapter
 import com.smartsense.app.util.uppercaseFirst
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -28,10 +30,11 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by viewModels()
     private var isUpdatingThemeToggle = false
-    private var appRestarted = true
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
@@ -39,95 +42,104 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.i("-----onViewCreated-----")
         setupDropdowns()
         setupThemeToggle()
+        setupSwitches()
         observeState()
-        setupVersion()
+        setupButtons()
     }
 
     private fun setupDropdowns() {
-        val units = resources.getStringArray(R.array.unit_systems).toList()
-        binding.unitSystemDropdown.setAdapter(SelectedAdapter(
-            requireContext(),
-            items = units
-        ){
-            Timber.i("-----units:${viewModel.unitSystem.value.name}-list:${units}")
-            units.indexOf(viewModel.unitSystem.value.name.lowercase().uppercaseFirst())}
-        )
-        binding.unitSystemDropdown.setOnItemClickListener { _, _, position, _ ->
-            val unitSystem = if (position == 0) UnitSystem.METRIC else UnitSystem.IMPERIAL
-            viewModel.setUnitSystem(unitSystem)
-        }
+        // --- Unit System ---
+        val units = UnitSystem.entries
+        binding.unitSystemDropdown.setAdapter(SelectedAdapter(requireContext(), units.map { it.displayName }) {
+            units.indexOf(viewModel.unitSystem.value)
+        })
+        binding.unitSystemDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setUnitSystem(units[pos]) }
 
-        val scanIntervals = resources.getStringArray(R.array.scan_intervals).toList()
-        binding.scanIntervalDropdown.setAdapter(SelectedAdapter(
-            requireContext(),
-            items = scanIntervals
-        ){scanIntervals.indexOf(viewModel.scanInterval.value.toString()+" seconds")})
-        binding.scanIntervalDropdown.setOnItemClickListener { _, _, position, _ ->
-            val values = resources.getIntArray(R.array.scan_interval_values)
-            viewModel.setScanInterval(values[position])
+        // --- Scan Interval ---
+        val intervals = ScanIntervals.entries
+        binding.scanIntervalDropdown.setAdapter(SelectedAdapter(requireContext(), intervals.map { it.displayName }) {
+            intervals.indexOf(viewModel.scanInterval.value)
+        })
+        binding.scanIntervalDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setScanInterval(intervals[pos]) }
+
+        // --- Sort Preference ---
+        val sorts = SortPreference.entries
+        binding.sortPreferencesDropdown.setAdapter(SelectedAdapter(requireContext(), sorts.map { it.displayName }) {
+            sorts.indexOf(viewModel.sortPreference.value)
+        })
+        binding.sortPreferencesDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setSortPreference(sorts[pos]) }
+    }
+
+    private fun setupSwitches() {
+        binding.switchNotifications.setOnCheckedChangeListener { view, isChecked ->
+            if (view.isPressed)
+            viewModel.setNotificationsEnabled(isChecked)
         }
+        binding.switchUploadSensorData.setOnCheckedChangeListener { view, isChecked ->
+            if (view.isPressed)
+            viewModel.setUploadSensorData(isChecked) }
+        binding.switchGroupSensor.setOnCheckedChangeListener { view, isChecked ->
+            if (view.isPressed)
+            viewModel.setGroupFilterEnabled(isChecked) }
+        binding.switchSearchFilter.setOnCheckedChangeListener { view, isChecked ->
+            if (view.isPressed)
+            viewModel.setDeviceSearchFilterEnabled(isChecked) }
     }
 
     private fun setupThemeToggle() {
         binding.themeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked || isUpdatingThemeToggle) return@addOnButtonCheckedListener
             val theme = when (checkedId) {
-                R.id.btn_theme_light -> "Light"
-                R.id.btn_theme_dark -> "Dark"
-                else -> "System"
+                R.id.btn_theme_light -> AppTheme.LIGHT
+                R.id.btn_theme_dark -> AppTheme.DARK
+                else -> AppTheme.SYSTEM
             }
             viewModel.setAppTheme(theme)
-            SmartSenseApplication.applyTheme(theme)
+            SmartSenseApplication.applyTheme(theme.displayName)
         }
     }
 
     private fun observeState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.unitSystem.collect { unitSystem ->
-                        val text = if (unitSystem == UnitSystem.METRIC) "Metric" else "Imperial"
-                        binding.unitSystemDropdown.setText(text, false)
-                    }
-                }
+                // Dropdowns
+                launch { viewModel.unitSystem.collect { binding.unitSystemDropdown.setText(it.displayName, false) } }
+                launch { viewModel.scanInterval.collect { binding.scanIntervalDropdown.setText(it.displayName, false) } }
+                launch { viewModel.sortPreference.collect { binding.sortPreferencesDropdown.setText(it.displayName, false) } }
 
-                launch {
-                    viewModel.scanInterval.collect { interval ->
-                        binding.scanIntervalDropdown.setText("$interval seconds", false)
-                    }
+                // Switches
+                launch { viewModel.notificationsEnabled.collect {
+                    binding.switchNotifications.isChecked = it }
                 }
+                launch { viewModel.uploadSensorData.collect { binding.switchUploadSensorData.isChecked = it } }
+                launch { viewModel.groupFilterEnabled.collect { binding.switchGroupSensor.isChecked = it } }
+                launch { viewModel.deviceSearchFilterEnabled.collect { binding.switchSearchFilter.isChecked = it } }
 
-                launch {
-                    viewModel.appTheme.collect { theme ->
-                        val buttonId = when (theme) {
-                            "Light" -> R.id.btn_theme_light
-                            "Dark" -> R.id.btn_theme_dark
-                            else -> R.id.btn_theme_system
-                        }
-                        isUpdatingThemeToggle = true
-                        if(!appRestarted && theme.equals("System",true))
-                            binding.themeToggleGroup.check(R.id.btn_theme_system)
-                        else if(!appRestarted)
-                            binding.themeToggleGroup.check(buttonId)
-                        isUpdatingThemeToggle = false
-                        appRestarted=false
+                // Theme
+                launch { viewModel.appTheme.collect { theme ->
+                    val btnId = when(theme) {
+                        AppTheme.LIGHT -> R.id.btn_theme_light
+                        AppTheme.DARK -> R.id.btn_theme_dark
+                        AppTheme.SYSTEM -> R.id.btn_theme_system
                     }
-                }
+                    isUpdatingThemeToggle = true
+                    binding.themeToggleGroup.check(btnId)
+                    isUpdatingThemeToggle = false
+                }}
             }
         }
     }
 
-    private fun setupVersion() {
-        val versionName = requireContext().packageManager
-            .getPackageInfo(requireContext().packageName, 0).versionName
-        binding.appVersion.text = getString(R.string.app_version, versionName)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun setupButtons() {
+        binding.btnForgetAllDevice.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.remove_sensor_confirm_title)
+                .setMessage(R.string.remove_all_sensors_confirm)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.ok) { _, _ -> viewModel.deleteAllSensors() }
+                .show()
+        }
     }
 }

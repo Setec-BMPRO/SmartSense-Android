@@ -9,33 +9,26 @@ import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.TankEntity
-import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.di.ApplicationScope
 import com.smartsense.app.domain.model.QualityThreshold
 import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.Tank
-import com.smartsense.app.domain.model.TankLevel
 import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
-import com.smartsense.app.domain.model.TankPreset
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
 import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import com.smartsense.app.util.uppercaseFirst
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -44,7 +37,6 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -147,7 +139,7 @@ class Sensor1Repository @Inject constructor(
 
                 val scanned = readings[address] ?: return@combine null
                 val tank = tankEntity?.toDomain()
-                Log.i(TAG,"observeSensorForDetail-tankEntity:${tankEntity}-tank:${tank}")
+                Log.i(TAG,"observeSensorForDetail")
                 mapToSensor(
                     scanned, tank,
                     mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
@@ -248,8 +240,7 @@ class Sensor1Repository @Inject constructor(
     }
 
     suspend fun unregisterSensor(address: String) {
-        sensorDao.deleteTank(address)
-        sensorDao.deleteSensor(address)
+        sensorDao.deleteAllSensors()
     }
 
     suspend fun saveTankConfig(tank: Tank) {
@@ -262,6 +253,11 @@ class Sensor1Repository @Inject constructor(
             )
         )
     }
+
+    suspend fun unregisterAllSensors() {
+        sensorDao.deleteAllSensors()
+    }
+
 
     suspend fun getTankConfig(sensorAddress: String): Tank? {
         return sensorDao.getTank(sensorAddress)?.toDomain()

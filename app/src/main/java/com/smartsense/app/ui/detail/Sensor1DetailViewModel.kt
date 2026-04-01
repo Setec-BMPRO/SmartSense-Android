@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.preferences.UserPreferences
+
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.domain.usecase.SensorDetailUseCase
@@ -15,9 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -29,7 +27,6 @@ class Sensor1DetailViewModel @Inject constructor(
     private val userCase: SensorDetailUseCase,
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
-    private val sensorScanUseCase: SensorScanUseCase,
 ) : ViewModel() {
 
     val sensorAddress: String =
@@ -53,7 +50,7 @@ class Sensor1DetailViewModel @Inject constructor(
 
         observeJob = viewModelScope.launch {
             // Get the interval once
-            val interval = userPreferences.scanInterval.first().toLong() * 1000
+            val interval = userPreferences.scanInterval.first().value.toLong() * 1000
 
             // Collect the flow directly
             userCase.observeSensorForDetail(sensorAddress, interval)
