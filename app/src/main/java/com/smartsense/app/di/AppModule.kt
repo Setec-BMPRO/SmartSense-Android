@@ -2,9 +2,13 @@ package com.smartsense.app.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.storage.FirebaseStorage
 import com.smartsense.app.data.local.MopekaDatabase
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.preferences.UserPreferences
+import com.smartsense.app.domain.firebase.AuthRepository
+import com.smartsense.app.domain.firebase.AuthRepositoryImpl
 
 import dagger.Module
 import dagger.Provides
@@ -57,4 +61,17 @@ object AppModule {
             CoroutineScope(SupervisorJob() + Dispatchers.Default)
     }
 
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideAuthRepository(auth: FirebaseAuth): AuthRepository {
+        return AuthRepositoryImpl(auth)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 }

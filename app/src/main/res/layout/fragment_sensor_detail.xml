@@ -394,10 +394,8 @@
             android:layout_marginTop="@dimen/spacing_lg"
             android:layout_marginBottom="@dimen/spacing_lg"
             android:text="@string/remove_sensor"
-            android:textColor="?attr/colorError"
-            app:iconTint="?attr/colorError"
-            app:strokeColor="?attr/colorError"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
+            style="@style/Widget.Material3.Button"
+            android:textColor="?attr/colorOnPrimary"/>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

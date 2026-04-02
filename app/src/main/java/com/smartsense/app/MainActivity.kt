@@ -1,22 +1,16 @@
 package com.smartsense.app
 
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.smartsense.app.databinding.ActivityMainBinding
-import com.smartsense.app.ui.scan.Scan1Fragment
-import com.smartsense.app.ui.scan.ScanFragment
 import com.smartsense.app.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() ,MainActivityListener{
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
@@ -32,7 +26,7 @@ class MainActivity : AppCompatActivity() {
 
 
         binding.tabAccount.setOnClickListener {
-            navController.navigate(R.id.dashboardFragment)
+            navController.navigate(R.id.accountRegisterFragment)
             selectTab(binding.tabAccount)
         }
 
@@ -80,4 +74,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun showLoadingIndicator(isShow: Boolean) {
+        binding.loadingOverlay.visibility = if (isShow) View.VISIBLE else View.GONE
+    }
+}
+
+interface MainActivityListener{
+    fun showLoadingIndicator(isShow: Boolean)
 }

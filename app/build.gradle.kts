@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     kotlin("kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -64,6 +65,7 @@ dependencies {
     implementation(libs.fragment.ktx)
 
     implementation(libs.hilt.android)
+
     ksp(libs.hilt.compiler)
 
     implementation(libs.datastore.preferences)
@@ -84,4 +86,9 @@ dependencies {
 
     implementation("com.github.lisawray.groupie:groupie:2.10.1")
     implementation("com.github.lisawray.groupie:groupie-viewbinding:2.10.1")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-storage")
 }

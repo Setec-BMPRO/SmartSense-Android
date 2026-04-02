@@ -6,18 +6,26 @@
     app:startDestination="@id/scanFragment">
 
     <fragment
-        android:id="@+id/dashboardFragment"
-        android:name="com.smartsense.app.ui.dashboard.DashboardFragment"
+        android:id="@+id/accountRegisterFragment"
+        android:name="com.smartsense.app.ui.account.AccountRegisterFragment"
         android:label="@string/nav_account"
-        tools:layout="@layout/fragment_dashboard">
+        tools:layout="@layout/fragment_account_register">
 
         <action
-            android:id="@+id/action_dashboard_to_detail"
-            app:destination="@id/sensorDetailFragment"
+            android:id="@+id/action_to_sign_in"
+            app:destination="@id/accountSignInFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/accountSignInFragment"
+        android:name="com.smartsense.app.ui.account.AccountSignInFragment"
+        android:label="@string/sign_in"
+        tools:layout="@layout/fragment_account_signin">
+
     </fragment>
 
     <fragment

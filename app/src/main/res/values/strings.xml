@@ -118,4 +118,30 @@
     <string name="group_sensors">Group Sensors</string>
     <string name="sort_preferences">Sort Preferences</string>
     <string name="forget_all_devices">Forget All Devices</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_email">Confirm Email</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="register">Register</string>
+    <string name="already_a_user">Already a user?</string>
+    <string name="signup_failed">Signup Failed</string>
+    <string name="enter_a_valid_email_address">Enter a valid email address</string>
+    <string name="emails_do_not_match">Emails do not match</string>
+    <string name="password_must_be_at_least_8_characters">Password must be at least 8 characters</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="sign_in_success">Sign In Success</string>
+    <string name="sign_in_failed">Sign In Failed</string>
+    <string name="reset_email_resent_successfully">Reset email resent successfully!</string>
+    <string name="failed_to_resend_email">Failed to resend email</string>
+    <string name="enter_a_valid_email_to_reset_password">Enter a valid email to reset password</string>
+    <string name="please_enter_the_password_reset_code_that_was_sent_to">Please enter the password reset code that was sent to %1$s.</string>
+    <string name="new_password">New Password</string>
+    <string name="please_enter_new_password_for">Please enter new password for %1$s.</string>
+    <string name="enter_new_password">Enter new password</string>
+    <string name="password_too_short">Password too short</string>
+    <string name="resend">Resend</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="reset_password_link_has_been_sent_to">Reset password link has been sent to %1$s</string>
+
 </resources>

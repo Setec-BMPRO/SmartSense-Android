@@ -91,7 +91,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/device_name"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"/>
                 <ImageView android:layout_marginStart="@dimen/spacing_sm"
                     android:layout_width="wrap_content"
@@ -126,7 +126,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/region"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary"/>
 
             <!-- Tank Region -->
@@ -156,7 +156,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/tank_size"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"/>
                 <ImageView android:layout_marginStart="@dimen/spacing_sm"
                     android:layout_width="wrap_content"
@@ -191,7 +191,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Arbitrary"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary"/>
 
             <com.google.android.material.button.MaterialButtonToggleGroup
@@ -246,7 +246,7 @@
                     android:layout_height="wrap_content"
                     android:text="cm"
                     android:layout_marginStart="@dimen/spacing_md"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"/>
             </LinearLayout>
             </LinearLayout>
@@ -256,7 +256,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/quality_threshold"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -285,7 +285,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/tank_level_units"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"/>
                 <ImageView android:layout_marginStart="@dimen/spacing_sm"
                     android:layout_width="wrap_content"
@@ -353,7 +353,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"
                     android:text="@string/notifications"/>
 
@@ -369,7 +369,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/trigger_alarm_above_or_below_threshold"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary"/>
 
             <com.google.android.material.button.MaterialButtonToggleGroup
@@ -410,7 +410,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/alarm_threshold"
-                    android:textAppearance="?attr/textAppearanceTitleSmall"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textColor="?attr/colorPrimary"/>
                 <ImageView android:layout_marginStart="@dimen/spacing_sm"
                     android:layout_width="wrap_content"
@@ -424,7 +424,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="50%"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textStyle="bold"
                 android:layout_marginTop="4dp"/>
 
@@ -443,7 +443,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/notification_frequency"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary"/>
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/frequency_layout"

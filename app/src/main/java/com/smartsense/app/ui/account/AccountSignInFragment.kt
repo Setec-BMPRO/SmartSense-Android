@@ -1,0 +1,204 @@
+package com.smartsense.app.ui.account
+
+import android.graphics.Color
+import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.util.Patterns
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.widget.doOnTextChanged
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import com.smartsense.app.MainActivity
+import com.smartsense.app.MainActivityListener
+import com.smartsense.app.R
+import com.smartsense.app.databinding.DialogNewPasswordBinding
+import com.smartsense.app.databinding.FragmentAccountSigninBinding
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import kotlin.getValue
+@AndroidEntryPoint
+class AccountSignInFragment : Fragment() {
+
+    private var _binding: FragmentAccountSigninBinding? = null
+    private val binding get() = _binding!!
+    private val viewModel: AccountViewModel by viewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentAccountSigninBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupUI()
+        observeViewModel()
+    }
+
+    private fun setupUI() {
+        setupListeners()
+        setupLiveValidation()
+        setupHyperLink()
+    }
+
+    private fun observeViewModel() {
+        // Observe Login State
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.loginState.collect { result ->
+                result?.let {
+                    (activity as MainActivityListener).showLoadingIndicator(false)
+                    if (it.isSuccess) {
+                        findNavController().navigate(R.id.scanFragment)
+                    } else {
+                        showSnackbar(getString(R.string.sign_in_failed))
+                        viewModel.resetLoginState()
+                    }
+                }
+            }
+        }
+
+        // Observe Password Reset Email State
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.resetEmailState.collect { result ->
+                result?.let {
+                    (activity as MainActivityListener).showLoadingIndicator(false)
+                    if (it.isSuccess) {
+                        showResetPasswordDialog(binding.etEmail.text.toString().trim())
+                    } else {
+                        showSnackbar(getString(R.string.failed_to_resend_email))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupListeners() {
+        binding.btnSignin.setOnClickListener {
+            if (performFinalValidation()) {
+                val email = binding.etEmail.text.toString().trim()
+                val password = binding.etPassword.text.toString()
+                (activity as MainActivityListener).showLoadingIndicator(true)
+                viewModel.signIn(email, password)
+            }
+        }
+
+        binding.tvRegister.setOnClickListener {
+            findNavController().navigateUp()
+        }
+
+        binding.tvForgotPassword.setOnClickListener {
+            val email = binding.etEmail.text.toString().trim()
+            if (isEmailValid(email)) {
+                (activity as MainActivityListener).showLoadingIndicator(true)
+                viewModel.sendPasswordReset(email)
+            } else {
+                binding.etEmail.apply {
+                    error = getString(R.string.enter_a_valid_email_to_reset_password)
+                    requestFocus()
+                }
+            }
+        }
+    }
+
+    private fun setupLiveValidation() {
+        listOf(binding.etEmail, binding.etPassword).forEach { editText ->
+            editText.doOnTextChanged { _, _, _, _ -> editText.error = null }
+        }
+    }
+
+    private fun isEmailValid(email: String): Boolean {
+        return email.isNotEmpty() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    private fun performFinalValidation(): Boolean {
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString()
+        var isValid = true
+
+        if (!isEmailValid(email)) {
+            binding.etEmail.error = getString(R.string.enter_a_valid_email_address)
+            isValid = false
+        }
+
+        if (password.length < 8) {
+            binding.etPassword.error = getString(R.string.password_must_be_at_least_8_characters)
+            isValid = false
+        }
+
+        return isValid
+    }
+
+    private fun setupHyperLink() {
+        val registerLabel = getString(R.string.register)
+        val spannable = SpannableString(registerLabel)
+        val linkColor = MaterialColors.getColor(binding.root, android.R.attr.colorPrimary)
+
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) { /* Logic handled by tvRegister click listener */ }
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.color = linkColor
+                ds.isUnderlineText = true
+            }
+        }
+
+        spannable.setSpan(clickableSpan, 0, registerLabel.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        binding.tvRegister.apply {
+            text = spannable
+            movementMethod = LinkMovementMethod.getInstance()
+            highlightColor = Color.TRANSPARENT
+        }
+    }
+
+    private fun showResetPasswordDialog(email: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.reset_password))
+            .setMessage(getString(R.string.reset_password_link_has_been_sent_to, email))
+            .setPositiveButton(R.string.ok, null)
+            .show()
+    }
+
+    private fun showNewPasswordDialog(email: String, code: String) {
+        val dialogBinding = DialogNewPasswordBinding.inflate(layoutInflater)
+        dialogBinding.tvDescription.text = getString(R.string.please_enter_new_password_for, email)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.enter_new_password))
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton(R.string.ok) { dialog, _ ->
+                val newPass = dialogBinding.etNewPassword.text.toString()
+                if (newPass.length >= 8) {
+                    viewModel.updatePassword(code, newPass)
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(context, getString(R.string.password_too_short), Toast.LENGTH_SHORT).show()
+                }
+            }
+            .show()
+    }
+
+    private fun showSnackbar(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}

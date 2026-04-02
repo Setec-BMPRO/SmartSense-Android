@@ -287,8 +287,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_md"
             android:id="@+id/btn_forget_all_device"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurfaceInverse"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button"
             android:text="Forget All Devices"/>
 
         <!-- App version -->

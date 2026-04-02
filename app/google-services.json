@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "732404209221",
+    "project_id": "smartsensetest-6e08a",
+    "storage_bucket": "smartsensetest-6e08a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732404209221:android:2992afbcf856c86fea752c",
+        "android_client_info": {
+          "package_name": "com.smartsense.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwSOWf0dsAmY05mC-rfk9lNUwC12Tz9Kw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
