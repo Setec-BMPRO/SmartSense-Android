@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScanBinding
 import com.smartsense.app.ui.dashboard.SensorCardAdapter
+import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -44,7 +45,7 @@ class ScanFragment : Fragment() {
         adapter = SensorCardAdapter { sensor ->
             findNavController().navigate(
                 R.id.action_scan_to_detail,
-                android.os.Bundle().apply { putString("sensorAddress", sensor.address) }
+                android.os.Bundle().apply { putString(EXTRA_SENSOR_ADDRESS, sensor.address) }
             )
         }
 

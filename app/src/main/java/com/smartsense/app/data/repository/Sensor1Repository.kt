@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,16 +66,17 @@ class Sensor1Repository @Inject constructor(
 
     fun discoverSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> {
         return bleManager.startScan()
-            .onStart { _isScanning.value = true }
             .onEach(::cacheReading)
             .sample(scanIntervalMillis)
             .map {
-                Log.i(TAG,"discoverSensors")
+                Timber.tag(TAG).i("discoverSensors")
                 mapToSensorList(liveReadings.value)
             }
             .onCompletion { _isScanning.value = false }
             .distinctUntilChanged()
     }
+
+      suspend fun observeAllSensorsRegistered()=sensorDao.observeAllSensorsRegistered().map { it.map { it.toDomain() } }.first()
 
 //    fun startScanIfNeeded() {
 //        bleManager.startScan()
@@ -159,6 +162,20 @@ class Sensor1Repository @Inject constructor(
                     scanned, tank,
                     mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
                 )
+            }
+        }
+    }
+
+    fun filterSensors(
+        sensorsFlow: Flow<List<Sensor1>>,
+        queryFlow: Flow<String>
+    ): Flow<List<Sensor1>> = combine(sensorsFlow, queryFlow) { sensors, query ->
+        if (query.isBlank()) {
+            sensors
+        } else {
+            sensors.filter { sensor ->
+                sensor.name?.contains(query, ignoreCase = true) == true ||
+                        sensor.address.contains(query, ignoreCase = true)
             }
         }
     }
@@ -315,6 +332,12 @@ class Sensor1Repository @Inject constructor(
         notificationFrequency = notificationFrequency.name,
         triggerAlarmUnit = triggerAlarmUnit.name,
         qualityThreshold = qualityThreshold.name
+    )
+
+     fun SensorEntity.toDomain(): Sensor1 = Sensor1(
+        address = address,
+        name = name,
+        sensorType = null
     )
 
     private inline fun <reified T : Enum<T>> enumOrDefault(value: String, default: T): T {

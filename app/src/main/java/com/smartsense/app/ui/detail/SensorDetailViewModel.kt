@@ -9,6 +9,7 @@ import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.TankPreset
 import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +24,7 @@ class SensorDetailViewModel @Inject constructor(
     userPreferences: UserPreferences
 ) : ViewModel() {
 
-    private val sensorAddress: String = savedStateHandle.get<String>("sensorAddress") ?: ""
+    private val sensorAddress: String = savedStateHandle.get<String>(EXTRA_SENSOR_ADDRESS) ?: ""
 
     val sensor: StateFlow<Sensor?> = repository.getSensorByAddress(sensorAddress)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

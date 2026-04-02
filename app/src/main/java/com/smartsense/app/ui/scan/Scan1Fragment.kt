@@ -24,6 +24,7 @@ import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.ui.dashboard.HeaderItem
 
 import com.smartsense.app.ui.dashboard.SensorItem
+import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 
 import com.smartsense.app.ui.helper.BlePermissionManager
 import com.xwray.groupie.ExpandableGroup
@@ -79,19 +80,6 @@ class Scan1Fragment : Fragment() {
     }
 
     private fun setupViews() {
-        // Setup Adapter & RecyclerView
-//        sensorAdapter = Sensor1CardAdapter(
-//            onGroupClick = { groupName ->
-//                // Tell ViewModel to toggle this group
-//                //viewModel.toggleGroup(groupName)
-//            },
-//            onSensorClick = { sensor ->
-//                // Navigate to Detail Screen
-//                val bundle = Bundle().apply { putString("sensorAddress", sensor.address) }
-//                findNavController().navigate(R.id.action_scan_to_detail, bundle)
-//            }
-//        )
-
         binding.sensorList.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = groupAdapter
@@ -181,7 +169,7 @@ class Scan1Fragment : Fragment() {
         return sensors.groupBy { it.groudName }.map { (groupName, list) ->
             val sensorItems = list.map { sensor ->
                 SensorItem(sensor, viewModel.unitSystem.value) { selected ->
-                    val bundle = Bundle().apply { putString("sensorAddress", selected.address) }
+                    val bundle = Bundle().apply { putString(EXTRA_SENSOR_ADDRESS, selected.address) }
                     findNavController().navigate(R.id.action_scan_to_detail, bundle)
                 }
             }

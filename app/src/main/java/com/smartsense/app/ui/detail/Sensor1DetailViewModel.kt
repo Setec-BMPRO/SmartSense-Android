@@ -9,6 +9,7 @@ import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.domain.usecase.SensorDetailUseCase
 import com.smartsense.app.domain.usecase.SensorScanUseCase
+import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -30,7 +31,7 @@ class Sensor1DetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     val sensorAddress: String =
-        savedStateHandle["sensorAddress"] ?: ""
+        savedStateHandle[EXTRA_SENSOR_ADDRESS] ?: ""
 
     val unitSystem: UnitSystem = runBlocking {
         userPreferences.unitSystem.first()

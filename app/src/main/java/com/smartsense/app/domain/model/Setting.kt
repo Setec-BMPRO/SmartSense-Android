@@ -13,6 +13,7 @@ enum class AppTheme(val displayName: String) {
 }
 
 enum class ScanIntervals(val value: Int, val displayName: String) {
+    ONE(1,"Immediately"),
     FIVE(5,"5 seconds"),
     TEN(10,"10 seconds"),
     FIFTEEN(15,"15 seconds"),

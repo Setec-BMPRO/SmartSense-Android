@@ -18,12 +18,16 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
+import java.util.function.ToIntBiFunction
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,18 +61,12 @@ class Scan1ViewModel @Inject constructor(
     }
 
     // Single Source of Truth for the List
-    val filteredSensors: StateFlow<List<Sensor1>> = combine(
-        uiState.map { it.sensors }.distinctUntilChanged(),
-        _filterQuery
-    ) { sensors, query ->
-        if (query.isBlank()) sensors
-        else sensors.filter { sensor ->
-            sensor.name?.contains(query, ignoreCase = true) == true ||
-                    sensor.address.contains(query, ignoreCase = true)
-        }
-    }.stateIn(
+    val filteredSensors: StateFlow<List<Sensor1>> = userCase.filterSensors(
+        sensorsFlow = uiState.map { it.sensors }.distinctUntilChanged(),
+        queryFlow = _filterQuery
+    ).stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+        started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
 
@@ -115,12 +113,23 @@ class Scan1ViewModel @Inject constructor(
         observeJob = null
     }
 
+    private fun loadAllRegisteredSensors(){
+        viewModelScope.launch {
+            _uiState.update { state ->
+                Timber.i("-----loadAllRegisteredSensors-----")
+                state.copy(
+                    isScanning = true,
+                    sensors = userCase.observeAllSensorsRegistered()
+                )
+            }
+        }
+    }
+
     private fun autoStartScan() {
         if (scanJob?.isActive == true) return
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
             val interval = userPreferences.scanInterval.first().value.toLong() * 1000
-
             userCase.startScan(interval)
                 .catch { e ->
                     Timber.e(e, "Scan failed")

@@ -15,8 +15,8 @@ interface SensorDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSensor(sensor: SensorEntity)
 
-    @Query("SELECT * FROM sensors ORDER BY lastSeenMillis DESC")
-    fun observeAllSensors(): Flow<List<SensorEntity>>
+    @Query("SELECT * FROM sensors WHERE is_registered = 1 ORDER BY lastSeenMillis DESC")
+    fun observeAllSensorsRegistered(): Flow<List<SensorEntity>>
 
     @Query("SELECT address FROM sensors WHERE is_registered = 1")
     fun observeRegisteredAddresses(): Flow<List<String>>
