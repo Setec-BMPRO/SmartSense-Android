@@ -25,7 +25,12 @@
         android:name="com.smartsense.app.ui.account.AccountSignInFragment"
         android:label="@string/sign_in"
         tools:layout="@layout/fragment_account_signin">
-
+    </fragment>
+    <fragment
+        android:id="@+id/accountSensorsFragment"
+        android:name="com.smartsense.app.ui.account.AccountSensorsFragment"
+        android:label="@string/account"
+        tools:layout="@layout/fragment_account_sensors">
     </fragment>
 
     <fragment

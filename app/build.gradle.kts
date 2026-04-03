@@ -91,4 +91,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-storage")
+
+    // Add the dependency for the Cloud Firestore library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-firestore")
+
+    // Optional: If you want to use Kotlin Coroutines with Firebase (highly recommended)
+    implementation("com.google.firebase:firebase-common-ktx")
 }

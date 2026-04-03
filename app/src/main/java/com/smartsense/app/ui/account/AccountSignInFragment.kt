@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -62,6 +63,7 @@ class AccountSignInFragment : Fragment() {
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
+                        viewModel.updateLoginStatus(true)
                         findNavController().navigate(R.id.scanFragment)
                     } else {
                         showSnackbar(getString(R.string.sign_in_failed))
@@ -111,6 +113,9 @@ class AccountSignInFragment : Fragment() {
                     requestFocus()
                 }
             }
+        }
+        binding.toolbar.btnBack.setOnClickListener {
+            findNavController().navigate(R.id.accountRegisterFragment)
         }
     }
 
@@ -195,6 +200,14 @@ class AccountSignInFragment : Fragment() {
 
     private fun showSnackbar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.toolbar.btnBack.isVisible=true
+        binding.toolbar.btnRight.isVisible=false
+        binding.toolbar.tvTitle.text="Sign In"
+        binding.toolbar.tvSubTitle.text=""
     }
 
     override fun onDestroyView() {

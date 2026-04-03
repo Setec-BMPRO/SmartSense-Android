@@ -41,7 +41,7 @@ class SensorDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnBack.setOnClickListener {
+        binding.toolbar.btnBack.setOnClickListener {
             findNavController().popBackStack()
         }
 
@@ -86,7 +86,7 @@ class SensorDetailFragment : Fragment() {
     }
 
     private fun bindSensor(sensor: Sensor, unitSystem: UnitSystem) {
-        binding.sensorName.text = sensor.name
+        binding.toolbar.tvSubTitle.text = sensor.name
 
         // Tank fill level
         binding.detailTank.setLevel(sensor.level.percentage, sensor.level.status)

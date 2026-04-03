@@ -93,7 +93,7 @@ class Sensor1DetailFragment : Fragment() {
     // --------------------------------------
 
     private fun setupClickListeners() = with(binding) {
-        btnBack.setOnClickListener { findNavController().popBackStack() }
+        toolbar.btnBack.setOnClickListener { findNavController().popBackStack() }
 
         btnUnpair.setOnClickListener { showUnpairConfirmationDialog() }
 
@@ -101,7 +101,7 @@ class Sensor1DetailFragment : Fragment() {
 
         qualityWarning.setOnClickListener { showQualityDialog() }
 
-        btnSetting.setOnClickListener {
+        toolbar.btnRight.setOnClickListener {
             navigateToSettings()
         }
     }
@@ -126,7 +126,7 @@ class Sensor1DetailFragment : Fragment() {
     // --------------------------------------
 
     private fun bindSensor(sensor: Sensor1) = with(binding) {
-        sensorName.text = sensor.name
+        toolbar.tvSubTitle.text = sensor.name
         lastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
 
         setupTankDisplay(sensor)

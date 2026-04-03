@@ -1,130 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white"
-    android:padding="20dp">
+<LinearLayout
+        android:paddingBottom="40dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvAccountTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Account Sensors"
-        android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textColor="#33334d"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <include layout="@layout/view_toolbar" android:id="@+id/toolbar"/>
 
-    <TextView
-        android:id="@+id/tvUserEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="hao@siliconstack.com.au"
-        android:textAppearance="?attr/textAppearanceBodyMedium"
-        android:textColor="#666699"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvAccountTitle" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSignOut"
-        style="@style/Widget.Material3.Button.TonalButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign Out"
-        android:textColor="#33334d"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/layoutRefresh"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnSignOut">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="20dp">
+            <TextView
+                android:id="@+id/tvAccountTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/account_sensors"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="Refresh"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="#33334d" />
+            <TextView
+                android:id="@+id/tvUserEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="hao@siliconstack.com.au"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_close"
-            app:tint="#33334d" />
-    </LinearLayout>
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvAccountTitle" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSensors"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/layoutLegend"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutRefresh"
-        tools:listitem="@layout/item_acc_sensor" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSignOut"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sign_out"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/layoutLegend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/btnDeleteAccount"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+            <LinearLayout
+                android:id="@+id/layoutRefresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnSignOut">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawablePadding="8dp"
-            android:gravity="center"
-            android:text="Local + Account"
-            app:drawableStartCompat="@drawable/ic_close" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/refresh"
+                    android:id="@+id/btn_refresh"
+                    android:gravity="center"
+                    android:drawablePadding="@dimen/spacing_xs"
+                    app:drawableEndCompat="@drawable/ic_refresh"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:drawablePadding="8dp"
-            android:gravity="center"
-            android:text="Account Only"
-            app:drawableStartCompat="@drawable/ic_close" />
-    </LinearLayout>
+            </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnDeleteAccount"
-        style="@style/Widget.Material3.Button.TonalButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="Delete Account"
-        android:textColor="#33334d"
-        app:layout_constraintBottom_toTopOf="@id/tvFooterNote"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvSensors"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toTopOf="@id/layoutLegend"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layoutRefresh"
+                tools:listitem="@layout/item_acc_sensor" />
 
-    <TextView
-        android:id="@+id/tvFooterNote"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="All sensors synced locally to the app will be added to your account and listed above"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        android:textColor="#8888aa"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+            <LinearLayout
+                android:id="@+id/layoutLegend"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toTopOf="@id/btnDeleteAccount"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:text="@string/local_account"
+                    app:drawableStartCompat="@drawable/ic_location" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:text="@string/account_only"
+                    app:drawableStartCompat="@drawable/ic_cloud" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteAccount"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/delete_account"
+                app:layout_constraintBottom_toTopOf="@id/tvFooterNote"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/tvFooterNote"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
+
+
+

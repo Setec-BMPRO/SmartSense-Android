@@ -7,18 +7,21 @@ import com.smartsense.app.data.preferences.UserPreferences
 
 import com.smartsense.app.domain.firebase.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
+
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val repository: AuthRepository,
-    private val userPreferences: UserPreferences // Made private for consistency
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
-    // --- State Flows ---
-
+    // --- Authentication State Flows ---
     private val _loginState = MutableStateFlow<Result<FirebaseUser>?>(null)
     val loginState: StateFlow<Result<FirebaseUser>?> = _loginState
 
@@ -31,7 +34,14 @@ class AccountViewModel @Inject constructor(
     private val _updatePasswordState = MutableStateFlow<Result<Unit>?>(null)
     val updatePasswordState: StateFlow<Result<Unit>?> = _updatePasswordState
 
-    // --- Authentication Actions ---
+    // --- Account Management State Flows ---
+    private val _signOutState = MutableStateFlow<Boolean?>(null)
+    val signOutState: StateFlow<Boolean?> = _signOutState
+
+    private val _deleteAccountState = MutableStateFlow<Result<Unit>?>(null)
+    val deleteAccountState: StateFlow<Result<Unit>?> = _deleteAccountState
+
+    // --- Primary Actions ---
 
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
@@ -46,40 +56,76 @@ class AccountViewModel @Inject constructor(
     }
 
     fun sendPasswordReset(email: String) {
-        viewModelScope.launch {
-            // Nulling out first ensures the Fragment observer triggers even if
-            // the result (e.g., failure) is the same as the previous one.
-            _resetEmailState.value = null
-            _resetEmailState.value = repository.sendPasswordReset(email)
+        executeResettingState(_resetEmailState) {
+            repository.sendPasswordReset(email)
         }
     }
 
     fun updatePassword(code: String, newPassword: String) {
-        viewModelScope.launch {
-            _updatePasswordState.value = null
-            _updatePasswordState.value = repository.confirmPasswordReset(code, newPassword)
+        executeResettingState(_updatePasswordState) {
+            repository.confirmPasswordReset(code, newPassword)
         }
     }
 
-    // --- State Resets ---
+    // --- Destructive Actions ---
+
+    fun signOut() {
+        viewModelScope.launch {
+            try {
+                repository.signOut()
+                userPreferences.setIsSignedIn(false)
+
+                // Optional network cleanup with safety timeout
+                withTimeoutOrNull(5000) { /* repository.unregisterPushToken() */ }
+            } catch (e: Exception) {
+                userPreferences.setIsSignedIn(false)
+            } finally {
+                _signOutState.value = true
+            }
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _deleteAccountState.value = null // Show loading
+
+            runCatching {
+                withTimeout(15000) { repository.deleteAccount() }
+            }.onSuccess { result ->
+                result.onSuccess { userPreferences.setIsSignedIn(false) }
+                _deleteAccountState.value = result
+            }.onFailure { e ->
+                val errorMessage = if (e is TimeoutCancellationException) {
+                    "Network timeout. Please check your connection."
+                } else e.message ?: "An unexpected error occurred"
+
+                _deleteAccountState.value = Result.failure(Exception(errorMessage))
+            }
+        }
+    }
+
+    // --- Helper & State Management ---
 
     /**
-     * Call these from the Fragment after handling a result to prevent
-     * duplicate UI events (like Snackbars) on configuration changes.
+     * Common pattern: Nulls out state before executing a task to ensure
+     * UI observers (like Flow/LiveData) always trigger.
      */
-    fun resetLoginState() {
-        _loginState.value = null
+    private fun <T> executeResettingState(
+        stateFlow: MutableStateFlow<Result<T>?>,
+        block: suspend () -> Result<T>
+    ) {
+        viewModelScope.launch {
+            stateFlow.value = null
+            stateFlow.value = block()
+        }
     }
 
-    fun resetSignUpState() {
-        _signUpState.value = null
+    fun updateLoginStatus(isSignedIn: Boolean) {
+        viewModelScope.launch { userPreferences.setIsSignedIn(isSignedIn) }
     }
 
-    fun resetResetEmailState() {
-        _resetEmailState.value = null
-    }
-
-    fun resetUpdatePasswordState() {
-        _updatePasswordState.value = null
-    }
+    fun resetLoginState() { _loginState.value = null }
+    fun resetSignUpState() { _signUpState.value = null }
+    fun resetResetEmailState() { _resetEmailState.value = null }
+    fun resetUpdatePasswordState() { _updatePasswordState.value = null }
 }

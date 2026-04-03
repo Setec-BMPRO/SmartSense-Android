@@ -143,5 +143,14 @@
     <string name="resend">Resend</string>
     <string name="reset_password">Reset Password</string>
     <string name="reset_password_link_has_been_sent_to">Reset password link has been sent to %1$s</string>
+    <string name="refresh">Refresh</string>
+    <string name="account_sensors">Account Sensors</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="local_account">Local + Account</string>
+    <string name="account_only">Account Only</string>
+    <string name="all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above">All sensors synced locally to the app will be added to your account and listed above</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="account">Account</string>
+    <string name="just_a_moment_while_we_get_things_ready">Just a moment while we get things ready...</string>
 
 </resources>

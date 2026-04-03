@@ -50,5 +50,19 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun deleteAccount(): Result<Unit> {
+        return try {
+            val user = firebaseAuth.currentUser ?: throw Exception("No authenticated user found.")
+            user.delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override fun signOut() {
+        firebaseAuth.signOut()
+    }
+
     override fun getCurrentUser() = firebaseAuth.currentUser
 }

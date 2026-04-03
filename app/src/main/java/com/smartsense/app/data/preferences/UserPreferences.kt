@@ -27,6 +27,8 @@ class UserPreferences @Inject constructor(
         val UPLOAD_SENSOR_DATA = booleanPreferencesKey("upload_sensor_data")
         val GROUP_FILTER_ENABLED = booleanPreferencesKey("group_filter_enabled")
         val DEVICE_SEARCH_FILTER_ENABLED = booleanPreferencesKey("device_search_filter_enabled")
+
+        val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
     }
 
     // --- Enum-based Flow Observables ---
@@ -58,6 +60,10 @@ class UserPreferences @Inject constructor(
     val groupFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.GROUP_FILTER_ENABLED] ?: false }
     val deviceSearchFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] ?: false }
 
+    val isSignedIn: Flow<Boolean> = context.dataStore.data
+        .map { prefs ->
+            prefs[Keys.IS_SIGNED_IN] ?: false
+        }
     // --- Update Functions ---
 
     suspend fun setUnitSystem(unitSystem: UnitSystem) {
@@ -90,5 +96,11 @@ class UserPreferences @Inject constructor(
 
     suspend fun setDeviceSearchFilterEnabled(enabled: Boolean) {
         context.dataStore.edit { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] = enabled }
+    }
+
+    suspend fun setIsSignedIn(isSignedIn: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.IS_SIGNED_IN] = isSignedIn
+        }
     }
 }

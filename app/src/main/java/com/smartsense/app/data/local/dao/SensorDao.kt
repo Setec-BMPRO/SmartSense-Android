@@ -16,7 +16,7 @@ interface SensorDao {
     suspend fun insertSensor(sensor: SensorEntity)
 
     @Query("SELECT * FROM sensors WHERE is_registered = 1 ORDER BY lastSeenMillis DESC")
-    fun observeAllSensorsRegistered(): Flow<List<SensorEntity>>
+    fun getAllRegisteredSensors(): Flow<List<SensorEntity>>
 
     @Query("SELECT address FROM sensors WHERE is_registered = 1")
     fun observeRegisteredAddresses(): Flow<List<String>>

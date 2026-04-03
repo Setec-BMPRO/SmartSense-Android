@@ -1,6 +1,7 @@
 package com.smartsense.app.data.repository
 
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.smartsense.app.data.ble.BleManager
 import com.smartsense.app.data.ble.ScannedSensor
 import com.smartsense.app.domain.model.MopekaSensorType
@@ -50,7 +51,9 @@ class Sensor1Repository @Inject constructor(
     private val bleManager: BleManager,
     private val sensorDao: SensorDao,
     private val calculateTankUseCase: CalculateTankUseCase,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) {
     companion object {
         private const val TAG = "Sensor1Repository"
@@ -76,7 +79,7 @@ class Sensor1Repository @Inject constructor(
             .distinctUntilChanged()
     }
 
-      suspend fun observeAllSensorsRegistered()=sensorDao.observeAllSensorsRegistered().map { it.map { it.toDomain() } }.first()
+      suspend fun getAllRegisteredSensors()=sensorDao.getAllRegisteredSensors().map { it.map { it.toDomain() } }.first()
 
 //    fun startScanIfNeeded() {
 //        bleManager.startScan()

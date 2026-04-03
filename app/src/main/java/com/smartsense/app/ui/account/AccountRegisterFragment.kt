@@ -11,6 +11,7 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -168,6 +169,17 @@ class AccountRegisterFragment : Fragment() {
             // Remove the default highlight color when clicked
             highlightColor = Color.TRANSPARENT
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.toolbar.btnBack.isVisible=binding.toolbar.btnRight.isVisible==false
+        binding.toolbar.tvTitle.text="Register"
+        binding.toolbar.tvSubTitle.text=""
+    }
+
+    override fun onPause() {
+        super.onPause()
     }
 
     override fun onDestroyView() {

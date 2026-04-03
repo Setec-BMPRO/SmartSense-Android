@@ -21,6 +21,12 @@ class SensorScanUseCase @Inject constructor(
     fun filterSensors(sensorsFlow: Flow<List<Sensor1>>,
                       queryFlow: Flow<String>): Flow<List<Sensor1>> = repository.filterSensors(sensorsFlow,queryFlow)
 
-     suspend fun observeAllSensorsRegistered()=repository.observeAllSensorsRegistered()
+    fun observeDetailSensor(address: String, scanIntervalMillis: Long): Flow<Sensor1?> =
+        repository.observeSensorForDetail(address,scanIntervalMillis)
+
+    suspend fun unregisterSensor(address: String) = repository.unregisterSensor(address)
+
+
+    suspend fun getAllRegisteredSensors()=repository.getAllRegisteredSensors()
 
 }
