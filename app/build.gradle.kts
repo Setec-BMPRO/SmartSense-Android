@@ -66,7 +66,7 @@ dependencies {
 
     implementation(libs.hilt.android)
 
-    ksp(libs.hilt.compiler)
+    kapt(libs.hilt.compiler)
 
     implementation(libs.datastore.preferences)
 
@@ -90,12 +90,15 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-storage")
-
-    // Add the dependency for the Cloud Firestore library
-    // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+    // Hilt WorkManager Integration
+    implementation("androidx.hilt:hilt-work:1.2.0")
 
-    // Optional: If you want to use Kotlin Coroutines with Firebase (highly recommended)
-    implementation("com.google.firebase:firebase-common-ktx")
+    // Use Kapt or KSP for the compiler (match what you use for Hilt)
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+
+    // Standard WorkManager (Kotlin + Coroutines support)
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
 }

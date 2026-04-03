@@ -2,8 +2,13 @@ package com.smartsense.app.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.work.WorkManager
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
+
 import com.smartsense.app.data.local.MopekaDatabase
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.preferences.UserPreferences
@@ -74,4 +79,13 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
+        WorkManager.getInstance(context)
 }

@@ -2,6 +2,9 @@ package com.smartsense.app
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.domain.model.AppTheme
 
@@ -16,12 +19,21 @@ import javax.inject.Inject
 
 
 @HiltAndroidApp
-class SmartSenseApplication : Application() {
+class SmartSenseApplication : Application() , Configuration.Provider{
 
     @Inject
     lateinit var userPreferences: UserPreferences
 
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    // Hilt will inject the custom factory here
+    @Inject lateinit var workerFactory: HiltWorkerFactory
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory) // This bridges Hilt and WorkManager
+            .setMinimumLoggingLevel(android.util.Log.DEBUG) // Helpful for your debug logs!
+            .build()
 
     override fun onCreate() {
         super.onCreate()
@@ -33,6 +45,7 @@ class SmartSenseApplication : Application() {
             Timber.plant(Timber.DebugTree())
         }
     }
+
 
     companion object {
         fun applyTheme(theme: String) {

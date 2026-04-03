@@ -210,6 +210,7 @@ class Sensor1DetailFragment : Fragment() {
             .setMessage(R.string.remove_sensor_confirm)
             .setPositiveButton(R.string.remove) { _, _ ->
                 viewModel.unregisterSensor()
+                viewModel.triggerSync()
                 findNavController().popBackStack()
             }
             .setNegativeButton(R.string.cancel, null)

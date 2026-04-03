@@ -1,5 +1,7 @@
 package com.smartsense.app.domain.model
 
+import com.smartsense.app.data.local.entity.SyncStatus
+
 data class Sensor1(
     val address: String,
     var name: String?,
@@ -9,10 +11,11 @@ data class Sensor1(
     val reading: SensorReading?=null,
     val tankLevel: TankLevel?=null,
     val readQuality: ReadQuality? =null,
-    val tankType: String?=null
-
+    val tankType: String?=null,
+    val syncStatus: SyncStatus?=null
 
     ){
+
     val batteryPercent: Int= (((reading?.batteryVoltage?:0f) - 2.2f)
             / 0.65f * 100f).coerceIn(0f, 100f).toInt()
     val signalStrength: SignalStrength

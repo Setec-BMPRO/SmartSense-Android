@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.preferences.UserPreferences
+import com.smartsense.app.data.repository.Sensor1Repository
 
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
@@ -27,6 +28,7 @@ class Sensor1DetailViewModel @Inject constructor(
     private val userCase: SensorScanUseCase,
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
+    private val sensor1Repository: Sensor1Repository
 ) : ViewModel() {
 
     val sensorAddress: String =
@@ -74,6 +76,11 @@ class Sensor1DetailViewModel @Inject constructor(
     fun unregisterSensor() {
         viewModelScope.launch {
             userCase.unregisterSensor(sensorAddress)
+        }
+    }
+    fun triggerSync() {
+        viewModelScope.launch {
+            userCase.triggerSync()
         }
     }
 }

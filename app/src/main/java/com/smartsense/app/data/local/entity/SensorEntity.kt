@@ -7,21 +7,19 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "sensors")
 data class SensorEntity(
     @PrimaryKey
-    val address: String,
+    val address: String="",
     val name: String = "",
     val lastSeenMillis: Long = System.currentTimeMillis(),
-    @ColumnInfo(name = "is_registered", defaultValue = "0")
-    val isRegistered: Boolean = false,
+    @ColumnInfo(name = "registered", defaultValue = "0")
+    val registered: Boolean = false,
 
     // --- Sync Fields ---
     @ColumnInfo(name = "sync_status")
-    val syncStatus: SyncStatus = SyncStatus.SYNCED,
+    val syncStatus: SyncStatus = SyncStatus.PENDING,
 
     @ColumnInfo(name = "last_modified_locally")
     val lastModifiedLocally: Long = System.currentTimeMillis(),
 
-    @ColumnInfo(name = "remote_id")
-    val remoteId: String? = null // Firestore Document ID if different from address
 )
 
 enum class SyncStatus {

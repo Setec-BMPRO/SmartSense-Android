@@ -1,5 +1,6 @@
 package com.smartsense.app.di
 
+import com.smartsense.app.data.ble.BleManager
 import com.smartsense.app.data.ble.BleScanner
 import com.smartsense.app.data.ble.MockBleScanner
 import dagger.Binds
@@ -15,4 +16,5 @@ abstract class BleModule {
     @Binds
     @Singleton
     abstract fun bindBleScanner(impl: MockBleScanner): BleScanner
+
 }

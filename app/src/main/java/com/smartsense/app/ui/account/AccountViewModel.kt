@@ -3,13 +3,19 @@ package com.smartsense.app.ui.account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
+import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.preferences.UserPreferences
+import com.smartsense.app.data.repository.Sensor1Repository
 
 import com.smartsense.app.domain.firebase.AuthRepository
+import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.usecase.SensorScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -18,7 +24,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val repository: AuthRepository,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val sensorScanUseCase: SensorScanUseCase,
+    private val sensor1Repository: Sensor1Repository
 ) : ViewModel() {
 
     // --- Authentication State Flows ---
@@ -41,6 +49,13 @@ class AccountViewModel @Inject constructor(
     private val _deleteAccountState = MutableStateFlow<Result<Unit>?>(null)
     val deleteAccountState: StateFlow<Result<Unit>?> = _deleteAccountState
 
+    // This Flow automatically filters out 'DELETED' sensors via the DAO query we wrote
+    val registeredSensors: StateFlow<List<Sensor1>> = sensorScanUseCase.getAllRegisteredSensors()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
     // --- Primary Actions ---
 
     fun signIn(email: String, password: String) {
@@ -128,4 +143,15 @@ class AccountViewModel @Inject constructor(
     fun resetSignUpState() { _signUpState.value = null }
     fun resetResetEmailState() { _resetEmailState.value = null }
     fun resetUpdatePasswordState() { _updatePasswordState.value = null }
+
+    fun unregisterSensor(sensorAddress: String) {
+        viewModelScope.launch {
+            sensorScanUseCase.unregisterSensor(sensorAddress)
+        }
+    }
+    fun triggerSync() {
+        viewModelScope.launch {
+            sensorScanUseCase.triggerSync()
+        }
+    }
 }

@@ -26,7 +26,7 @@ class SensorScanUseCase @Inject constructor(
 
     suspend fun unregisterSensor(address: String) = repository.unregisterSensor(address)
 
+    fun getAllRegisteredSensors():Flow<List<Sensor1>> = repository.getAllRegisteredSensors()
 
-    suspend fun getAllRegisteredSensors()=repository.getAllRegisteredSensors()
-
+    fun triggerSync()=repository.triggerSync()
 }

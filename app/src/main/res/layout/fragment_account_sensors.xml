@@ -14,7 +14,8 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="20dp">
+            android:padding="20dp"
+            android:paddingBottom="40dp">
             <TextView
                 android:id="@+id/tvAccountTitle"
                 android:layout_width="wrap_content"
@@ -35,24 +36,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvAccountTitle" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSignOut"
-                style="@style/Widget.Material3.Button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/sign_out"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
             <LinearLayout
                 android:id="@+id/layoutRefresh"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
                 android:gravity="center_vertical"
+                android:visibility="gone"
                 android:orientation="horizontal"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnSignOut">
+                app:layout_constraintTop_toBottomOf="@id/tvUserEmail">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -68,6 +61,16 @@
 
             </LinearLayout>
 
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipeRefresh"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                app:layout_constraintBottom_toTopOf="@id/layoutLegend"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layoutRefresh">
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvSensors"
                 android:layout_width="0dp"
@@ -78,8 +81,10 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/layoutRefresh"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:orientation="vertical"
                 tools:listitem="@layout/item_acc_sensor" />
-
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
             <LinearLayout
                 android:id="@+id/layoutLegend"
                 android:layout_width="wrap_content"
@@ -113,7 +118,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDeleteAccount"
                 style="@style/Widget.Material3.Button"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="@string/delete_account"

@@ -152,5 +152,10 @@
     <string name="delete_account">Delete Account</string>
     <string name="account">Account</string>
     <string name="just_a_moment_while_we_get_things_ready">Just a moment while we get things ready...</string>
+    <string name="are_you_sure_you_want_to_remove_this_sensor_it_will_be_deleted_from_your_account_and_cloud_storage">Are you sure you want to remove this sensor? It will be deleted from your account and cloud storage.</string>
+    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out? You’ll need to sign back in to access your sensors.</string>
+    <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data. Proceed?</string>
+    <string name="no">No</string>
+    <string name="yes">Yes</string>
 
 </resources>

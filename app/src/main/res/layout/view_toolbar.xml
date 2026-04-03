@@ -33,6 +33,7 @@
             tools:text="Tank Info"
             android:id="@+id/tv_title"
             android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"/>
 
         <com.google.android.material.textview.MaterialTextView
@@ -40,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?attr/textAppearanceBodySmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/colorOnSurface"
             tools:text="New LPG Device"/>
     </LinearLayout>
 

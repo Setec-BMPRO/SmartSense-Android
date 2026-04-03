@@ -114,7 +114,7 @@ class Scan1ViewModel @Inject constructor(
                 Timber.i("-----loadAllRegisteredSensors-----")
                 state.copy(
                     isScanning = true,
-                    sensors = userCase.getAllRegisteredSensors()
+                    sensors = userCase.getAllRegisteredSensors().first()
                 )
             }
         }
