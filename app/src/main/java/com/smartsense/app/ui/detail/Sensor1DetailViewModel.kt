@@ -3,8 +3,8 @@ package com.smartsense.app.ui.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.data.repository.Sensor1Repository
 
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
@@ -28,7 +28,7 @@ class Sensor1DetailViewModel @Inject constructor(
     private val userCase: SensorScanUseCase,
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
-    private val sensor1Repository: Sensor1Repository
+    private val alertTrigger: TankAlertTrigger
 ) : ViewModel() {
 
     val sensorAddress: String =
@@ -60,6 +60,11 @@ class Sensor1DetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(sensor = sensor, isLoading = false)
                     }
+                    val level = sensor?.tankLevel?.percentage?.toInt() ?: -1
+                    alertTrigger.checkAndTrigger(
+                        address = sensor!!.address,
+                        currentLevel = level
+                    )
                 }
         }
     }

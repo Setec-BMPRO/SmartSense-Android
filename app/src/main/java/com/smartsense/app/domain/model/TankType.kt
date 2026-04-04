@@ -33,6 +33,7 @@ enum class TriggerAlarmUnit(val displayName: String) {
 }
 
 enum class NotificationFrequency(val displayName: String) {
+    EVERY_1_MINUTE("Every 1 Minute"),
     EVERY_HOUR("Every Hour"),
     EVERY_6_HOURS("Every 6 Hours"),
     EVERY_12_HOURS("Every 12 Hours"),

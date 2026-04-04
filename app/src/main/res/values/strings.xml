@@ -157,5 +157,6 @@
     <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data. Proceed?</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
+    <string name="tank_info">Tank Info</string>
 
 </resources>

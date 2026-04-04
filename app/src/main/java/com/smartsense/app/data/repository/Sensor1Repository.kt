@@ -11,7 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.smartsense.app.data.ble.BleManager
 import com.smartsense.app.data.ble.ScannedSensor
-import com.smartsense.app.data.local.SyncWorker
+import com.smartsense.app.data.worker.SyncWorker
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.NotificationFrequency
 
@@ -40,7 +40,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 
@@ -57,6 +56,7 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 @Singleton
 class Sensor1Repository @Inject constructor(
@@ -76,6 +76,7 @@ class Sensor1Repository @Inject constructor(
     private val _isScanning = MutableStateFlow(false)
     val isScanning: StateFlow<Boolean> = _isScanning
 
+    private var isMatchedTest=false
     // --------------------------------------
     // 🔍 SCANNING
     // --------------------------------------
@@ -93,14 +94,6 @@ class Sensor1Repository @Inject constructor(
     }
 
        fun getAllRegisteredSensors():Flow<List<Sensor1>> = sensorDao.getAllRegisteredSensors().map { it.map { it.toDomain() } }
-
-//    fun startScanIfNeeded() {
-//        bleManager.startScan()
-//            .onStart { _isScanning.value = true }
-//            .onEach(::cacheReading)
-//            .onCompletion { _isScanning.value = false }
-//            .launchIn(externalScope)
-//    }
 
     fun stopScan() {
         bleManager.stopScan()
@@ -236,6 +229,7 @@ class Sensor1Repository @Inject constructor(
             else tank?.type?.displayName
         }
 
+        tankLevel?.percentage = Random.nextFloat() * 100f
         // 2. Return using named arguments
         return Sensor1(
             address = scanned.address,

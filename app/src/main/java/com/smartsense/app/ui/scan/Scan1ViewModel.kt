@@ -2,6 +2,7 @@ package com.smartsense.app.ui.scan
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.data.preferences.UserPreferences
 
 
@@ -28,12 +29,10 @@ import javax.inject.Inject
 @HiltViewModel
 class Scan1ViewModel @Inject constructor(
     private val userCase: SensorScanUseCase,
-    val userPreferences: UserPreferences
+    val userPreferences: UserPreferences,
+    private val alertTrigger: TankAlertTrigger, // Inject the helper
 ) : ViewModel() {
 
-    companion object {
-        private const val STOP_TIMEOUT_MILLIS = 5000L
-    }
 
     // --- Private State Holders ---
     private val _uiState = MutableStateFlow(SensorListUiState())
@@ -99,6 +98,13 @@ class Scan1ViewModel @Inject constructor(
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     if (sensors.isNotEmpty()) autoPairDone = true
+                    sensors.forEach { scannedSensor ->
+                        val level = scannedSensor.tankLevel?.percentage?.toInt() ?: -1
+                        alertTrigger.checkAndTrigger(
+                            address = scannedSensor.address,
+                            currentLevel = level
+                        )
+                    }
                 }
         }
     }
@@ -106,18 +112,6 @@ class Scan1ViewModel @Inject constructor(
     fun stopObserveRegisteredSensors() {
         observeJob?.cancel()
         observeJob = null
-    }
-
-    private fun loadAllRegisteredSensors(){
-        viewModelScope.launch {
-            _uiState.update { state ->
-                Timber.i("-----loadAllRegisteredSensors-----")
-                state.copy(
-                    isScanning = true,
-                    sensors = userCase.getAllRegisteredSensors().first()
-                )
-            }
-        }
     }
 
     private fun autoStartScan() {

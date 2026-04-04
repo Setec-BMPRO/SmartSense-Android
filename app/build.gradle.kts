@@ -101,4 +101,6 @@ dependencies {
     // Standard WorkManager (Kotlin + Coroutines support)
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
+    implementation("no.nordicsemi.android.support.v18:scanner:1.6.0")
+
 }

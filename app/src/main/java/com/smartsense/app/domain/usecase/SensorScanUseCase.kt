@@ -29,4 +29,6 @@ class SensorScanUseCase @Inject constructor(
     fun getAllRegisteredSensors():Flow<List<Sensor1>> = repository.getAllRegisteredSensors()
 
     fun triggerSync()=repository.triggerSync()
+
+    suspend fun getTankConfig(sensorAddress: String) = repository.getTankConfig(sensorAddress)
 }

@@ -1,13 +1,10 @@
-package com.smartsense.app.data.local
+package com.smartsense.app.data.worker
 
-import android.content.ContentValues.TAG
 import android.content.Context
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.smartsense.app.data.repository.Sensor1Repository
-import com.smartsense.app.data.repository.SensorRepository
 
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
