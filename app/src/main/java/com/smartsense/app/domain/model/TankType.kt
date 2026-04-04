@@ -32,14 +32,30 @@ enum class TriggerAlarmUnit(val displayName: String) {
     }
 }
 
-enum class NotificationFrequency(val displayName: String) {
-    EVERY_1_MINUTE("Every 1 Minute"),
-    EVERY_HOUR("Every Hour"),
-    EVERY_6_HOURS("Every 6 Hours"),
-    EVERY_12_HOURS("Every 12 Hours"),
-    EVERY_24_HOURS("Every 24 Hours");
-    companion object{
-        fun default():NotificationFrequency=EVERY_12_HOURS
+enum class NotificationFrequency(
+    val displayName: String,
+    val timeMillis: Long
+) {
+    EVERY_1_MINUTE("Every 1 Minute", 60_000L),
+    EVERY_HOUR("Every Hour", 3_600_000L),
+    EVERY_6_HOURS("Every 6 Hours", 6 * 3_600_000L),
+    EVERY_12_HOURS("Every 12 Hours", 12 * 3_600_000L),
+    EVERY_24_HOURS("Every 24 Hours", 24 * 3_600_000L);
+
+    companion object {
+        fun default(): NotificationFrequency = EVERY_12_HOURS
+
+        /**
+         * Safely converts a string (from DB/Prefs) to the Enum.
+         * Falls back to default() if the string is invalid or null.
+         */
+        fun fromString(name: String?): NotificationFrequency {
+            return try {
+                valueOf(name ?: "")
+            } catch (e: Exception) {
+                default()
+            }
+        }
     }
 }
 

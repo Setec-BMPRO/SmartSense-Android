@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import com.smartsense.app.R
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.domain.model.NotificationFrequency
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,7 +93,7 @@ class TankAlertService : Service() {
         val lastLevel = prefs.getInt("last_level_${tank.sensorAddress}", -1)
         val lastTime = prefs.getLong("last_time_${tank.sensorAddress}", 0L)
 
-        val cooldown = parseFrequencyToMillis(tank.notificationFrequency)
+        val cooldown = NotificationFrequency.fromString(tank.notificationFrequency).timeMillis
         val intervalExpired = (System.currentTimeMillis() - lastTime) >= cooldown
 
         // Rule: Trigger if First Time, Level Changed, or Interval Expired
@@ -146,18 +147,6 @@ class TankAlertService : Service() {
             val serviceChan = NotificationChannel(serviceChannelId, "Background Tasks", NotificationManager.IMPORTANCE_MIN)
 
             manager?.createNotificationChannels(listOf(alertChan, serviceChan))
-        }
-    }
-
-    private fun parseFrequencyToMillis(frequency: String): Long {
-        val hour = 3_600_000L
-        return when (frequency.uppercase().trim()) {
-            "EVERY 1 MINUTE", "1 MINUTE" -> 60_000L
-            "EVERY HOUR", "1 HOUR" -> hour
-            "EVERY 6 HOURS", "6 HOURS" -> 6 * hour
-            "EVERY 12 HOURS", "12 HOURS" -> 12 * hour
-            "EVERY 24 HOURS", "24 HOURS" -> 24 * hour
-            else -> 60_000L
         }
     }
 
