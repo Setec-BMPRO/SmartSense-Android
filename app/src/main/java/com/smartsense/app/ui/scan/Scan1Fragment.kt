@@ -17,13 +17,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScan1Binding
 import com.smartsense.app.domain.model.Sensor1
-import com.smartsense.app.ui.dashboard.HeaderItem
 
-import com.smartsense.app.ui.dashboard.SensorItem
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 
 import com.smartsense.app.ui.helper.BlePermissionManager
@@ -33,9 +32,11 @@ import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Section
 
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -198,6 +199,8 @@ class Scan1Fragment : Fragment() {
     private fun updateUI(displayGroups: List<com.xwray.groupie.Group>, filteredCount: Int) {
         groupAdapter.update(displayGroups)
 
+        startTimestampTimer()
+
         val totalInSystem = viewModel.uiState.value.sensors.size
         binding.apply {
             scanningState.isVisible = totalInSystem == 0
@@ -207,6 +210,27 @@ class Scan1Fragment : Fragment() {
 
             if (filteredCount > 0) {
                 sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
+            }
+        }
+    }
+
+    private fun startTimestampTimer() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive) {
+                // Check if user is scrolling to avoid jerky UI
+                if (binding.sensorList.scrollState == RecyclerView.SCROLL_STATE_IDLE) {
+
+                    // Find all visible items and tell them to update their timestamps
+                    val layoutManager = binding.sensorList.layoutManager as? LinearLayoutManager
+                    val first = layoutManager?.findFirstVisibleItemPosition() ?: -1
+                    val last = layoutManager?.findLastVisibleItemPosition() ?: -1
+
+                    if (first != -1 && last != -1) {
+                        // This triggers the bind(...) with "UPDATE_TIME" payload
+                        groupAdapter.notifyItemRangeChanged(first, (last - first) + 1, "UPDATE_TIME")
+                    }
+                }
+                delay(1000L) // Wait 1 second
             }
         }
     }

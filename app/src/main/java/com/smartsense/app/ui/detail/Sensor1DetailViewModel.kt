@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.data.preferences.UserPreferences
+import com.smartsense.app.domain.model.ScanIntervals
 
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.UnitSystem
@@ -36,6 +37,10 @@ class Sensor1DetailViewModel @Inject constructor(
 
     val unitSystem: UnitSystem = runBlocking {
         userPreferences.unitSystem.first()
+    }
+
+    val scanIntervals: ScanIntervals = runBlocking {
+        userPreferences.scanInterval.first()
     }
 
     private val _uiState = MutableStateFlow(SensorDetailUiState())

@@ -10,6 +10,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentSensorDetailBinding
@@ -19,11 +21,14 @@ import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import com.smartsense.app.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.text.ifEmpty
+import androidx.core.view.isVisible
 
 @AndroidEntryPoint
 class Sensor1DetailFragment : Fragment() {
@@ -33,7 +38,7 @@ class Sensor1DetailFragment : Fragment() {
 
     private val viewModel: Sensor1DetailViewModel by viewModels()
 
-    private var lastUpdateTimestamp = 0L
+    private var timerJob: kotlinx.coroutines.Job? = null
 
     // --------------------------------------
     // 🧱 LIFECYCLE
@@ -82,7 +87,11 @@ class Sensor1DetailFragment : Fragment() {
                     .map { it.sensor }
                     .distinctUntilChanged()
                     .collect { sensor ->
-                        sensor?.let(::bindSensor)
+                        sensor?.let {
+                            bindSensor(it)
+                            // Start/Restart the timer only when the sensor data changes
+                            startLastUpdatedTimer(it.reading?.timestampMillis)
+                        }
                     }
             }
         }
@@ -127,14 +136,15 @@ class Sensor1DetailFragment : Fragment() {
 
     private fun bindSensor(sensor: Sensor1) = with(binding) {
         toolbar.tvSubTitle.text = sensor.name
+        // Set text IMMEDIATELY so it's "Just now" without waiting for the timer
         lastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
 
         setupTankDisplay(sensor)
         setupStatusRow(sensor)
         setupQualityWarning(sensor.readQuality)
         setupAdditionalInfo(sensor)
-
         updateRefreshRate()
+
     }
 
     private fun FragmentSensorDetailBinding.setupTankDisplay(sensor: Sensor1) {
@@ -176,16 +186,7 @@ class Sensor1DetailFragment : Fragment() {
     }
 
     private fun FragmentSensorDetailBinding.updateRefreshRate() {
-        val now = System.currentTimeMillis()
-
-        detailUpdateRate.text = if (lastUpdateTimestamp > 0) {
-            val seconds = (now - lastUpdateTimestamp) / 1000f
-            getString(R.string.format_seconds, seconds)
-        } else {
-            "--"
-        }
-
-        lastUpdateTimestamp = now
+        detailUpdateRate.text=viewModel.scanIntervals.displayName
     }
 
     // --------------------------------------
@@ -193,7 +194,7 @@ class Sensor1DetailFragment : Fragment() {
     // --------------------------------------
 
     private fun toggleAdditionalInfo() = with(binding) {
-        val isVisible = additionalInfoContent.visibility == View.VISIBLE
+        val isVisible = additionalInfoContent.isVisible
 
         additionalInfoContent.visibility =
             if (isVisible) View.GONE else View.VISIBLE
@@ -224,5 +225,16 @@ class Sensor1DetailFragment : Fragment() {
         } else address
     }
 
+    private fun startLastUpdatedTimer(timestamp: Long?) {
+        // 1. Cancel the old timer so we don't have duplicates
+        timerJob?.cancel()
 
+        // 2. Start the new heartbeat
+        timerJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive) {
+                delay(1000L) // Wait 1 second
+                binding.lastUpdated.text = TimeUtils.getLastUpdatedText(timestamp)
+            }
+        }
+    }
 }

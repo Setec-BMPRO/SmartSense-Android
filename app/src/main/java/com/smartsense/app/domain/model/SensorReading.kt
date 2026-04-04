@@ -7,7 +7,7 @@ data class SensorReading(
     val quality: Int, // 0-3 stars
     val temperatureCelsius: Float,
     val firmwareVersion: String = "",
-    val timestampMillis: Long = System.currentTimeMillis(),
+    var timestampMillis: Long = System.currentTimeMillis(),
     val tankLevelPercentage: Int=0,
     val deviceMAC: String=""
 )

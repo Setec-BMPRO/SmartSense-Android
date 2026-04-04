@@ -1,4 +1,4 @@
-package com.smartsense.app.ui.dashboard
+package com.smartsense.app.ui.scan
 
 import android.content.res.ColorStateList
 import android.graphics.Rect
@@ -13,6 +13,7 @@ import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.Sensor1
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.ui.dashboard.SignalInfo
 import com.smartsense.app.util.TimeUtils
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.ExpandableItem
@@ -70,6 +71,14 @@ class SensorItem(
     private val onClick: (Sensor1) -> Unit
 ) : BindableItem<ItemSensorCardBinding>() {
 
+    override fun bind(binding: ItemSensorCardBinding, position: Int, payloads: MutableList<Any>) {
+        if (payloads.contains("UPDATE_TIME")) {
+            // ONLY update the text, don't touch anything else
+            binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+        } else {
+            super.bind(binding, position, payloads)
+        }
+    }
 
     override fun bind(binding: ItemSensorCardBinding, position: Int) {
         // Name
@@ -126,9 +135,21 @@ class SensorItem(
 
         // Signal
         val signalInfo = when (sensor.signalStrength) {
-            SignalStrength.EXCELLENT -> SignalInfo(R.drawable.ic_signal_excellent, "Excellent", R.color.level_green)
-            SignalStrength.GOOD -> SignalInfo(R.drawable.ic_signal_good, "Good", R.color.level_green)
-            SignalStrength.FAIR -> SignalInfo(R.drawable.ic_signal_fair, "Fair", R.color.level_yellow)
+            SignalStrength.EXCELLENT -> SignalInfo(
+                R.drawable.ic_signal_excellent,
+                "Excellent",
+                R.color.level_green
+            )
+            SignalStrength.GOOD -> SignalInfo(
+                R.drawable.ic_signal_good,
+                "Good",
+                R.color.level_green
+            )
+            SignalStrength.FAIR -> SignalInfo(
+                R.drawable.ic_signal_fair,
+                "Fair",
+                R.color.level_yellow
+            )
             SignalStrength.WEAK -> SignalInfo(R.drawable.ic_signal_weak, "Weak", R.color.level_red)
         }
         binding.sensorSignalIcon.setImageResource(signalInfo.iconRes)

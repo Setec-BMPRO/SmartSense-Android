@@ -130,6 +130,7 @@ class Sensor1Repository @Inject constructor(
 
                 val mappedSensors = addresses.mapNotNull { address ->
                     val scanned = readings[address] ?: return@mapNotNull null
+                    scanned.parsed.reading.timestampMillis=System.currentTimeMillis()
                     val tank = tankMap[address]?.toDomain()
 
                     mapToSensor(
@@ -163,8 +164,8 @@ class Sensor1Repository @Inject constructor(
                 liveReadings.take(1),
                 sensorDao.observeTank(address).take(1),
             ) { readings, tankEntity ->
-
                 val scanned = readings[address] ?: return@combine null
+                scanned.parsed.reading.timestampMillis=System.currentTimeMillis()
                 val tank = tankEntity?.toDomain()
                 Timber.i("observeSensorForDetail")
                 mapToSensor(
@@ -207,6 +208,7 @@ class Sensor1Repository @Inject constructor(
         tank: Tank?=null,
         mapToSensorEnum:MapToSensorEnum
     ): Sensor1 {
+
         val reading = scanned.parsed.reading
         // 1. Extract calculations to scoped variables to avoid repetition
         val tankLevel = when (mapToSensorEnum) {

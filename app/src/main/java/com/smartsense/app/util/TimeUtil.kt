@@ -3,25 +3,22 @@ package com.smartsense.app.util
 import android.text.format.DateUtils
 
 object TimeUtils {
-
+    // In TimeUtils.kt
     fun getLastUpdatedText(timestamp: Long?): String {
-        val safeTimestamp = timestamp ?: 0L
-        if (safeTimestamp <= 0L) return "No data"
-
+        val safeTimestamp = timestamp ?: return "No data"
         val now = System.currentTimeMillis()
         val diff = now - safeTimestamp
+        val seconds = maxOf(0, diff / 1000L)
 
-        return if (diff < 10_000L) {
-            "Updated just now"
-        } else {
-            val ago = DateUtils.getRelativeTimeSpanString(
-                safeTimestamp,
-                now,
-                DateUtils.SECOND_IN_MILLIS,
-                DateUtils.FORMAT_ABBREV_RELATIVE
-            ).toString()
-
-            "Updated $ago"
+        return when {
+            seconds < 1 -> "Updated just now"
+            seconds < 60 -> "Updated $seconds ${if (seconds == 1L) "sec" else "secs"} ago"
+            else -> {
+                val ago = DateUtils.getRelativeTimeSpanString(
+                    safeTimestamp, now, DateUtils.SECOND_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
+                )
+                "Updated $ago"
+            }
         }
     }
 }
