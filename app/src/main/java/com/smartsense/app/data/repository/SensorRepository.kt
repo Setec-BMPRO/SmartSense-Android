@@ -64,7 +64,6 @@ class SensorRepository @Inject constructor(
     private val bleManager: BleManager,
     private val sensorDao: SensorDao,
     private val calculateTankUseCase: CalculateTankUseCase,
-    private val userPreferences: UserPreferences,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     @ApplicationContext private val context: Context,
@@ -72,15 +71,28 @@ class SensorRepository @Inject constructor(
 ) {
     companion object {
         private const val TAG = "SensorRepository"
+        private const val SYNC_WORK_NAME = "sensor_sync_job"
     }
+
     private val liveReadings = MutableStateFlow<Map<String, ScannedSensor>>(emptyMap())
 
-    private val _isScanning = MutableStateFlow(false)
-    val isScanning: StateFlow<Boolean> = _isScanning
+    // State representation of live readings for efficient access
+    val sharedReadings = liveReadings.stateIn(
+        scope = appScope.scope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyMap()
+    )
+    val sharedTanks = sensorDao.observeAllTanks()
+        .stateIn(
+            scope = appScope.scope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
+        )
 
-    private var isMatchedTest=false
+    val isBluetoothEnabled: Boolean get() = bleManager.isBluetoothEnabled
+
     // --------------------------------------
-    // 🔍 SCANNING
+    // 🔍 SCANNING & DISCOVERY
     // --------------------------------------
 
     fun discoverSensors(scanIntervalMillis: Long): Flow<List<Sensor>> {
@@ -88,198 +100,203 @@ class SensorRepository @Inject constructor(
             .onEach(::cacheReading)
             .sample(scanIntervalMillis)
             .map {
-                Timber.tag(TAG).i("discoverSensors")
+                Timber.tag(TAG).i("discoverSensors triggered")
                 mapToSensorList(liveReadings.value)
             }
-            .onCompletion { _isScanning.value = false }
+            .onCompletion {  }
             .distinctUntilChanged()
     }
 
-       fun getAllRegisteredSensors():Flow<List<Sensor>> = sensorDao.getAllRegisteredSensors().map { it.map { it.toDomain() } }
-
     fun stopScan() {
         bleManager.stopScan()
-        _isScanning.value = false
     }
 
     private fun cacheReading(scanned: ScannedSensor) {
-        liveReadings.update { current ->
-            current + (scanned.address to scanned)
-        }
+        liveReadings.update { it + (scanned.address to scanned) }
     }
 
     // --------------------------------------
-    // 📡 OBSERVE REGISTERED SENSORS
+    // 📡 OBSERVATION (Registered & Detail)
     // --------------------------------------
-    val sharedReadings = liveReadings.stateIn(
-        scope = appScope.scope,
-        started = SharingStarted.Eagerly,
-        initialValue = emptyMap()
-    )
 
+    /**
+     * Internal helper to create a ticker for periodic UI refreshes
+     */
+    /**
+     * 📡 OBSERVE REGISTERED SENSORS
+     * Reacts to Database address changes OR the Ticker pulse.
+     */
     fun observeRegisteredSensors(
         scanIntervalMillis: Long
     ): Flow<List<Sensor>> {
+        // 1. Unified Ticker
+        val ticker = createTicker(scanIntervalMillis)
 
-        val ticker = flow {
-            while (currentCoroutineContext().isActive) {
-                emit(Unit)
-                delay(scanIntervalMillis)
-            }
-        }
+        // 2. Combine DB addresses with the Ticker
+        return combine(
+            sensorDao.observeRegisteredAddresses(),
+            ticker
+        ) { addresses, _ ->
+            Timber.d("⏱ tick (list) with ${addresses.size} addresses")
 
-        return ticker.map {
+            // Capture current readings snapshot once for this emission
+            val currentReadings = sharedReadings.value
+            val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
 
-            Timber.d("⏱ tick (list)")
+            val result = addresses.mapNotNull { address ->
+                val scanned = currentReadings[address] ?: return@mapNotNull null
 
-            val readings = sharedReadings.value
-
-            val result = readings.mapNotNull { (address, scanned) ->
-
+                // Refresh timestamp for UI "Time Ago" logic
                 scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-
+                val tank = tankMap[address]?.toDomain()
                 mapToSensor(
                     scanned = scanned,
-                    tank = null,
+                    tank = tank,
                     mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
                 )
             }
 
             Timber.d("🚀 emit list size=${result.size}")
-
             result
-        }
+        }.distinctUntilChanged()
     }
 
+    /**
+     * 🎯 OBSERVE SENSOR FOR DETAIL
+     * Reacts to the Ticker pulse to keep the "Last Updated" timer alive.
+     */
     fun observeSensorForDetail(
         address: String,
         scanIntervalMillis: Long
     ): Flow<Sensor?> {
 
-        val ticker = flow {
-            while (currentCoroutineContext().isActive) {
-                emit(Unit)
-                delay(scanIntervalMillis)
+        return createTicker(scanIntervalMillis)
+            .map {
+
+                Timber.d("⏱ tick (detail)")
+
+                val currentReadings = sharedReadings.value
+                val currentTanks = sharedTanks.value
+
+                val scanned = currentReadings[address] ?: run {
+                    Timber.w("⚠️ No reading for address: $address")
+                    return@map null
+                }
+                val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
+                // force refresh timestamp
+                scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                val tank = tankMap[address]?.toDomain()
+                val result = mapToSensor(
+                    scanned = scanned,
+                    tank = tank,
+                    mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
+                )
+
+                Timber.d("🚀 emit detail: $result")
+
+                result
             }
-        }
+        // ⚠️ see note below
+        // .distinctUntilChanged()
+    }
 
-        return ticker.map {
-
-            Timber.d("⏱ tick (detail)")
-
-            val readings = sharedReadings.value
-            val scanned = readings[address]
-
-            if (scanned == null) {
-                Timber.w("⚠️ No reading for $address")
-                return@map null
-            }
-
-            // force refresh timestamp every tick
-            scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-
-            val result = mapToSensor(
-                scanned = scanned,
-                tank = null, // ✅ since you said "only live"
-                mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
-            )
-
-            Timber.d("🚀 emit detail: $result")
-
-            result
+    /**
+     * Internal helper to create a cold flow ticker
+     */
+    private fun createTicker(interval: Long): Flow<Unit> = flow {
+        while (currentCoroutineContext().isActive) {
+            emit(Unit)
+            delay(interval)
         }
     }
 
-    fun filterSensors(
-        sensorsFlow: Flow<List<Sensor>>,
-        queryFlow: Flow<String>
-    ): Flow<List<Sensor>> = combine(sensorsFlow, queryFlow) { sensors, query ->
-        if (query.isBlank()) {
-            sensors
-        } else {
-            sensors.filter { sensor ->
-                sensor.name?.contains(query, ignoreCase = true) == true ||
-                        sensor.address.contains(query, ignoreCase = true)
+    fun filterSensors(sensorsFlow: Flow<List<Sensor>>, queryFlow: Flow<String>): Flow<List<Sensor>> =
+        combine(sensorsFlow, queryFlow) { sensors, query ->
+            if (query.isBlank()) sensors
+            else sensors.filter {
+                it.name?.contains(query, ignoreCase = true) == true ||
+                        it.address.contains(query, ignoreCase = true)
             }
         }
-    }
 
     // --------------------------------------
-    // 🧠 MAPPING
+    // 🧠 MAPPING LOGIC
     // --------------------------------------
 
     private fun mapToSensorList(readings: Map<String, ScannedSensor>): List<Sensor> {
         return readings.values.map { scanned ->
-            mapToSensor(
-                scanned = scanned,
-                mapToSensorEnum = MapToSensorEnum.DISCOVER
-            )
+            mapToSensor(scanned = scanned, mapToSensorEnum = MapToSensorEnum.DISCOVER)
         }.sortedByDescending { it.reading?.timestampMillis }
     }
 
     private fun mapToSensor(
         scanned: ScannedSensor,
-        tank: Tank?=null,
-        mapToSensorEnum:MapToSensorEnum
+        tank: Tank? = null,
+        mapToSensorEnum: MapToSensorEnum
     ): Sensor {
-
         val reading = scanned.parsed?.reading
-        // 1. Extract calculations to scoped variables to avoid repetition
+
+        // Determine Tank Level based on context
         val tankLevel = when (mapToSensorEnum) {
             MapToSensorEnum.OBSERVE_REGISTERED, MapToSensorEnum.OBSERVE_DETAIL -> {
                 calculateTankUseCase.calculateTankLevel(
-                    rawHeightMeters = reading?.rawHeightMeters?:0.0,
+                    rawHeightMeters = reading?.rawHeightMeters ?: 0.0,
                     tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                     tankType = calculateTankUseCase.calculateTankType(tank)
                 )
             }
             MapToSensorEnum.DISCOVER -> null
         }
-        var readQuality: ReadQuality?=null
-        var tankType: String?=null
 
-        if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) {
-            readQuality=reading?.quality?.toQuality()
-            tankType= if(tank?.type== TankType.ARBITRARY)
-                tank.type.displayName+" "+tank.type.orientation.name.uppercaseFirst()
-            else tank?.type?.displayName
-        }
-
+        // Apply visual test overrides (Randomness as requested)
         tankLevel?.percentage = Random.nextFloat() * 100f
-        // 2. Return using named arguments
+
+        // Detail-specific metadata
+        val readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) {
+            reading?.quality?.toReadQuality()
+        } else null
+
+        val tankTypeDisplay = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL && tank != null) {
+            if (tank.type == TankType.ARBITRARY) {
+                "${tank.type.displayName} ${tank.type.orientation.name.uppercaseFirst()}"
+            } else tank.type.displayName
+        } else null
+
         return Sensor(
             address = scanned.address,
             name = calculateName(scanned, tank),
             advertisedName = scanned.name,
             sensorType = scanned.parsed?.sensorType,
-            syncPressed = scanned.parsed?.syncPressed?:false,
+            syncPressed = scanned.parsed?.syncPressed ?: false,
             reading = reading,
             tankLevel = tankLevel,
             readQuality = readQuality,
-            tankType=tankType
+            tankType = tankTypeDisplay
         )
     }
 
-    private fun Int?.toQuality(): ReadQuality {
-        return when (this) {
-            3 -> ReadQuality.GOOD
-            2 -> ReadQuality.FAIR
-            else -> ReadQuality.POOR
-        }
+    private fun Int?.toReadQuality(): ReadQuality = when (this) {
+        3 -> ReadQuality.GOOD
+        2 -> ReadQuality.FAIR
+        else -> ReadQuality.POOR
     }
 
     fun calculateName(scanned: ScannedSensor?, tank: Tank?): String {
-        val defaultName = when {
-            scanned?.parsed?.sensorType?.isLpg != false -> "New LPG Device"
-            scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER -> "New water sensor"
-            else -> "New ${scanned.parsed.sensorType.displayName} Device"
+        return tank?.name?.takeIf { it.isNotBlank() }?:run {
+            when {
+                scanned?.parsed?.sensorType?.isLpg != false -> "New LPG Device"
+                scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER -> "New water sensor"
+                else -> "New ${scanned.parsed.sensorType.displayName} Device"
+            }
         }
-        return tank?.name ?: defaultName
     }
 
     // --------------------------------------
-    // 💾 DATABASE
+    // 💾 LOCAL DATABASE OPERATIONS
     // --------------------------------------
+
+    fun getAllRegisteredSensors(): Flow<List<Sensor>> =
+        sensorDao.getAllRegisteredSensors().map { entities -> entities.map { it.toDomain() } }
 
     suspend fun registerSensor(address: String, name: String) {
         if (sensorDao.getSensor(address) != null) return
@@ -292,10 +309,7 @@ class SensorRepository @Inject constructor(
                 registered = true
             )
         )
-        sensorDao.insertTank(
-            TankEntity(sensorAddress = address)
-        )
-        // 2. Trigger the SyncWorker to push to Firebase
+        sensorDao.insertTank(TankEntity(sensorAddress = address))
         triggerSync()
     }
 
@@ -320,16 +334,68 @@ class SensorRepository @Inject constructor(
         sensorDao.deleteAllTanks()
     }
 
-
-    suspend fun getTankConfig(sensorAddress: String): Tank? {
-        return sensorDao.getTank(sensorAddress)?.toDomain()
-    }
-
-    val isBluetoothEnabled: Boolean
-        get() = bleManager.isBluetoothEnabled
+    suspend fun getTankConfig(sensorAddress: String): Tank? =
+        sensorDao.getTank(sensorAddress)?.toDomain()
 
     // --------------------------------------
-    // 🔄 MAPPERS
+    // 🔄 CLOUD SYNC & WORKER
+    // --------------------------------------
+
+    fun triggerSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(constraints)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            SYNC_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            syncRequest
+        )
+    }
+
+    suspend fun uploadPendingChanges() {
+        val userId = auth.currentUser?.uid ?: return
+        val pendingSensors = sensorDao.getUnsyncedSensors()
+
+        pendingSensors.forEach { sensor ->
+            val docRef = firestore.collection("users/$userId/sensors").document(sensor.address)
+            try {
+                if (sensor.syncStatus == SyncStatus.DELETED) {
+                    docRef.delete().await()
+                    sensorDao.deleteSensorPermanently(sensor.address)
+                } else {
+                    docRef.set(sensor).await()
+                    sensorDao.updateSyncStatus(sensor.address, SyncStatus.SYNCED)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Cloud operation failed for ${sensor.address}")
+            }
+        }
+    }
+
+    suspend fun downloadRemoteChanges() {
+        val userId = auth.currentUser?.uid ?: return
+        try {
+            val snapshot = firestore.collection("users/$userId/sensors").get().await()
+            if (snapshot.isEmpty) return
+
+            val remoteSensors = snapshot.toObjects(SensorEntity::class.java)
+            remoteSensors.forEach { remote ->
+                sensorDao.upsertSensor(remote.copy(syncStatus = SyncStatus.SYNCED))
+            }
+            Timber.i("Sync completed: ${remoteSensors.size} sensors downloaded.")
+        } catch (e: Exception) {
+            Timber.e(e, "Error downloading remote changes")
+        }
+    }
+
+    // --------------------------------------
+    // 🏗️ INTERNAL MAPPERS (Domain <-> Entity)
     // --------------------------------------
 
     private fun TankEntity.toDomain(): Tank = Tank(
@@ -362,7 +428,7 @@ class SensorRepository @Inject constructor(
         qualityThreshold = qualityThreshold.name
     )
 
-     fun SensorEntity.toDomain(): Sensor = Sensor(
+    fun SensorEntity.toDomain(): Sensor = Sensor(
         address = address,
         name = name,
         sensorType = null,
@@ -370,94 +436,6 @@ class SensorRepository @Inject constructor(
     )
 
     private inline fun <reified T : Enum<T>> enumOrDefault(value: String, default: T): T {
-        return try {
-            enumValueOf<T>(value)
-        } catch (_: Exception) {
-            default
-        }
+        return try { enumValueOf<T>(value) } catch (_: Exception) { default }
     }
-
-    suspend fun uploadPendingChanges() {
-        val userId = auth.currentUser?.uid ?: return
-        val pendingSensors = sensorDao.getUnsyncedSensors()
-
-        pendingSensors.forEach { sensor ->
-            val docRef = firestore.collection("users/$userId/sensors").document(sensor.address)
-
-            try {
-                if (sensor.syncStatus == SyncStatus.DELETED) {
-                    // 1. Attempt to delete from Cloud
-                    docRef.delete().await()
-
-                    // 2. SUCCESS! Now safe to wipe from local Room
-                    sensorDao.deleteSensorPermanently(sensor.address)
-                    Timber.d("Successfully deleted ${sensor.address} from Cloud and Local.")
-                } else {
-                    // Handle normal PENDING upload...
-                    docRef.set(sensor).await()
-                    sensorDao.updateSyncStatus(sensor.address, SyncStatus.SYNCED)
-                }
-            } catch (_: Exception) {
-                // If network fails, the sensor stays in Room as 'DELETED'.
-                // The Worker will try again automatically on the next run.
-                Timber.e("Cloud delete failed for ${sensor.address}, will retry.")
-            }
-        }
-    }
-
-    fun triggerSync() {
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-            .setConstraints(constraints)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            "sensor_sync_job",
-            ExistingWorkPolicy.REPLACE, // Restart the sync if one is already queued
-            syncRequest
-        )
-    }
-    suspend fun downloadRemoteChanges() {
-        val user = auth.currentUser
-        if (user == null) {
-            Timber.e("Download aborted: No authenticated user found.")
-            return
-        }
-        val userId = user.uid
-        Timber.d("Download started for User: $userId")
-
-        try {
-            // 1. Fetch from Firestore
-            val snapshot = firestore.collection("users/$userId/sensors").get().await()
-
-            if (snapshot.isEmpty) {
-                Timber.w("Download finished: No sensors found in Firestore for this user.")
-                return
-            }
-
-            Timber.i("Found ${snapshot.size()} sensors on cloud. Starting local sync...")
-
-            // 2. Map to objects
-            val remoteSensors = snapshot.toObjects(SensorEntity::class.java)
-
-            remoteSensors.forEach { remoteSensor ->
-                Timber.d("Processing remote sensor: ${remoteSensor.address} (${remoteSensor.name})")
-
-                // 3. Update local Room
-                // We set status to SYNCED so the Worker doesn't immediately try to upload it back
-                sensorDao.upsertSensor(remoteSensor.copy(syncStatus = SyncStatus.SYNCED))
-            }
-
-            Timber.i("Download sync completed successfully.")
-
-        } catch (e: Exception) {
-            Timber.e(e, "Error downloading remote changes: ${e.message}")
-        }
-    }
-
-
 }
