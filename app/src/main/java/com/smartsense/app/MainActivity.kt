@@ -2,12 +2,16 @@ package com.smartsense.app
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.smartsense.app.databinding.ActivityMainBinding
 import com.smartsense.app.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +31,20 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
         setContentView(binding.root)
         setupNavigation()
         setupClickListeners()
+
+        viewModel.syncWorkInfo.observe(this@MainActivity) { workInfos ->
+            val workInfo = workInfos?.firstOrNull() ?: return@observe
+
+            when (workInfo.state) {
+                WorkInfo.State.SUCCEEDED -> {
+                    Toast.makeText(this@MainActivity, "Cloud Sync Successful!", Toast.LENGTH_SHORT).show()
+                }
+                WorkInfo.State.FAILED -> {
+                    Toast.makeText(this@MainActivity, "Cloud Sync Failed", Toast.LENGTH_SHORT).show()
+                }
+                else -> { /* Running or Enqueued */ }
+            }
+        }
     }
 
     private fun setupNavigation() {

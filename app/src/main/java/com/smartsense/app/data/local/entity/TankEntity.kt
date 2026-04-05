@@ -15,7 +15,7 @@ import com.smartsense.app.domain.model.TriggerAlarmUnit
 @Entity(tableName = "tanks")
 data class TankEntity(
     @PrimaryKey
-    val sensorAddress: String,
+    val sensorAddress: String="",
     val name: String = "",
     val tankType: String = TankType.KG_3_7.name, // TankType enum name
     val customHeightMeters: Double = 0.0,
@@ -26,5 +26,8 @@ data class TankEntity(
     val notificationsEnabled: Boolean = DEFAULT_NOTIFICATION_ENABLED,
     val notificationFrequency: String = NotificationFrequency.default().name, // NotificationFrequency enum name
     val triggerAlarmUnit: String= TriggerAlarmUnit.default().name,
-    val qualityThreshold: String= QualityThreshold.default().name
+    val qualityThreshold: String= QualityThreshold.default().name,
+
+    // ✅ ADD THIS for Cloud Sync
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 )

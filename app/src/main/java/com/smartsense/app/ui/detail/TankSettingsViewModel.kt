@@ -12,6 +12,7 @@ import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
+import com.smartsense.app.domain.usecase.SensorScanUseCase
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class DetailTankSettingsViewModel @Inject constructor(
     private val repository: SensorRepository,
     savedStateHandle: SavedStateHandle,
+    private val userCase: SensorScanUseCase
 ) : ViewModel() {
 
     private val sensorAddress: String =
@@ -164,6 +166,13 @@ class DetailTankSettingsViewModel @Inject constructor(
             )
 
             _uiState.update { it.copy(isSaved = true) }
+            triggerSync()
+        }
+    }
+
+    fun triggerSync() {
+        viewModelScope.launch {
+            userCase.triggerSync()
         }
     }
 

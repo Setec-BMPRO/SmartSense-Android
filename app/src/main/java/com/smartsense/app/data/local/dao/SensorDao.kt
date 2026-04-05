@@ -9,52 +9,57 @@ import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.SyncStatus
 import com.smartsense.app.data.local.entity.TankEntity
 import kotlinx.coroutines.flow.Flow
+
+
 @Dao
 interface SensorDao {
 
-    // --- SENSOR OPERATIONS (UI Facing) ---
+    // =========================================================================
+    // 📡 SENSOR OPERATIONS (UI & Domain)
+    // =========================================================================
 
+    /**
+     * Inserts or updates a sensor. When created locally, it defaults to PENDING.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSensor(sensor: SensorEntity)
 
-    // CRITICAL: Filter out DELETED status so they vanish from the UI immediately
-    @Query("SELECT * FROM sensors WHERE registered = 1 AND sync_status != 'DELETED' ORDER BY lastSeenMillis DESC")
+    @Query("UPDATE sensors SET name = :newName, sync_status = 'PENDING' WHERE address = :address")
+    suspend fun updateSensorName(address: String, newName: String)
+
+    /**
+     * Observes all registered sensors that aren't marked for deletion.
+     * Use this for the main list screen.
+     */
+    @Query("""
+        SELECT * FROM sensors 
+        WHERE registered = 1 AND sync_status != 'DELETED' 
+        ORDER BY lastSeenMillis DESC
+    """)
     fun getAllRegisteredSensors(): Flow<List<SensorEntity>>
 
+    /**
+     * Optimized flow returning only addresses for high-frequency scan matching.
+     */
     @Query("SELECT address FROM sensors WHERE registered = 1 AND sync_status != 'DELETED'")
     fun observeRegisteredAddresses(): Flow<List<String>>
 
-    @Query("SELECT * FROM sensors WHERE address = :address")
+    @Query("SELECT * FROM sensors WHERE address = :address LIMIT 1")
     suspend fun getSensor(address: String): SensorEntity?
 
 
-    // --- SOFT DELETE LOGIC ---
+    // =========================================================================
+    // 🛢️ TANK OPERATIONS (UI & Domain)
+    // =========================================================================
 
-    // Instead of deleting from DB, we mark it so the Worker sees it
-    @Query("UPDATE sensors SET sync_status = 'DELETED' WHERE address = :address")
-    suspend fun markSensorForDeletion(address: String)
-
-    // The Worker calls this ONLY after Firestore confirms the delete
-    @Query("DELETE FROM sensors WHERE address = :address")
-    suspend fun deleteSensorPermanently(address: String)
-
-    @Query("DELETE FROM sensors")
-    suspend fun deleteAllSensors()
-
-    @Query("DELETE FROM tanks")
-    suspend fun deleteAllTanks()
-
-
-    // --- TANK OPERATIONS ---
-    // (Note: If you want tanks to sync too, they usually need a sync_status as well)
-
+    /**
+     * Standard insert for Tank settings.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTank(tank: TankEntity)
 
-    @Update
-    suspend fun updateTank(tank: TankEntity)
 
-    @Query("SELECT * FROM tanks WHERE sensorAddress = :sensorAddress")
+    @Query("SELECT * FROM tanks WHERE sensorAddress = :sensorAddress LIMIT 1")
     suspend fun getTank(sensorAddress: String): TankEntity?
 
     @Query("SELECT * FROM tanks WHERE sensorAddress = :sensorAddress")
@@ -67,15 +72,62 @@ interface SensorDao {
     suspend fun deleteTank(sensorAddress: String)
 
 
-    // --- SYNC WORKER OPERATIONS ---
+    // =========================================================================
+    // ☁️ CLOUD SYNC OPERATIONS (Worker Facing)
+    // =========================================================================
 
-    // Now fetches both PENDING (updates) and DELETED (removals)
+    // --- Sensor Sync ---
+
     @Query("SELECT * FROM sensors WHERE sync_status != 'SYNCED'")
     suspend fun getUnsyncedSensors(): List<SensorEntity>
 
     @Query("UPDATE sensors SET sync_status = :status WHERE address = :address")
     suspend fun updateSyncStatus(address: String, status: SyncStatus)
 
+    // upsert : for the Cloud-Sync methods. In your repository, when downloading from Firebase,
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSensor(sensor: SensorEntity)
+
+
+    // --- Tank Sync ---
+
+    /**
+     * Fetches all tank configurations that need to be pushed to Firestore.
+     */
+    @Query("SELECT * FROM tanks WHERE syncStatus != 'SYNCED'")
+    suspend fun getUnsyncedTanks(): List<TankEntity>
+
+    @Query("UPDATE tanks SET syncStatus = :status WHERE sensorAddress = :address")
+    suspend fun updateTankSyncStatus(address: String, status: SyncStatus)
+
+    /**
+     * Used during Cloud Download to force SYNCED status.
+     */
+    // upsert : for the Cloud-Sync methods. In your repository, when downloading from Firebase,
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertTank(tank: TankEntity)
+
+
+    // =========================================================================
+    // 🗑️ DELETION LOGIC (Soft & Permanent)
+    // =========================================================================
+
+    /**
+     * SOFT DELETE: Marks sensor as DELETED so Worker can remove it from Firestore.
+     * The UI filters these out automatically in getAllRegisteredSensors().
+     */
+    @Query("UPDATE sensors SET sync_status = 'DELETED' WHERE address = :address")
+    suspend fun markSensorForDeletion(address: String)
+
+    /**
+     * PERMANENT DELETE: Only called by SyncWorker AFTER Firestore confirmation.
+     */
+    @Query("DELETE FROM sensors WHERE address = :address")
+    suspend fun deleteSensorPermanently(address: String)
+
+    @Query("DELETE FROM sensors")
+    suspend fun deleteAllSensors()
+
+    @Query("DELETE FROM tanks")
+    suspend fun deleteAllTanks()
 }

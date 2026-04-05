@@ -102,5 +102,9 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     implementation("no.nordicsemi.android.support.v18:scanner:1.6.0")
+//    implementation("androidx.sqlite:sqlite-bundled:2.5.0-alpha01")
+    // ✅ ADD THIS to resolve the Missing Class error:
+    implementation("androidx.sqlite:sqlite-ktx:2.4.0")
+    implementation("androidx.sqlite:sqlite:2.4.0")
 
 }
