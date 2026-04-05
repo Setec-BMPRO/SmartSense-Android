@@ -1,50 +1,55 @@
 package com.smartsense.app.domain.model
 
+import com.smartsense.app.data.local.entity.SyncStatus
+
 data class Sensor(
     val address: String,
-    val name: String,
-    val tankPreset: TankPreset,
-    val level: TankLevel,
-    val batteryPercent: Int,
-    val rssi: Int,
-    val temperatureCelsius: Float,
-    val readQuality: ReadQuality,
-    val lastUpdated: Long,
-    val isPaired: Boolean,
-    val sensorTypeName: String = ""
-) {
+    var name: String?,
+    val advertisedName: String?=null,
+    val sensorType: MopekaSensorType?,
+    val syncPressed: Boolean = false,
+    val reading: SensorReading?=null,
+    val tankLevel: TankLevel?=null,
+    val readQuality: ReadQuality? =null,
+    val tankType: String?=null,
+    val syncStatus: SyncStatus?=null
+
+    ){
+
+    val batteryPercent: Int= (((reading?.batteryVoltage?:0f) - 2.2f)
+            / 0.65f * 100f).coerceIn(0f, 100f).toInt()
     val signalStrength: SignalStrength
         get() = when {
-            rssi >= -50 -> SignalStrength.EXCELLENT
-            rssi >= -65 -> SignalStrength.GOOD
-            rssi >= -80 -> SignalStrength.FAIR
+            (reading?.rssi?:0) >= -50 -> SignalStrength.EXCELLENT
+            (reading?.rssi?:0) >= -65 -> SignalStrength.GOOD
+            (reading?.rssi?:0) >= -80 -> SignalStrength.FAIR
             else -> SignalStrength.WEAK
         }
 
     fun temperatureFormatted(unitSystem: UnitSystem): String {
-        return when (unitSystem) {
-            UnitSystem.METRIC -> String.format("%.1f\u00B0C", temperatureCelsius)
-            UnitSystem.IMPERIAL -> String.format("%.1f\u00B0F", temperatureCelsius * 9f / 5f + 32f)
+        return try {
+            val tempC = reading?.temperatureCelsius ?: 0f
+            when (unitSystem) {
+                UnitSystem.METRIC -> String.format("%.1f\u00B0C", tempC)
+                UnitSystem.IMPERIAL -> {
+                    val tempF = tempC * 9f / 5f + 32f
+                    String.format("%.1f\u00B0F", tempF)
+                }
+            }
+        } catch (e: Exception) {
+            "--"
         }
     }
 
-    fun levelHeightFormatted(unitSystem: UnitSystem): String {
-        return when (unitSystem) {
-            UnitSystem.METRIC -> String.format("%.0f mm", level.heightMm)
-            UnitSystem.IMPERIAL -> String.format("%.1f in", level.heightMm / 25.4f)
+    val groudName: String= when {
+        sensorType?.isLpg == true -> {
+            "Bottom Mount - LPG"
+        }
+        sensorType == MopekaSensorType.BOTTOM_UP_WATER -> {
+            "Bottom Up - Water"
+        }
+        else -> {
+            "Others"
         }
     }
-}
-
-enum class ReadQuality {
-    GOOD,
-    FAIR,
-    POOR
-}
-
-enum class SignalStrength {
-    EXCELLENT,
-    GOOD,
-    FAIR,
-    WEAK
 }

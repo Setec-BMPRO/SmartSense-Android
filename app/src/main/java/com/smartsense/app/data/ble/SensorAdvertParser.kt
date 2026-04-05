@@ -3,7 +3,6 @@ package com.smartsense.app.data.ble
 import android.util.Log
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.SensorReading
-import timber.log.Timber
 
 /**
  * Result of parsing a Mopeka advertisement, bundling reading + sensor type.

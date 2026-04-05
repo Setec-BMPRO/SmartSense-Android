@@ -1,32 +1,32 @@
 package com.smartsense.app.domain.usecase
 
-import com.smartsense.app.data.repository.Sensor1Repository
-import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.data.repository.SensorRepository
+import com.smartsense.app.domain.model.Sensor
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class SensorScanUseCase @Inject constructor(
-    private val repository: Sensor1Repository
+    private val repository: SensorRepository
 ) {
     val isBluetoothEnabled=repository.isBluetoothEnabled
 
-    fun startScan(scanIntervalMillis: Long): Flow<List<Sensor1>> = repository.discoverSensors(scanIntervalMillis)
+    fun startScan(scanIntervalMillis: Long): Flow<List<Sensor>> = repository.discoverSensors(scanIntervalMillis)
 
     fun stopScan() = repository.stopScan()
 
-    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor1>> = repository.observeRegisteredSensors(scanIntervalMillis)
+    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor>> = repository.observeRegisteredSensors(scanIntervalMillis)
 
     suspend fun registerSensor(address: String, name: String) = repository.registerSensor(address,name)
 
-    fun filterSensors(sensorsFlow: Flow<List<Sensor1>>,
-                      queryFlow: Flow<String>): Flow<List<Sensor1>> = repository.filterSensors(sensorsFlow,queryFlow)
+    fun filterSensors(sensorsFlow: Flow<List<Sensor>>,
+                      queryFlow: Flow<String>): Flow<List<Sensor>> = repository.filterSensors(sensorsFlow,queryFlow)
 
-    fun observeDetailSensor(address: String, scanIntervalMillis: Long): Flow<Sensor1?> =
+    fun observeDetailSensor(address: String, scanIntervalMillis: Long): Flow<Sensor?> =
         repository.observeSensorForDetail(address,scanIntervalMillis)
 
     suspend fun unregisterSensor(address: String) = repository.unregisterSensor(address)
 
-    fun getAllRegisteredSensors():Flow<List<Sensor1>> = repository.getAllRegisteredSensors()
+    fun getAllRegisteredSensors():Flow<List<Sensor>> = repository.getAllRegisteredSensors()
 
     fun triggerSync()=repository.triggerSync()
 

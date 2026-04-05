@@ -60,3 +60,7 @@ enum class MopekaSensorType(val displayName: String, val isLpg: Boolean) {
         }
     }
 }
+
+enum class MapToSensorEnum{
+    DISCOVER,OBSERVE_REGISTERED,OBSERVE_DETAIL
+}

@@ -19,13 +19,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
-import com.smartsense.app.MainActivity
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentAccountRegisterBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlin.getValue
 
 @AndroidEntryPoint
 class AccountRegisterFragment : Fragment() {

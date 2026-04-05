@@ -9,7 +9,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.SmartSenseApplication
@@ -19,7 +18,6 @@ import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.detail.SelectedAdapter
-import com.smartsense.app.util.uppercaseFirst
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 

@@ -3,18 +3,14 @@ package com.smartsense.app.di
 import android.content.Context
 import androidx.room.Room
 import androidx.work.WorkManager
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.firestore
 import com.google.firebase.storage.FirebaseStorage
-
 import com.smartsense.app.data.local.MopekaDatabase
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.firebase.AuthRepositoryImpl
-
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

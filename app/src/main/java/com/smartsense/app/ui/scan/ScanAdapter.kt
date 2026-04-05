@@ -10,10 +10,10 @@ import com.smartsense.app.databinding.ItemSensorCardBinding
 import com.smartsense.app.databinding.LayoutGroupHeaderBinding
 import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.MopekaSensorType
-import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.UnitSystem
-import com.smartsense.app.ui.dashboard.SignalInfo
+
 import com.smartsense.app.util.TimeUtils
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.ExpandableItem
@@ -66,9 +66,9 @@ class HeaderItem(
 }
 
 class SensorItem(
-    private val sensor: Sensor1,
+    private val sensor: Sensor,
     private val unitSystem: UnitSystem,
-    private val onClick: (Sensor1) -> Unit
+    private val onClick: (Sensor) -> Unit
 ) : BindableItem<ItemSensorCardBinding>() {
 
     override fun bind(binding: ItemSensorCardBinding, position: Int, payloads: MutableList<Any>) {

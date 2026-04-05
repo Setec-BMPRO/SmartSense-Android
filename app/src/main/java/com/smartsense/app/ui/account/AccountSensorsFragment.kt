@@ -19,13 +19,11 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
 import com.smartsense.app.data.local.entity.SyncStatus
-
 import com.smartsense.app.databinding.FragmentAccountSensorsBinding
 import com.smartsense.app.databinding.ItemAccSensorBinding
-import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.model.Sensor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlin.getValue
 
 @AndroidEntryPoint
 class AccountSensorsFragment : Fragment() {
@@ -182,8 +180,8 @@ class AccountSensorsFragment : Fragment() {
 // --- ADAPTER ---
 
 class AccountSensorAdapter(
-    private val onDeleteClick: (Sensor1) -> Unit
-) : ListAdapter<Sensor1, AccountSensorAdapter.SensorViewHolder>(SensorDiffCallback()) {
+    private val onDeleteClick: (Sensor) -> Unit
+) : ListAdapter<Sensor, AccountSensorAdapter.SensorViewHolder>(SensorDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SensorViewHolder {
         val binding = ItemAccSensorBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -193,7 +191,7 @@ class AccountSensorAdapter(
     override fun onBindViewHolder(holder: SensorViewHolder, position: Int) = holder.bind(getItem(position))
 
     inner class SensorViewHolder(private val binding: ItemAccSensorBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(sensor: Sensor1) {
+        fun bind(sensor: Sensor) {
             binding.tvSensorName.text = sensor.name
             binding.tvSensorMac.text = sensor.address
             val syncIcon = if (sensor.syncStatus == SyncStatus.SYNCED) R.drawable.ic_location else R.drawable.ic_cloud
@@ -203,7 +201,7 @@ class AccountSensorAdapter(
     }
 }
 
-class SensorDiffCallback : DiffUtil.ItemCallback<Sensor1>() {
-    override fun areItemsTheSame(oldItem: Sensor1, newItem: Sensor1) = oldItem.address == newItem.address
-    override fun areContentsTheSame(oldItem: Sensor1, newItem: Sensor1) = oldItem == newItem
+class SensorDiffCallback : DiffUtil.ItemCallback<Sensor>() {
+    override fun areItemsTheSame(oldItem: Sensor, newItem: Sensor) = oldItem.address == newItem.address
+    override fun areContentsTheSame(oldItem: Sensor, newItem: Sensor) = oldItem == newItem
 }

@@ -1,11 +1,9 @@
 package com.smartsense.app.domain.usecase
-import com.smartsense.app.data.repository.Sensor1Repository
-import com.smartsense.app.domain.model.Sensor1
-import kotlinx.coroutines.flow.Flow
+import com.smartsense.app.data.repository.SensorRepository
 import javax.inject.Inject
 
 class SettingsUseCase @Inject constructor(
-    private val repository: Sensor1Repository
+    private val repository: SensorRepository
 ) {
 
     suspend fun unregisterAllSensors() = repository.unregisterAllSensors()

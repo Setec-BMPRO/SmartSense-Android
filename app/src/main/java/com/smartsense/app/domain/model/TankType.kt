@@ -1,9 +1,5 @@
 package com.smartsense.app.domain.model
 
-import com.smartsense.app.domain.model.QualityThreshold.DISABLE
-import com.smartsense.app.domain.model.TankType.ARBITRARY
-import com.smartsense.app.domain.model.TankType.KG_3_7
-
 enum class TankOrientation {
     VERTICAL,
     HORIZONTAL;

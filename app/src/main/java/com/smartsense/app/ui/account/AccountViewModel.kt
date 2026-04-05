@@ -3,12 +3,11 @@ package com.smartsense.app.ui.account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
-import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.data.repository.Sensor1Repository
+import com.smartsense.app.data.repository.SensorRepository
 
 import com.smartsense.app.domain.firebase.AuthRepository
-import com.smartsense.app.domain.model.Sensor1
+import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.usecase.SensorScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
@@ -26,7 +25,7 @@ class AccountViewModel @Inject constructor(
     private val repository: AuthRepository,
     private val userPreferences: UserPreferences,
     private val sensorScanUseCase: SensorScanUseCase,
-    private val sensor1Repository: Sensor1Repository
+    private val sensorRepository: SensorRepository
 ) : ViewModel() {
 
     // --- Authentication State Flows ---
@@ -50,7 +49,7 @@ class AccountViewModel @Inject constructor(
     val deleteAccountState: StateFlow<Result<Unit>?> = _deleteAccountState
 
     // This Flow automatically filters out 'DELETED' sensors via the DAO query we wrote
-    val registeredSensors: StateFlow<List<Sensor1>> = sensorScanUseCase.getAllRegisteredSensors()
+    val registeredSensors: StateFlow<List<Sensor>> = sensorScanUseCase.getAllRegisteredSensors()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

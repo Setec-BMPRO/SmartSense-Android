@@ -7,27 +7,22 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.data.repository.Sensor1Repository
-import com.smartsense.app.domain.firebase.AuthRepository
-import com.smartsense.app.domain.model.AppTheme
+import com.smartsense.app.data.repository.SensorRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val sensorRepository: Sensor1Repository,
+    private val sensorRepository: SensorRepository,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
 

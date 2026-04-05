@@ -3,7 +3,7 @@ package com.smartsense.app.ui.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartsense.app.data.repository.Sensor1Repository
+import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.domain.model.QualityThreshold
 import com.smartsense.app.domain.model.Tank
@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DetailTankSettingsViewModel @Inject constructor(
-    private val repository: Sensor1Repository,
+    private val repository: SensorRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
