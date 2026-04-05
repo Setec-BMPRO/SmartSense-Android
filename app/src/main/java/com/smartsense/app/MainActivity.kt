@@ -17,6 +17,7 @@ import com.smartsense.app.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), MainActivityListener {
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private val viewModel: MainViewModel by viewModels()
+    private var isSyncMessagePending = false // 🛡️ Flag to allow only one toast per trigger
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,17 +34,28 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
         setupNavigation()
         setupClickListeners()
 
-        viewModel.syncWorkInfo.observe(this@MainActivity) { workInfos ->
+        // Inside onCreate observer...
+        viewModel.syncWorkInfo.observe(this) { workInfos ->
             val workInfo = workInfos?.firstOrNull() ?: return@observe
-
             when (workInfo.state) {
+                WorkInfo.State.RUNNING,
+                WorkInfo.State.ENQUEUED -> {
+                    // As soon as a sync starts, we "arm" the flag to allow one message
+                    isSyncMessagePending = true
+                }
                 WorkInfo.State.SUCCEEDED -> {
-                    Toast.makeText(this@MainActivity, "Cloud Sync Successful!", Toast.LENGTH_SHORT).show()
+                    if (isSyncMessagePending) {
+                        Toast.makeText(this, "Cloud Sync Successful!", Toast.LENGTH_SHORT).show()
+                        isSyncMessagePending = false // 🔒 Lock it until the next sync starts
+                    }
                 }
                 WorkInfo.State.FAILED -> {
-                    Toast.makeText(this@MainActivity, "Cloud Sync Failed", Toast.LENGTH_SHORT).show()
+                    if (isSyncMessagePending) {
+                        Toast.makeText(this, "Cloud Sync Failed", Toast.LENGTH_SHORT).show()
+                        isSyncMessagePending = false // 🔒 Lock it
+                    }
                 }
-                else -> { /* Running or Enqueued */ }
+                else ->{}
             }
         }
     }
