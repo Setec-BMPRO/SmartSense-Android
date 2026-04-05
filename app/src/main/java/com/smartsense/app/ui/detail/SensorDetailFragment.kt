@@ -4,26 +4,32 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentSensorDetailBinding
 import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.ReadQuality
-import com.smartsense.app.domain.model.Sensor
+
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import com.smartsense.app.util.TimeUtils
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.text.ifEmpty
+import androidx.core.view.isVisible
+import com.smartsense.app.domain.model.Sensor
 
 @AndroidEntryPoint
 class SensorDetailFragment : Fragment() {
@@ -33,6 +39,7 @@ class SensorDetailFragment : Fragment() {
 
     private val viewModel: Sensor1DetailViewModel by viewModels()
 
+    private var timerJob: kotlinx.coroutines.Job? = null
 
     // --------------------------------------
     // 🧱 LIFECYCLE
@@ -77,22 +84,16 @@ class SensorDetailFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.uiState
-                        .map { it.sensor }
-                        .distinctUntilChanged()
-                        .collect { sensor ->
-                            sensor?.let {
-                                bindSensor(it)
-                            }
+                viewModel.uiState
+                    .map { it.sensor }
+                    .distinctUntilChanged()
+                    .collect { sensor ->
+                        sensor?.let {
+                            bindSensor(it)
+                            // Start/Restart the timer only when the sensor data changes
+                            startLastUpdatedTimer(it.reading?.timestampMillis)
                         }
-                }
-                // ✅ Observe Time Updates from ViewModel
-                launch {
-                    viewModel.lastUpdatedTime.collect { timeText ->
-                        binding.lastUpdated.text = timeText
                     }
-                }
             }
         }
     }
@@ -225,4 +226,16 @@ class SensorDetailFragment : Fragment() {
         } else address
     }
 
+    private fun startLastUpdatedTimer(timestamp: Long?) {
+        // 1. Cancel the old timer so we don't have duplicates
+        timerJob?.cancel()
+
+        // 2. Start the new heartbeat
+        timerJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive) {
+                delay(1000L) // Wait 1 second
+                binding.lastUpdated.text = TimeUtils.getLastUpdatedText(timestamp)
+            }
+        }
+    }
 }

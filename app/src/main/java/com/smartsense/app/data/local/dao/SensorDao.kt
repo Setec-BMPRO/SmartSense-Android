@@ -27,6 +27,7 @@ interface SensorDao {
     @Query("SELECT * FROM sensors WHERE address = :address")
     suspend fun getSensor(address: String): SensorEntity?
 
+
     // --- SOFT DELETE LOGIC ---
 
     // Instead of deleting from DB, we mark it so the Worker sees it

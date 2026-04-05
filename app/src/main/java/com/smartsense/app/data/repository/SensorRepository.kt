@@ -17,6 +17,7 @@ import com.smartsense.app.data.local.entity.SyncStatus
 import com.smartsense.app.data.local.entity.TankEntity
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.worker.SyncWorker
+import com.smartsense.app.di.ApplicationScope
 import com.smartsense.app.domain.model.MapToSensorEnum
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.NotificationFrequency
@@ -37,6 +38,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -46,6 +48,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -64,14 +67,18 @@ class SensorRepository @Inject constructor(
     private val userPreferences: UserPreferences,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val appScope: ApplicationScope.AppScope
 ) {
     companion object {
         private const val TAG = "SensorRepository"
     }
     private val liveReadings = MutableStateFlow<Map<String, ScannedSensor>>(emptyMap())
 
+    private val _isScanning = MutableStateFlow(false)
+    val isScanning: StateFlow<Boolean> = _isScanning
 
+    private var isMatchedTest=false
     // --------------------------------------
     // 🔍 SCANNING
     // --------------------------------------
@@ -84,7 +91,7 @@ class SensorRepository @Inject constructor(
                 Timber.tag(TAG).i("discoverSensors")
                 mapToSensorList(liveReadings.value)
             }
-            .onCompletion { }
+            .onCompletion { _isScanning.value = false }
             .distinctUntilChanged()
     }
 
@@ -92,6 +99,7 @@ class SensorRepository @Inject constructor(
 
     fun stopScan() {
         bleManager.stopScan()
+        _isScanning.value = false
     }
 
     private fun cacheReading(scanned: ScannedSensor) {
@@ -103,8 +111,16 @@ class SensorRepository @Inject constructor(
     // --------------------------------------
     // 📡 OBSERVE REGISTERED SENSORS
     // --------------------------------------
-    fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor>> {
-        // 1. Create the ticker to pulse updates
+    val sharedReadings = liveReadings.stateIn(
+        scope = appScope.scope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyMap()
+    )
+
+    fun observeRegisteredSensors(
+        scanIntervalMillis: Long
+    ): Flow<List<Sensor>> {
+
         val ticker = flow {
             while (currentCoroutineContext().isActive) {
                 emit(Unit)
@@ -112,61 +128,65 @@ class SensorRepository @Inject constructor(
             }
         }
 
-        return ticker.flatMapLatest {
-            combine(
-                sensorDao.observeRegisteredAddresses().take(1),
-                liveReadings.take(1),
-                sensorDao.observeAllTanks().take(1),
-                userPreferences.sortPreference // 2. Add Sort Preference to the stream
-            ) { addresses, readings, tanks, sortPref ->
+        return ticker.map {
 
-                val tankMap = tanks.associateBy { it.sensorAddress }
+            Timber.d("⏱ tick (list)")
 
-                val mappedSensors = addresses.mapNotNull { address ->
-                    val scanned = readings[address] ?: return@mapNotNull null
-                    scanned.parsed.reading.timestampMillis=System.currentTimeMillis()
-                    val tank = tankMap[address]?.toDomain()
+            val readings = sharedReadings.value
 
-                    mapToSensor(
-                        scanned = scanned,
-                        tank = tank,
-                        mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
-                    )
-                }
+            val result = readings.mapNotNull { (address, scanned) ->
 
-                // 3. Sort reactively without using .first()
-                if (sortPref == SortPreference.NAME) {
-                    mappedSensors.sortedBy { it.name ?: "" }
-                } else {
-                    // Usually for levels, you want Highest at the top
-                    mappedSensors.sortedByDescending { it.tankLevel?.percentage ?: 0f }
-                }
-            }
-        }.distinctUntilChanged()
-    }
+                scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
 
-    fun observeSensorForDetail(address: String,scanIntervalMillis: Long): Flow<Sensor?> {
-        // 1. Create the ticker based on your interval
-        val ticker = flow {
-            while (currentCoroutineContext().isActive) {
-                emit(Unit)
-                delay(scanIntervalMillis)
-            }
-        }
-        return ticker.flatMapLatest {
-            combine(
-                liveReadings.take(1),
-                sensorDao.observeTank(address).take(1),
-            ) { readings, tankEntity ->
-                val scanned = readings[address] ?: return@combine null
-                scanned.parsed.reading.timestampMillis=System.currentTimeMillis()
-                val tank = tankEntity?.toDomain()
-                Timber.i("observeSensorForDetail")
                 mapToSensor(
-                    scanned, tank,
-                    mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
+                    scanned = scanned,
+                    tank = null,
+                    mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
                 )
             }
+
+            Timber.d("🚀 emit list size=${result.size}")
+
+            result
+        }
+    }
+
+    fun observeSensorForDetail(
+        address: String,
+        scanIntervalMillis: Long
+    ): Flow<Sensor?> {
+
+        val ticker = flow {
+            while (currentCoroutineContext().isActive) {
+                emit(Unit)
+                delay(scanIntervalMillis)
+            }
+        }
+
+        return ticker.map {
+
+            Timber.d("⏱ tick (detail)")
+
+            val readings = sharedReadings.value
+            val scanned = readings[address]
+
+            if (scanned == null) {
+                Timber.w("⚠️ No reading for $address")
+                return@map null
+            }
+
+            // force refresh timestamp every tick
+            scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+
+            val result = mapToSensor(
+                scanned = scanned,
+                tank = null, // ✅ since you said "only live"
+                mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
+            )
+
+            Timber.d("🚀 emit detail: $result")
+
+            result
         }
     }
 
@@ -203,12 +223,12 @@ class SensorRepository @Inject constructor(
         mapToSensorEnum:MapToSensorEnum
     ): Sensor {
 
-        val reading = scanned.parsed.reading
+        val reading = scanned.parsed?.reading
         // 1. Extract calculations to scoped variables to avoid repetition
         val tankLevel = when (mapToSensorEnum) {
             MapToSensorEnum.OBSERVE_REGISTERED, MapToSensorEnum.OBSERVE_DETAIL -> {
                 calculateTankUseCase.calculateTankLevel(
-                    rawHeightMeters = reading.rawHeightMeters,
+                    rawHeightMeters = reading?.rawHeightMeters?:0.0,
                     tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                     tankType = calculateTankUseCase.calculateTankType(tank)
                 )
@@ -219,7 +239,7 @@ class SensorRepository @Inject constructor(
         var tankType: String?=null
 
         if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) {
-            readQuality=reading.quality.toQuality()
+            readQuality=reading?.quality?.toQuality()
             tankType= if(tank?.type== TankType.ARBITRARY)
                 tank.type.displayName+" "+tank.type.orientation.name.uppercaseFirst()
             else tank?.type?.displayName
@@ -231,8 +251,8 @@ class SensorRepository @Inject constructor(
             address = scanned.address,
             name = calculateName(scanned, tank),
             advertisedName = scanned.name,
-            sensorType = scanned.parsed.sensorType,
-            syncPressed = scanned.parsed.syncPressed,
+            sensorType = scanned.parsed?.sensorType,
+            syncPressed = scanned.parsed?.syncPressed?:false,
             reading = reading,
             tankLevel = tankLevel,
             readQuality = readQuality,

@@ -158,5 +158,5 @@ class BleManager @Inject constructor(
 data class ScannedSensor(
     val address: String,
     val name: String?,
-    val parsed: ParsedSensor
+    val parsed: ParsedSensor?=null
 )
