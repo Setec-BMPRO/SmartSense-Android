@@ -401,13 +401,9 @@ class SensorRepository @Inject constructor(
             val pendingSensors = sensorDao.getUnsyncedSensors()
             pendingSensors.forEach { sensor ->
                 val docRef = firestore.collection("users/$userId/sensors").document(sensor.address)
-                val tankRef = firestore.collection("users/$userId/tanks").document(sensor.address)
                 if (sensor.syncStatus == SyncStatus.DELETED) {
                     docRef.delete().await()
-                    //tankRef.delete().await() // This clears the ghost tank from the cloud
-                    // Clean up local DB
                     sensorDao.deleteSensorPermanently(sensor.address)
-                    //sensorDao.deleteTankPermanently(sensor.address)
                 } else {
                     val sensorToUpload = sensor.copy(syncStatus = SyncStatus.SYNCED)
                     docRef.set(sensorToUpload).await()

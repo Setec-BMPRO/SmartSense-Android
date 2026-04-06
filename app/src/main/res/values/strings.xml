@@ -147,16 +147,19 @@
     <string name="account_sensors">Account Sensors</string>
     <string name="sign_out">Sign Out</string>
     <string name="local_account">Local + Account</string>
-    <string name="account_only">Account Only</string>
+    <string name="account_only">Account</string>
     <string name="all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above">All sensors synced locally to the app will be added to your account and listed above</string>
     <string name="delete_account">Delete Account</string>
     <string name="account">Account</string>
     <string name="just_a_moment_while_we_get_things_ready">Just a moment while we get things ready...</string>
-    <string name="are_you_sure_you_want_to_remove_this_sensor_it_will_be_deleted_from_your_account_and_cloud_storage">Are you sure you want to remove this sensor? It will be deleted from your account and cloud storage.</string>
+    <string name="remove_sensor_data_both">Are you sure you want to remove this sensor? It will be deleted from your device and cloud storage.</string>
+    <string name="remove_sensor_data_local">This sensor is only stored on this device. If you remove it, you will need to scan it again to add it back.</string>
+    <string name="remove_sensor_data_cloud">This sensor is stored in your account but not on this phone. Removing it will permanently delete it from your cloud storage.</string>
     <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out? You’ll need to sign back in to access your sensors.</string>
     <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data. Proceed?</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="tank_info">Tank Info</string>
+    <string name="local_only">Local</string>
 
 </resources>

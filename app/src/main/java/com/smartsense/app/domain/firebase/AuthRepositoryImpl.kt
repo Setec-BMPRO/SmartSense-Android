@@ -3,11 +3,19 @@ package com.smartsense.app.domain.firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import com.smartsense.app.data.local.entity.SensorEntity
+import com.smartsense.app.domain.model.Sensor
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
 ) : AuthRepository {
 
     override suspend fun signUp(email: String, password: String): Result<FirebaseUser> {
@@ -72,4 +80,27 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun getCurrentUser() = firebaseAuth.currentUser
+
+    override fun getRemoteSensorsFlow(): Flow<List<SensorEntity>> = callbackFlow {
+        val userId = firebaseAuth.currentUser?.uid
+        if (userId == null) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
+
+        val subscription = firestore.collection("users/$userId/sensors")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    cancel("Firestore error", error)
+                    return@addSnapshotListener
+                }
+
+                val sensors = snapshot?.toObjects(SensorEntity::class.java) ?: emptyList()
+                trySend(sensors)
+            }
+
+        // Clean up the listener when the Flow is cancelled (e.g., ViewModel cleared)
+        awaitClose { subscription.remove() }
+    }
 }

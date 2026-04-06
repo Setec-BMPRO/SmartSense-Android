@@ -23,6 +23,8 @@ import com.smartsense.app.data.local.entity.SyncStatus
 import com.smartsense.app.databinding.FragmentAccountSensorsBinding
 import com.smartsense.app.databinding.ItemAccSensorBinding
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.SensorLocation
+import com.smartsense.app.domain.model.SensorUIModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -53,12 +55,16 @@ class AccountSensorsFragment : Fragment() {
 
     private fun setupRecyclerView() {
         sensorAdapter = AccountSensorAdapter(
-            onDeleteClick = { sensor ->
+            onDeleteClick = { item ->
                 showConfirmationDialog(
                     title = getString(R.string.remove_sensor),
-                    message = getString(R.string.are_you_sure_you_want_to_remove_this_sensor_it_will_be_deleted_from_your_account_and_cloud_storage),
+                    message = getString(when(item.location){
+                        SensorLocation.BOTH -> R.string.remove_sensor_data_both
+                        SensorLocation.LOCAL_ONLY -> R.string.remove_sensor_data_local
+                        else  -> R.string.remove_sensor_data_cloud
+                    }),
                     onConfirm = {
-                        viewModel.unregisterSensor(sensor.address)
+                        viewModel.removeSensor(item)
                         forceHideAllLoading()
                     }
                 )
@@ -77,15 +83,17 @@ class AccountSensorsFragment : Fragment() {
     private fun setupObservers() {
         val scope = viewLifecycleOwner.lifecycleScope
 
-        // 1. Observe Registered Sensors
-        viewModel.registeredSensors
-            .onEach { sensors ->
-                sensorAdapter.submitList(sensors)
-                binding.swipeRefresh.isRefreshing = false
-                binding.rvSensors.isVisible = sensors.isNotEmpty()
+        // 1. Observe  Sensors
+        viewModel.combinedSensors
+            .onEach { list ->
+                // Update your Adapter
+                sensorAdapter.submitList(list)
+                binding.swipeRefresh.isRefreshing=false
+
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .launchIn(scope)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
 
         // 2. Observe Sign Out State
         viewModel.signOutState
@@ -133,7 +141,7 @@ class AccountSensorsFragment : Fragment() {
             }
 
             swipeRefresh.setOnRefreshListener {
-                viewModel.triggerSync()
+                viewModel.refreshWholeList()
                 forceHideAllLoading()
             }
 
@@ -181,6 +189,9 @@ class AccountSensorsFragment : Fragment() {
             toggleGlobalLoading(false)
         }
     }
+
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -190,8 +201,8 @@ class AccountSensorsFragment : Fragment() {
 // --- ADAPTER ---
 
 class AccountSensorAdapter(
-    private val onDeleteClick: (Sensor) -> Unit
-) : ListAdapter<Sensor, AccountSensorAdapter.SensorViewHolder>(SensorDiffCallback()) {
+    private val onDeleteClick: (SensorUIModel) -> Unit
+) : ListAdapter<SensorUIModel, AccountSensorAdapter.SensorViewHolder>(SensorDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SensorViewHolder {
         val binding = ItemAccSensorBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -201,17 +212,29 @@ class AccountSensorAdapter(
     override fun onBindViewHolder(holder: SensorViewHolder, position: Int) = holder.bind(getItem(position))
 
     inner class SensorViewHolder(private val binding: ItemAccSensorBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(sensor: Sensor) {
-            binding.tvSensorName.text = sensor.name
-            binding.tvSensorMac.text = sensor.address
-            val syncIcon = if (sensor.syncStatus == SyncStatus.SYNCED) R.drawable.ic_location else R.drawable.ic_cloud
-            binding.ivSensorType.setImageResource(syncIcon)
-            binding.ivDeleteSensor.setOnClickListener { onDeleteClick(sensor) }
+        fun bind(item: SensorUIModel) {
+            binding.tvSensorName.text = item.sensor.name
+            binding.tvSensorMac.text = item.sensor.address
+            //val syncIcon = if (item.syncStatus == SyncStatus.SYNCED) R.drawable.ic_location else R.drawable.ic_cloud
+            // UI Logic for the 3 States
+            when (item.location) {
+                SensorLocation.LOCAL_ONLY -> {
+                    binding.ivSensorType.setImageResource(R.drawable.ic_location)
+                }
+                SensorLocation.CLOUD_ONLY -> {
+                    binding.ivSensorType.setImageResource(R.drawable.ic_cloud)
+                }
+                SensorLocation.BOTH -> {
+                    binding.ivSensorType.setImageResource(R.drawable.ic_refresh) // A combined icon
+                }
+            }
+            binding.ivDeleteSensor.setOnClickListener { onDeleteClick(item) }
         }
     }
+
 }
 
-class SensorDiffCallback : DiffUtil.ItemCallback<Sensor>() {
-    override fun areItemsTheSame(oldItem: Sensor, newItem: Sensor) = oldItem.address == newItem.address
-    override fun areContentsTheSame(oldItem: Sensor, newItem: Sensor) = oldItem == newItem
+class SensorDiffCallback : DiffUtil.ItemCallback<SensorUIModel>() {
+    override fun areItemsTheSame(oldItem: SensorUIModel, newItem: SensorUIModel) = oldItem.sensor.address == newItem.sensor.address
+    override fun areContentsTheSame(oldItem: SensorUIModel, newItem: SensorUIModel) = oldItem == newItem
 }

@@ -1,12 +1,13 @@
 package com.smartsense.app.domain.model
 
+import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.SyncStatus
 
 data class Sensor(
     val address: String,
     var name: String?,
     val advertisedName: String?=null,
-    val sensorType: MopekaSensorType?,
+    val sensorType: MopekaSensorType?=null,
     val syncPressed: Boolean = false,
     val reading: SensorReading?=null,
     val tankLevel: TankLevel?=null,

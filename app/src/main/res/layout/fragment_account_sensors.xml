@@ -102,8 +102,18 @@
                     android:gravity="center"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:text="@string/local_account"
-                    app:drawableStartCompat="@drawable/ic_location" />
+                    app:drawableStartCompat="@drawable/ic_refresh" />
 
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:drawablePadding="8dp"
+                    android:gravity="center"
+                    android:textAppearance="?attr/textAppearanceBodySmall"
+                    android:text="@string/local_only"
+                    app:drawableStartCompat="@drawable/ic_location" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

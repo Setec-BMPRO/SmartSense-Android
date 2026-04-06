@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.google.firebase.firestore.PropertyName
+import com.smartsense.app.domain.model.Sensor
 
 @Entity(tableName = "sensors")
 data class SensorEntity(
@@ -21,8 +22,13 @@ data class SensorEntity(
     @ColumnInfo(name = "last_modified_locally")
     val lastModifiedLocally: Long = System.currentTimeMillis(),
 
+
 )
 
+fun SensorEntity.toSensor(): Sensor = Sensor(
+    address = this.address,
+    name = this.name
+)
 enum class SyncStatus {
     SYNCED,    // Matches Cloud
     PENDING,   // Created/Updated locally, needs upload

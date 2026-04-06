@@ -3,22 +3,29 @@ package com.smartsense.app.ui.account
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
+import com.smartsense.app.data.local.entity.toSensor
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.repository.SensorRepository
 
 import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.SensorLocation
+import com.smartsense.app.domain.model.SensorUIModel
 import com.smartsense.app.domain.usecase.SensorScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -162,4 +169,53 @@ class AccountViewModel @Inject constructor(
     fun resetPasswordResetState(){
         _updatePasswordState.value=null
     }
+
+    private val refreshTrigger = MutableStateFlow(System.currentTimeMillis())
+    val combinedSensors: Flow<List<SensorUIModel>> = combine(
+        sensorRepository.getAllRegisteredSensors(),    // Flow<List<Sensor>> from Room
+        refreshTrigger.flatMapLatest { repository.getRemoteSensorsFlow() }
+    ) { localList, cloudList ->
+        Timber.tag("SyncLog").d("📊 Combine Triggered: Local=${localList.size}, Cloud=${cloudList.size}")
+        // Get every unique address from both lists
+        val allAddresses = (localList.map { it.address } + cloudList.map { it.address }).distinct()
+
+        allAddresses.map { addr ->
+            val local = localList.find { it.address == addr }
+            val cloud = cloudList.find { it.address == addr }
+
+            when {
+                local != null && cloud != null -> SensorUIModel(local, SensorLocation.BOTH)
+                local != null -> SensorUIModel(local, SensorLocation.LOCAL_ONLY)
+                else -> SensorUIModel(cloud!!.toSensor(), SensorLocation.CLOUD_ONLY)
+            }
+        }
+    }
+
+    fun removeSensor(uiModel: SensorUIModel) {
+        viewModelScope.launch {
+            when (uiModel.location) {
+                SensorLocation.LOCAL_ONLY -> {
+                    // Just remove from Room
+                    sensorScanUseCase.unregisterSensor(uiModel.sensor.address, false)
+                }
+                SensorLocation.CLOUD_ONLY -> {
+                    // You'll need a function in repository to delete a specific doc from Firestore
+                    // repository.deleteRemoteSensor(uiModel.sensor.address)
+                }
+                SensorLocation.BOTH -> {
+                    // Trigger both or ask user via UI first
+                    sensorScanUseCase.unregisterSensor(uiModel.sensor.address, true)
+                    // repository.deleteRemoteSensor(uiModel.sensor.address)
+                }
+            }
+        }
+    }
+
+    fun refreshWholeList() {
+        viewModelScope.launch {
+            // 1. Force the Flow to restart by changing the timestamp
+            refreshTrigger.value = System.currentTimeMillis()
+        }
+    }
+
 }
