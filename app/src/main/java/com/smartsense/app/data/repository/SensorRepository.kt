@@ -1,5 +1,6 @@
 package com.smartsense.app.data.repository
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
@@ -316,12 +317,19 @@ class SensorRepository @Inject constructor(
             triggerSync()
     }
 
-    suspend fun unregisterSensor(address: String,uploadSensorData: Boolean) {
+    suspend fun unregisterSensor(address: String, uploadSensorData: Boolean) {
         sensorDao.markSensorForDeletion(address)
         sensorDao.markTankForDeletion(address)
         if(uploadSensorData)
         triggerSync()
     }
+
+    suspend fun unregisterSensorTankPermanent(address: String) {
+        sensorDao.deleteSensorPermanently(address)
+        sensorDao.deleteTankPermanently(address)
+    }
+
+
 
     suspend fun saveTankConfig(tank: Tank,uploadSensorData: Boolean) {
         // 1. Convert domain Tank to Entity and mark as PENDING for cloud sync

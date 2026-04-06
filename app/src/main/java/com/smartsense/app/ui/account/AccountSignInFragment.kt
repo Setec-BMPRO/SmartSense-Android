@@ -11,7 +11,6 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -30,7 +29,6 @@ import com.smartsense.app.databinding.FragmentAccountSigninBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AccountSignInFragment : Fragment() {
@@ -81,7 +79,7 @@ class AccountSignInFragment : Fragment() {
             .launchIn(scope)
 
         // 2. Observe Password Reset Email State
-        viewModel.resetEmailState
+        viewModel.forgotPasswordState
             .onEach { result ->
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
@@ -116,7 +114,7 @@ class AccountSignInFragment : Fragment() {
             val email = binding.etEmail.text.toString().trim()
             if (isEmailValid(email)) {
                 (activity as MainActivityListener).showLoadingIndicator(true)
-                viewModel.sendPasswordReset(email)
+                viewModel.forgotPassword(email)
             } else {
                 binding.etEmail.apply {
                     error = getString(R.string.enter_a_valid_email_to_reset_password)
@@ -187,26 +185,26 @@ class AccountSignInFragment : Fragment() {
             .show()
     }
 
-    private fun showNewPasswordDialog(email: String, code: String) {
-        val dialogBinding = DialogNewPasswordBinding.inflate(layoutInflater)
-        dialogBinding.tvDescription.text = getString(R.string.please_enter_new_password_for, email)
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(getString(R.string.enter_new_password))
-            .setView(dialogBinding.root)
-            .setCancelable(false)
-            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .setPositiveButton(R.string.ok) { dialog, _ ->
-                val newPass = dialogBinding.etNewPassword.text.toString()
-                if (newPass.length >= 8) {
-                    viewModel.updatePassword(code, newPass)
-                    dialog.dismiss()
-                } else {
-                    Toast.makeText(context, getString(R.string.password_too_short), Toast.LENGTH_SHORT).show()
-                }
-            }
-            .show()
-    }
+//    private fun showNewPasswordDialog(email: String, code: String) {
+//        val dialogBinding = DialogNewPasswordBinding.inflate(layoutInflater)
+//        dialogBinding.tvDescription.text = getString(R.string.please_enter_new_password_for, email)
+//
+//        MaterialAlertDialogBuilder(requireContext())
+//            .setTitle(getString(R.string.enter_new_password))
+//            .setView(dialogBinding.root)
+//            .setCancelable(false)
+//            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+//            .setPositiveButton(R.string.ok) { dialog, _ ->
+//                val newPass = dialogBinding.etNewPassword.text.toString()
+//                if (newPass.length >= 8) {
+//                    viewModel.updatePassword(code, newPass)
+//                    dialog.dismiss()
+//                } else {
+//                    Toast.makeText(context, getString(R.string.password_too_short), Toast.LENGTH_SHORT).show()
+//                }
+//            }
+//            .show()
+//    }
 
     private fun showSnackbar(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
@@ -216,7 +214,7 @@ class AccountSignInFragment : Fragment() {
         super.onResume()
         binding.toolbar.btnBack.isVisible=true
         binding.toolbar.btnRight.isVisible=false
-        binding.toolbar.tvTitle.text="Sign In"
+        binding.toolbar.tvTitle.text=getString(R.string.sign_in)
         binding.toolbar.tvSubTitle.text=""
     }
 

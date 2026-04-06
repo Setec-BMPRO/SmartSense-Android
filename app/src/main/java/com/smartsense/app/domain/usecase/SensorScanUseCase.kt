@@ -26,7 +26,7 @@ class SensorScanUseCase @Inject constructor(
 
     suspend fun unregisterSensor(address: String,uploadSensorData: Boolean) = repository.unregisterSensor(address,uploadSensorData)
 
-    fun getAllRegisteredSensors():Flow<List<Sensor>> = repository.getAllRegisteredSensors()
+    suspend fun unregisterSensorTankPermanent(address: String) = repository.unregisterSensorTankPermanent(address)
 
     fun triggerSync()=repository.triggerSync()
 

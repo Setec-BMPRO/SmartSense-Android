@@ -8,7 +8,6 @@ import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.repository.SensorRepository
 
 import com.smartsense.app.domain.firebase.AuthRepository
-import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
 import com.smartsense.app.domain.usecase.SensorScanUseCase
@@ -16,12 +15,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -30,7 +28,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val repository: AuthRepository,
+    private val authRepository: AuthRepository,
     private val userPreferences: UserPreferences,
     private val sensorScanUseCase: SensorScanUseCase,
     private val sensorRepository: SensorRepository
@@ -43,8 +41,8 @@ class AccountViewModel @Inject constructor(
     private val _signUpState = MutableStateFlow<Result<FirebaseUser>?>(null)
     val signUpState: StateFlow<Result<FirebaseUser>?> = _signUpState
 
-    private val _resetEmailState = MutableStateFlow<Result<Unit>?>(null)
-    val resetEmailState: StateFlow<Result<Unit>?> = _resetEmailState
+    private val _forgotPasswordState = MutableStateFlow<Result<Unit>?>(null)
+    val forgotPasswordState: StateFlow<Result<Unit>?> = _forgotPasswordState
 
     private val _updatePasswordState = MutableStateFlow<Result<Unit>?>(null)
     val updatePasswordState: StateFlow<Result<Unit>?> = _updatePasswordState
@@ -56,45 +54,42 @@ class AccountViewModel @Inject constructor(
     private val _deleteAccountState = MutableStateFlow<Result<Unit>?>(null)
     val deleteAccountState: StateFlow<Result<Unit>?> = _deleteAccountState
 
-    // This Flow automatically filters out 'DELETED' sensors via the DAO query we wrote
-    val registeredSensors: StateFlow<List<Sensor>> = sensorScanUseCase.getAllRegisteredSensors()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-    // --- Primary Actions ---
+    // 1. Private MutableStateFlow
+    private val _removeUiState = MutableStateFlow(UiState())
+    // 2. Public Read-only StateFlow for the UI
+    val removeUiState = _removeUiState.asStateFlow()
+
 
     fun signIn(email: String, password: String) {
         viewModelScope.launch {
-            _loginState.value = repository.signIn(email, password)
+            _loginState.value = authRepository.signIn(email, password)
         }
     }
 
     fun signUp(email: String, password: String) {
         viewModelScope.launch {
-            _signUpState.value = repository.signUp(email, password)
+            _signUpState.value = authRepository.signUp(email, password)
         }
     }
 
-    fun sendPasswordReset(email: String) {
-        executeResettingState(_resetEmailState) {
-            repository.sendPasswordReset(email)
+    fun forgotPassword(email: String) {
+        executeResettingState(_forgotPasswordState) {
+            authRepository.sendPasswordReset(email)
         }
     }
 
-    fun updatePassword(code: String, newPassword: String) {
-        executeResettingState(_updatePasswordState) {
-            repository.confirmPasswordReset(code, newPassword)
-        }
-    }
+//    fun updatePassword(code: String, newPassword: String) {
+//        executeResettingState(_updatePasswordState) {
+//            authRepository.confirmPasswordReset(code, newPassword)
+//        }
+//    }
 
     // --- Destructive Actions ---
 
     fun signOut() {
         viewModelScope.launch {
             try {
-                repository.signOut()
+                authRepository.signOut()
                 userPreferences.setIsSignedIn(false)
 
                 // Optional network cleanup with safety timeout
@@ -112,7 +107,7 @@ class AccountViewModel @Inject constructor(
             _deleteAccountState.value = null // Show loading
 
             runCatching {
-                withTimeout(15000) { repository.deleteAccount() }
+                withTimeout(15000) { authRepository.deleteAccount() }
             }.onSuccess { result ->
                 result.onSuccess { userPreferences.setIsSignedIn(false) }
                 _deleteAccountState.value = result
@@ -149,17 +144,6 @@ class AccountViewModel @Inject constructor(
     fun resetLoginState() { _loginState.value = null }
     fun resetSignUpState() { _signUpState.value = null }
 
-
-    fun unregisterSensor(sensorAddress: String) {
-        viewModelScope.launch {
-            sensorScanUseCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
-        }
-    }
-    fun triggerSync() {
-        viewModelScope.launch {
-            sensorScanUseCase.triggerSync()
-        }
-    }
     fun resetDeleteAccountState(){
         _deleteAccountState.value = null
     }
@@ -173,7 +157,7 @@ class AccountViewModel @Inject constructor(
     private val refreshTrigger = MutableStateFlow(System.currentTimeMillis())
     val combinedSensors: Flow<List<SensorUIModel>> = combine(
         sensorRepository.getAllRegisteredSensors(),    // Flow<List<Sensor>> from Room
-        refreshTrigger.flatMapLatest { repository.getRemoteSensorsFlow() }
+        refreshTrigger.flatMapLatest { authRepository.getRemoteSensorsFlow() }
     ) { localList, cloudList ->
         Timber.tag("SyncLog").d("📊 Combine Triggered: Local=${localList.size}, Cloud=${cloudList.size}")
         // Get every unique address from both lists
@@ -193,22 +177,36 @@ class AccountViewModel @Inject constructor(
 
     fun removeSensor(uiModel: SensorUIModel) {
         viewModelScope.launch {
-            when (uiModel.location) {
-                SensorLocation.LOCAL_ONLY -> {
-                    // Just remove from Room
-                    sensorScanUseCase.unregisterSensor(uiModel.sensor.address, false)
+            // Start Loading & Clear old errors
+            _removeUiState.update { it.copy(isDeleting = true, errorMessage = null) }
+
+            try {
+                when (uiModel.location) {
+                    SensorLocation.LOCAL_ONLY -> {
+                        sensorScanUseCase.unregisterSensorTankPermanent(uiModel.sensor.address)
+                    }
+                    SensorLocation.CLOUD_ONLY -> {
+                        val result = authRepository.deleteSensor(uiModel.sensor.address)
+                        result.onFailure { error ->
+                            _removeUiState.update { it.copy(errorMessage = error.message) }
+                        }
+                    }
+                    SensorLocation.BOTH -> {
+                        sensorScanUseCase.unregisterSensor(uiModel.sensor.address, true)
+                    }
                 }
-                SensorLocation.CLOUD_ONLY -> {
-                    // You'll need a function in repository to delete a specific doc from Firestore
-                    // repository.deleteRemoteSensor(uiModel.sensor.address)
-                }
-                SensorLocation.BOTH -> {
-                    // Trigger both or ask user via UI first
-                    sensorScanUseCase.unregisterSensor(uiModel.sensor.address, true)
-                    // repository.deleteRemoteSensor(uiModel.sensor.address)
-                }
+            } catch (e: Exception) {
+                _removeUiState.update { it.copy(errorMessage = e.localizedMessage) }
+            } finally {
+                // Always hide the loading indicator
+                _removeUiState.update { it.copy(isDeleting = false) }
             }
         }
+    }
+
+    // Helper to clear messages after they are shown (e.g., after a Toast/Snackbar)
+    fun clearMessages() {
+        _removeUiState.update { it.copy(errorMessage = null, successMessage = null) }
     }
 
     fun refreshWholeList() {
@@ -219,3 +217,9 @@ class AccountViewModel @Inject constructor(
     }
 
 }
+
+data class UiState(
+    val isDeleting: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null
+)

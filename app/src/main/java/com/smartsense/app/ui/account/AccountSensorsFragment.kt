@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -19,17 +18,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
-import com.smartsense.app.data.local.entity.SyncStatus
 import com.smartsense.app.databinding.FragmentAccountSensorsBinding
 import com.smartsense.app.databinding.ItemAccSensorBinding
-import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AccountSensorsFragment : Fragment() {
@@ -65,7 +60,6 @@ class AccountSensorsFragment : Fragment() {
                     }),
                     onConfirm = {
                         viewModel.removeSensor(item)
-                        forceHideAllLoading()
                     }
                 )
             }
@@ -89,7 +83,6 @@ class AccountSensorsFragment : Fragment() {
                 // Update your Adapter
                 sensorAdapter.submitList(list)
                 binding.swipeRefresh.isRefreshing=false
-
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -112,7 +105,6 @@ class AccountSensorsFragment : Fragment() {
             .onEach { result ->
                 result?.let {
                     toggleGlobalLoading(false)
-
                     it.onSuccess {
                         viewModel.resetDeleteAccountState()
                         findNavController().navigate(R.id.accountRegisterFragment)
@@ -127,6 +119,19 @@ class AccountSensorsFragment : Fragment() {
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
+
+        // Remove
+        viewModel.removeUiState
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { state ->
+                binding.swipeRefresh.isRefreshing=false
+                // Error Handling
+                state.errorMessage?.let { msg ->
+                    Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                    viewModel.clearMessages()
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
     private fun setupListeners() {
         with(binding) {
@@ -142,14 +147,16 @@ class AccountSensorsFragment : Fragment() {
 
             swipeRefresh.setOnRefreshListener {
                 viewModel.refreshWholeList()
-                forceHideAllLoading()
             }
 
             btnDeleteAccount.setOnClickListener {
                 showConfirmationDialog(
                     title = getString(R.string.delete_account),
                     message = getString(R.string.this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed),
-                    onConfirm = { viewModel.deleteAccount() }
+                    onConfirm = {
+                        toggleGlobalLoading(true)
+                        viewModel.deleteAccount()
+                    }
                 )
             }
         }
@@ -161,7 +168,6 @@ class AccountSensorsFragment : Fragment() {
             .setMessage(message)
             .setNegativeButton(getString(R.string.no), null)
             .setPositiveButton(getString(R.string.yes)) { _, _ ->
-                toggleGlobalLoading(true)
                 onConfirm()
             }
             .show()
@@ -177,19 +183,10 @@ class AccountSensorsFragment : Fragment() {
             btnBack.isVisible = false
             btnRight.isVisible = true
             btnRight.setIconResource(R.drawable.ic_signout)
-            tvTitle.text = "Account"
+            tvTitle.text = getString(R.string.account)
             tvSubTitle.text = ""
         }
     }
-
-    private fun forceHideAllLoading(){
-        viewLifecycleOwner.lifecycleScope.launch {
-            delay(2000)
-            _binding?.swipeRefresh?.isRefreshing = false
-            toggleGlobalLoading(false)
-        }
-    }
-
 
 
     override fun onDestroyView() {

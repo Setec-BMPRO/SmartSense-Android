@@ -20,12 +20,10 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun signUp(email: String, password: String): Result<FirebaseUser> {
         return try {
-            // Firebase creates the user and signs them in automatically
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user ?: throw Exception("Sign-up failed: User is null")
             Result.success(user)
         } catch (e: Exception) {
-            // Common errors: "Email already in use", "Weak password"
             Result.failure(e)
         }
     }
@@ -34,7 +32,7 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
             val user = result.user ?: throw Exception("User not found")
-            Result.success(user) // Returns the actual user object
+            Result.success(user)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -51,8 +49,40 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun confirmPasswordReset(code: String, newPassword: String): Result<Unit> {
         return try {
-            // This is the Firebase call that actually changes the password in the cloud
             firebaseAuth.confirmPasswordReset(code, newPassword).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Deletes a sensor from both the user's registry and the tank's registry.
+     * Uses a Batch to ensure "all-or-nothing" execution.
+     */
+    override suspend fun deleteSensor(address: String): Result<Unit> {
+        return try {
+            val userId = firebaseAuth.currentUser?.uid
+                ?: throw Exception("User not authenticated")
+
+            val batch = firestore.batch()
+
+            // Path 1: User-centric sensor list
+            val userSensorRef = firestore.collection("users")
+                .document(userId)
+                .collection("sensors")
+                .document(address)
+
+            // Path 2: Tank-centric sensor list
+            val tankSensorRef = firestore.collection("users")
+                .document(userId)
+                .collection("tanks")
+                .document(address)
+
+            batch.delete(userSensorRef)
+            batch.delete(tankSensorRef)
+
+            batch.commit().await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -62,12 +92,10 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun deleteAccount(): Result<Unit> {
         return try {
             val user = firebaseAuth.currentUser ?: throw Exception("No authenticated user found.")
-
             try {
                 user.delete().await()
                 Result.success(Unit)
             } catch (e: FirebaseAuthRecentLoginRequiredException) {
-                // This is where you trigger a UI event to ask the user to re-login
                 Result.failure(Exception("Please re-authenticate to delete your account."))
             }
         } catch (e: Exception) {
@@ -96,11 +124,14 @@ class AuthRepositoryImpl @Inject constructor(
                     return@addSnapshotListener
                 }
 
-                val sensors = snapshot?.toObjects(SensorEntity::class.java) ?: emptyList()
+                // Map document snapshots to SensorEntity objects
+                val sensors = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(SensorEntity::class.java)
+                } ?: emptyList()
+
                 trySend(sensors)
             }
 
-        // Clean up the listener when the Flow is cancelled (e.g., ViewModel cleared)
         awaitClose { subscription.remove() }
     }
 }
