@@ -145,7 +145,7 @@ class Scan1ViewModel @Inject constructor(
     fun registerSensor(address: String, name: String) {
         viewModelScope.launch {
             autoPairDone = true
-            userCase.registerSensor(address, name)
+            userCase.registerSensor(address, name,userPreferences.uploadSensorData.first())
         }
     }
 

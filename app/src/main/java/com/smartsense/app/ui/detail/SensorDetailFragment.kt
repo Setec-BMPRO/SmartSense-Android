@@ -29,7 +29,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.text.ifEmpty
 import androidx.core.view.isVisible
+import androidx.lifecycle.flowWithLifecycle
 import com.smartsense.app.domain.model.Sensor
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class SensorDetailFragment : Fragment() {
@@ -82,20 +85,18 @@ class SensorDetailFragment : Fragment() {
     // --------------------------------------
 
     private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState
-                    .map { it.sensor }
-                    .distinctUntilChanged()
-                    .collect { sensor ->
-                        sensor?.let {
-                            bindSensor(it)
-                            // Start/Restart the timer only when the sensor data changes
-                            startLastUpdatedTimer(it.reading?.timestampMillis)
-                        }
-                    }
+        viewModel.uiState
+            .map { it.sensor }
+            .distinctUntilChanged()
+            .onEach { sensor ->
+                sensor?.let {
+                    bindSensor(it)
+                    // Start/Restart the timer only when the sensor data changes
+                    startLastUpdatedTimer(it.reading?.timestampMillis)
+                }
             }
-        }
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     // --------------------------------------
@@ -212,7 +213,6 @@ class SensorDetailFragment : Fragment() {
             .setMessage(R.string.remove_sensor_confirm)
             .setPositiveButton(R.string.remove) { _, _ ->
                 viewModel.unregisterSensor()
-                viewModel.triggerSync()
                 findNavController().popBackStack()
             }
             .setNegativeButton(R.string.cancel, null)

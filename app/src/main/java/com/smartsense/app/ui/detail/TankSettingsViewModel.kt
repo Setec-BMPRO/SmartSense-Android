@@ -3,6 +3,7 @@ package com.smartsense.app.ui.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.domain.model.QualityThreshold
@@ -18,15 +19,18 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
 class DetailTankSettingsViewModel @Inject constructor(
     private val repository: SensorRepository,
     savedStateHandle: SavedStateHandle,
-    private val userCase: SensorScanUseCase
+    private val userCase: SensorScanUseCase,
+    private val userPreferences: UserPreferences
 ) : ViewModel() {
 
     private val sensorAddress: String =
@@ -34,6 +38,8 @@ class DetailTankSettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(TankSettingsUiState())
     val uiState: StateFlow<TankSettingsUiState> = _uiState.asStateFlow()
+
+
 
     // --------------------------------------
     // 📥 LOAD
@@ -146,7 +152,6 @@ class DetailTankSettingsViewModel @Inject constructor(
 
     fun save() {
         val state = _uiState.value
-
         viewModelScope.launch {
             repository.saveTankConfig(
                 Tank(
@@ -162,19 +167,13 @@ class DetailTankSettingsViewModel @Inject constructor(
                     alarmThresholdPercent = state.alarmThresholdPercent,
                     notificationFrequency = state.notificationFrequency,
                     triggerAlarmUnit = state.triggerAlarmUnit
-                )
+                ), userPreferences.uploadSensorData.first()
             )
-
             _uiState.update { it.copy(isSaved = true) }
-            triggerSync()
         }
     }
 
-    fun triggerSync() {
-        viewModelScope.launch {
-            userCase.triggerSync()
-        }
-    }
+
 
     // --------------------------------------
     // 🧩 INTERNAL HELPER

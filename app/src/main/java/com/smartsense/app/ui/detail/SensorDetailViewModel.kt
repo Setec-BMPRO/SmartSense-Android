@@ -101,7 +101,7 @@ class Sensor1DetailViewModel @Inject constructor(
 
     fun unregisterSensor() {
         viewModelScope.launch {
-            userCase.unregisterSensor(sensorAddress)
+            userCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
         }
     }
     fun triggerSync() {

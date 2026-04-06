@@ -13,6 +13,7 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -35,7 +36,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -107,49 +110,53 @@ class ScanFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.uiState
-                        .map { it.error }
-                        .distinctUntilChanged()
-                        .collect { error ->
-                            error?.let {
-                                Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
-                                viewModel.clearError()
-                            }
-                        }
-                }
-                launch {
-                    viewModel.uiState
-                        .map { it.isScanning }
-                        .distinctUntilChanged()
-                        .collect { isScanning ->
-                            binding.apply {
-                                if (isScanning) {
-                                    pulseView.startPulse()
-                                    scanStatus.text = getString(R.string.scanning)
-                                } else {
-                                    pulseView.stopPulse()
-                                    scanStatus.text = getString(R.string.scan_tap_to_start)
-                                }
-                                scanHint.isVisible = isScanning
-                            }
-                        }
-                }
-                launch {
-                    combine(
-                        viewModel.filteredSensors,
-                        viewModel.collapsedGroups
-                    ) { sensors, collapsed ->
-                        // Transform raw data into Groupie items
-                        buildDisplayGroups(sensors, collapsed) to sensors.size
-                    }.collect { (displayGroups, filteredCount) ->
-                        updateUI(displayGroups, filteredCount)
-                    }
+        val lifecycle = viewLifecycleOwner.lifecycle
+        val scope = viewLifecycleOwner.lifecycleScope
+
+        // 1. Observe Errors
+        viewModel.uiState
+            .map { it.error }
+            .distinctUntilChanged()
+            .onEach { error ->
+                error?.let {
+                    Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
+                    viewModel.clearError()
                 }
             }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        // 2. Observe Scanning State
+        viewModel.uiState
+            .map { it.isScanning }
+            .distinctUntilChanged()
+            .onEach { isScanning ->
+                binding.apply {
+                    if (isScanning) {
+                        pulseView.startPulse()
+                        scanStatus.text = getString(R.string.scanning)
+                    } else {
+                        pulseView.stopPulse()
+                        scanStatus.text = getString(R.string.scan_tap_to_start)
+                    }
+                    scanHint.isVisible = isScanning
+                }
+            }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        // 3. Observe Filtered Sensors and Collapsed Groups (Combined)
+        combine(
+            viewModel.filteredSensors,
+            viewModel.collapsedGroups
+        ) { sensors, collapsed ->
+            buildDisplayGroups(sensors, collapsed) to sensors.size
         }
+            .onEach { (displayGroups, filteredCount) ->
+                updateUI(displayGroups, filteredCount)
+            }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
     }
 
     /**

@@ -3,6 +3,7 @@ package com.smartsense.app.data.local.entity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.firebase.firestore.PropertyName
 
 @Entity(tableName = "sensors")
 data class SensorEntity(
@@ -15,7 +16,7 @@ data class SensorEntity(
 
     // --- Sync Fields ---
     @ColumnInfo(name = "sync_status")
-    val syncStatus: SyncStatus = SyncStatus.PENDING,
+    val syncStatus: SyncStatus = SyncStatus.SYNCED,
 
     @ColumnInfo(name = "last_modified_locally")
     val lastModifiedLocally: Long = System.currentTimeMillis(),

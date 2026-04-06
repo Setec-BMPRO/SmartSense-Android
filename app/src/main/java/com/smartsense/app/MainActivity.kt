@@ -6,18 +6,16 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.lifecycle.LiveData
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.smartsense.app.databinding.ActivityMainBinding
 import com.smartsense.app.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), MainActivityListener {
@@ -25,38 +23,53 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private val viewModel: MainViewModel by viewModels()
-    private var isSyncMessagePending = false // 🛡️ Flag to allow only one toast per trigger
+
+    // 🛡️ Flag to allow only one toast per trigger session
+    private var isSyncMessagePending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         setupNavigation()
         setupClickListeners()
+        observeSyncWork()
+    }
 
-        // Inside onCreate observer...
+    /**
+     * Observes WorkManager status to show one-time Sync results.
+     */
+    private fun observeSyncWork() {
         viewModel.syncWorkInfo.observe(this) { workInfos ->
             val workInfo = workInfos?.firstOrNull() ?: return@observe
+
             when (workInfo.state) {
                 WorkInfo.State.RUNNING,
                 WorkInfo.State.ENQUEUED -> {
-                    // As soon as a sync starts, we "arm" the flag to allow one message
+                    // Arm the flag when work starts
                     isSyncMessagePending = true
                 }
                 WorkInfo.State.SUCCEEDED -> {
-                    if (isSyncMessagePending) {
-                        Toast.makeText(this, "Cloud Sync Successful!", Toast.LENGTH_SHORT).show()
-                        isSyncMessagePending = false // 🔒 Lock it until the next sync starts
-                    }
+                    val up = workInfo.outputData.getInt("KEY_UPLOADED_COUNT", 0)
+                    val down = workInfo.outputData.getInt("KEY_DOWNLOADED_COUNT", 0)
+                    if(up==0 && down==0)
+                        handleSyncResult("")
+                    else handleSyncResult("Sync finished! Uploaded: $up, Downloaded: $down")
                 }
                 WorkInfo.State.FAILED -> {
-                    if (isSyncMessagePending) {
-                        Toast.makeText(this, "Cloud Sync Failed", Toast.LENGTH_SHORT).show()
-                        isSyncMessagePending = false // 🔒 Lock it
-                    }
+                    handleSyncResult("Cloud Sync Failed")
                 }
-                else ->{}
+                else -> { /* No-op for other states */ }
             }
+        }
+    }
+
+    private fun handleSyncResult(message: String) {
+        if (isSyncMessagePending) {
+            if(message.isNotBlank())
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            isSyncMessagePending = false // 🔒 Lock until next RUNNING state
         }
     }
 
@@ -73,7 +86,7 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
 
     private fun setupClickListeners() {
         binding.tabAccount.setOnClickListener {
-            when (val state = viewModel.uiState.value) {
+            when (viewModel.uiState.value) {
                 is MainUiState.Authenticated -> {
                     navController.navigate(R.id.accountSensorsFragment)
                     selectTab(binding.tabAccount)
@@ -107,15 +120,17 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
                 destinationId == R.id.tankSettingFragment
         val showBar = !isFullScreen
 
-        binding.bottomAppBar.visibility = if (showBar) View.VISIBLE else View.GONE
-        binding.fabSmartsense.visibility = if (showBar) View.VISIBLE else View.GONE
+        // Use isVisible for cleaner Kotlin syntax
+        binding.bottomAppBar.isVisible = showBar
+        binding.fabSmartsense.isVisible = showBar
 
-        // Adjust NavHostFragment bottom margin
-        val params = binding.navHostFragment.layoutParams as CoordinatorLayout.LayoutParams
-        params.bottomMargin = if (showBar) {
-            resources.getDimensionPixelSize(R.dimen.bottom_nav_height)
-        } else 0
-        binding.navHostFragment.layoutParams = params
+        // Adjust NavHostFragment bottom margin dynamically
+        (binding.navHostFragment.layoutParams as? CoordinatorLayout.LayoutParams)?.let { params ->
+            params.bottomMargin = if (showBar) {
+                resources.getDimensionPixelSize(R.dimen.bottom_nav_height)
+            } else 0
+            binding.navHostFragment.layoutParams = params
+        }
     }
 
     private fun handleTabSelection(destinationId: Int) {
@@ -123,7 +138,6 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
             R.id.tab_account -> selectTab(binding.tabAccount)
             R.id.tab_settings -> selectTab(binding.tabSettings)
             else -> {
-                // Fallback logic for fragments not explicitly in the nav graph tabs
                 val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
                 val currentFragment = navHost?.childFragmentManager?.fragments?.firstOrNull()
                 val isSettings = currentFragment?.javaClass?.simpleName == SettingsFragment::class.java.simpleName
@@ -135,16 +149,16 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
 
     private fun selectTab(selected: View?) {
         listOf(binding.tabAccount, binding.tabSettings).forEach { tab ->
-            tab.isSelected = tab == selected
+            tab.isSelected = (tab == selected)
             tab.refreshDrawableState()
         }
     }
 
     override fun showLoadingIndicator(isShow: Boolean) {
-        binding.loadingOverlay.visibility = if (isShow) View.VISIBLE else View.GONE
+        binding.loadingOverlay.isVisible = isShow
     }
 }
 
-interface MainActivityListener{
+interface MainActivityListener {
     fun showLoadingIndicator(isShow: Boolean)
 }

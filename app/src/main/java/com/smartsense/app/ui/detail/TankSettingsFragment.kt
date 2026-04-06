@@ -16,6 +16,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -34,6 +35,8 @@ import com.smartsense.app.domain.model.TriggerAlarmUnit
 import com.smartsense.app.util.uppercaseFirst
 
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -258,23 +261,26 @@ class TankSettingsFragment : Fragment() {
     // --------------------------------------
 
     private fun observeState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
+        viewModel.uiState
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { state ->
+                // 1. Update text only if it differs (prevents cursor jumping)
+                if (binding.etName.text.toString() != state.name) {
+                    binding.etName.setText(state.name)
+                }
 
-                    if (binding.etName.text.toString() != state.name) {
-                        binding.etName.setText(state.name)
-                    }
+                // 2. Handle sub-logic
+                handleSetting(state)
+                handleNotification(state)
 
-                    handleSetting(state)
-                    handleNotification(state)
-
-                    if (state.isSaved) {
-                        findNavController().popBackStack()
-                    }
+                // 3. Handle Navigation
+                if (state.isSaved) {
+                    // Important: Reset this state in ViewModel after popping
+                    // if you don't want it to trigger again on backstack return.
+                    findNavController().popBackStack()
                 }
             }
-        }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     // --------------------------------------

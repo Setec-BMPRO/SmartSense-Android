@@ -16,6 +16,8 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
@@ -26,6 +28,8 @@ import com.smartsense.app.R
 import com.smartsense.app.databinding.DialogNewPasswordBinding
 import com.smartsense.app.databinding.FragmentAccountSigninBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -55,35 +59,43 @@ class AccountSignInFragment : Fragment() {
     }
 
     private fun observeViewModel() {
-        // Observe Login State
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.loginState.collect { result ->
+        val scope = viewLifecycleOwner.lifecycleScope
+        val lifecycle = viewLifecycleOwner.lifecycle
+
+        // 1. Observe Login State
+        viewModel.loginState
+            .onEach { result ->
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
                         viewModel.updateLoginStatus(true)
                         findNavController().navigate(R.id.scanFragment)
+                        // Optional: viewModel.resetLoginState() here if needed
                     } else {
                         showSnackbar(getString(R.string.sign_in_failed))
                         viewModel.resetLoginState()
                     }
                 }
             }
-        }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
 
-        // Observe Password Reset Email State
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.resetEmailState.collect { result ->
+        // 2. Observe Password Reset Email State
+        viewModel.resetEmailState
+            .onEach { result ->
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
                         showResetPasswordDialog(binding.etEmail.text.toString().trim())
+                        viewModel.resetPasswordResetState() // Clean up state after success
                     } else {
                         showSnackbar(getString(R.string.failed_to_resend_email))
+                        viewModel.resetPasswordResetState() // Clean up state after failure
                     }
                 }
             }
-        }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
     }
 
     private fun setupListeners() {

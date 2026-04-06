@@ -14,7 +14,9 @@ import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -110,4 +112,5 @@ class UserPreferences @Inject constructor(
             preferences[Keys.IS_SIGNED_IN] = isSignedIn
         }
     }
+
 }

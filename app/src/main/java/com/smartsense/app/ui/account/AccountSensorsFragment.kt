@@ -8,14 +8,15 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
 import com.smartsense.app.data.local.entity.SyncStatus
@@ -23,6 +24,9 @@ import com.smartsense.app.databinding.FragmentAccountSensorsBinding
 import com.smartsense.app.databinding.ItemAccSensorBinding
 import com.smartsense.app.domain.model.Sensor
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -44,7 +48,7 @@ class AccountSensorsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupListeners()
-        observeViewModel()
+        setupObservers()
     }
 
     private fun setupRecyclerView() {
@@ -55,7 +59,7 @@ class AccountSensorsFragment : Fragment() {
                     message = getString(R.string.are_you_sure_you_want_to_remove_this_sensor_it_will_be_deleted_from_your_account_and_cloud_storage),
                     onConfirm = {
                         viewModel.unregisterSensor(sensor.address)
-                        viewModel.triggerSync()
+                        forceHideAllLoading()
                     }
                 )
             }
@@ -69,42 +73,53 @@ class AccountSensorsFragment : Fragment() {
         }
     }
 
-    private fun observeViewModel() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+    // Inside onViewCreated or onStart
+    private fun setupObservers() {
+        val scope = viewLifecycleOwner.lifecycleScope
 
-                // Observe Sensors
-                launch {
-                    viewModel.registeredSensors.collect { sensors ->
-                        sensorAdapter.submitList(sensors)
-                        binding.swipeRefresh.isRefreshing = false
-                        binding.rvSensors.isVisible = sensors.isNotEmpty()
-                    }
+        // 1. Observe Registered Sensors
+        viewModel.registeredSensors
+            .onEach { sensors ->
+                sensorAdapter.submitList(sensors)
+                binding.swipeRefresh.isRefreshing = false
+                binding.rvSensors.isVisible = sensors.isNotEmpty()
+            }
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        // 2. Observe Sign Out State
+        viewModel.signOutState
+            .onEach { signedOut ->
+                if (signedOut == true) {
+                    toggleGlobalLoading(false)
+                    viewModel.resetSignOutState()
+                    findNavController().navigate(R.id.accountSignInFragment)
                 }
+            }
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
 
-                // Observe Sign Out
-                launch {
-                    viewModel.signOutState.collect { signedOut ->
-                        if (signedOut == true) {
-                            toggleGlobalLoading(false)
-                            findNavController().navigate(R.id.accountSignInFragment)
-                        }
+        // 3. Observe Delete Account Result
+        viewModel.deleteAccountState
+            .onEach { result ->
+                result?.let {
+                    toggleGlobalLoading(false)
+
+                    it.onSuccess {
+                        viewModel.resetDeleteAccountState()
+                        findNavController().navigate(R.id.accountRegisterFragment)
                     }
-                }
 
-                // Observe Delete Account
-                launch {
-                    viewModel.deleteAccountState.collect { result ->
-                        result?.let {
-                            toggleGlobalLoading(false)
-                            findNavController().navigate(R.id.accountRegisterFragment)
-                        }
+                    it.onFailure { exception ->
+                        val errorMessage = exception.message ?: "Could not delete account."
+                        Snackbar.make(requireView(), errorMessage, Snackbar.LENGTH_LONG).show()
+                        viewModel.resetDeleteAccountState()
                     }
                 }
             }
-        }
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
     }
-
     private fun setupListeners() {
         with(binding) {
             toolbar.btnBack.setOnClickListener { findNavController().popBackStack() }
@@ -119,7 +134,7 @@ class AccountSensorsFragment : Fragment() {
 
             swipeRefresh.setOnRefreshListener {
                 viewModel.triggerSync()
-                observeSyncWork()
+                forceHideAllLoading()
             }
 
             btnDeleteAccount.setOnClickListener {
@@ -130,18 +145,6 @@ class AccountSensorsFragment : Fragment() {
                 )
             }
         }
-    }
-
-    private fun observeSyncWork() {
-        WorkManager.getInstance(requireContext())
-            .getWorkInfosForUniqueWorkLiveData("sensor_sync_work")
-            .observe(viewLifecycleOwner) { workInfoList ->
-                val workInfo = workInfoList?.firstOrNull()
-                // Stop refreshing if work is finished or if no work is found
-                if (workInfo == null || workInfo.state.isFinished) {
-                    binding.swipeRefresh.isRefreshing = false
-                }
-            }
     }
 
     private fun showConfirmationDialog(title: String, message: String, onConfirm: () -> Unit) {
@@ -171,6 +174,13 @@ class AccountSensorsFragment : Fragment() {
         }
     }
 
+    private fun forceHideAllLoading(){
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(2000)
+            _binding?.swipeRefresh?.isRefreshing = false
+            toggleGlobalLoading(false)
+        }
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

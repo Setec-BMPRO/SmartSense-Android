@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.smartsense.app.data.repository.SensorRepository
 
 import dagger.assisted.Assisted
@@ -18,13 +19,16 @@ class SyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         return try {
-            // 1. Push local changes up
-            repository.uploadPendingChanges()
+            val upCount = repository.uploadPendingChanges()
+            val downCount = repository.downloadRemoteChanges()
 
-            // 2. Pull cloud changes down
-            repository.downloadRemoteChanges()
+            // Create the output map
+            val outputData = workDataOf(
+                "KEY_UPLOADED_COUNT" to upCount,
+                "KEY_DOWNLOADED_COUNT" to downCount
+            )
 
-            Result.success()
+            Result.success(outputData)
         } catch (e: Exception) {
             Result.retry()
         }

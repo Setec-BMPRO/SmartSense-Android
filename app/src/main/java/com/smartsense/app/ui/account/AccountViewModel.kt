@@ -14,6 +14,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -140,17 +141,25 @@ class AccountViewModel @Inject constructor(
 
     fun resetLoginState() { _loginState.value = null }
     fun resetSignUpState() { _signUpState.value = null }
-    fun resetResetEmailState() { _resetEmailState.value = null }
-    fun resetUpdatePasswordState() { _updatePasswordState.value = null }
+
 
     fun unregisterSensor(sensorAddress: String) {
         viewModelScope.launch {
-            sensorScanUseCase.unregisterSensor(sensorAddress)
+            sensorScanUseCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
         }
     }
     fun triggerSync() {
         viewModelScope.launch {
             sensorScanUseCase.triggerSync()
         }
+    }
+    fun resetDeleteAccountState(){
+        _deleteAccountState.value = null
+    }
+    fun resetSignOutState(){
+        _signOutState.value=null
+    }
+    fun resetPasswordResetState(){
+        _updatePasswordState.value=null
     }
 }

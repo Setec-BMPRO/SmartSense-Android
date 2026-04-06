@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -19,6 +20,8 @@ import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.detail.SelectedAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -98,36 +101,61 @@ class SettingsFragment : Fragment() {
             SmartSenseApplication.applyTheme(theme.displayName)
         }
     }
-
     private fun observeState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Dropdowns
-                launch { viewModel.unitSystem.collect { binding.unitSystemDropdown.setText(it.displayName, false) } }
-                launch { viewModel.scanInterval.collect { binding.scanIntervalDropdown.setText(it.displayName, false) } }
-                launch { viewModel.sortPreference.collect { binding.sortPreferencesDropdown.setText(it.displayName, false) } }
+        val lifecycle = viewLifecycleOwner.lifecycle
+        val scope = viewLifecycleOwner.lifecycleScope
 
-                // Switches
-                launch { viewModel.notificationsEnabled.collect {
-                    binding.switchNotifications.isChecked = it }
+        // --- Dropdowns ---
+        viewModel.unitSystem
+            .onEach { binding.unitSystemDropdown.setText(it.displayName, false) }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        viewModel.scanInterval
+            .onEach { binding.scanIntervalDropdown.setText(it.displayName, false) }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        viewModel.sortPreference
+            .onEach { binding.sortPreferencesDropdown.setText(it.displayName, false) }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        // --- Switches ---
+        viewModel.notificationsEnabled
+            .onEach { binding.switchNotifications.isChecked = it }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        viewModel.uploadSensorData
+            .onEach { binding.switchUploadSensorData.isChecked = it }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        viewModel.groupFilterEnabled
+            .onEach { binding.switchGroupSensor.isChecked = it }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        viewModel.deviceSearchFilterEnabled
+            .onEach { binding.switchSearchFilter.isChecked = it }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
+
+        // --- Theme ---
+        viewModel.appTheme
+            .onEach { theme ->
+                val btnId = when(theme) {
+                    AppTheme.LIGHT -> R.id.btn_theme_light
+                    AppTheme.DARK -> R.id.btn_theme_dark
+                    AppTheme.SYSTEM -> R.id.btn_theme_system
                 }
-                launch { viewModel.uploadSensorData.collect { binding.switchUploadSensorData.isChecked = it } }
-                launch { viewModel.groupFilterEnabled.collect { binding.switchGroupSensor.isChecked = it } }
-                launch { viewModel.deviceSearchFilterEnabled.collect { binding.switchSearchFilter.isChecked = it } }
-
-                // Theme
-                launch { viewModel.appTheme.collect { theme ->
-                    val btnId = when(theme) {
-                        AppTheme.LIGHT -> R.id.btn_theme_light
-                        AppTheme.DARK -> R.id.btn_theme_dark
-                        AppTheme.SYSTEM -> R.id.btn_theme_system
-                    }
-                    isUpdatingThemeToggle = true
-                    binding.themeToggleGroup.check(btnId)
-                    isUpdatingThemeToggle = false
-                }}
+                isUpdatingThemeToggle = true
+                binding.themeToggleGroup.check(btnId)
+                isUpdatingThemeToggle = false
             }
-        }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
     }
 
     private fun setupButtons() {

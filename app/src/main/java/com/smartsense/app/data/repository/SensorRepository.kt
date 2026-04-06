@@ -42,6 +42,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -67,7 +68,8 @@ class SensorRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     @ApplicationContext private val context: Context,
-    private val appScope: ApplicationScope.AppScope
+    appScope: ApplicationScope.AppScope,
+    private val userPreferences: UserPreferences
 ) {
     companion object {
         private const val TAG = "SensorRepository"
@@ -297,7 +299,7 @@ class SensorRepository @Inject constructor(
     fun getAllRegisteredSensors(): Flow<List<Sensor>> =
         sensorDao.getAllRegisteredSensors().map { entities -> entities.map { it.toDomain() } }
 
-    suspend fun registerSensor(address: String, name: String) {
+    suspend fun registerSensor(address: String, name: String,uploadSensorData: Boolean) {
         if (sensorDao.getSensor(address) != null) return
 
         sensorDao.insertSensor(
@@ -305,21 +307,25 @@ class SensorRepository @Inject constructor(
                 address = address,
                 name = name.ifBlank { address },
                 lastSeenMillis = System.currentTimeMillis(),
-                registered = true
+                registered = true,
+                syncStatus = SyncStatus.PENDING
             )
         )
-        sensorDao.insertTank(TankEntity(sensorAddress = address))
+        sensorDao.insertTank(TankEntity(sensorAddress = address, syncStatus = SyncStatus.PENDING, lastModifiedLocally = System.currentTimeMillis()))
+        if(uploadSensorData)
+            triggerSync()
+    }
+
+    suspend fun unregisterSensor(address: String,uploadSensorData: Boolean) {
+        sensorDao.markSensorForDeletion(address)
+        sensorDao.markTankForDeletion(address)
+        if(uploadSensorData)
         triggerSync()
     }
 
-    suspend fun unregisterSensor(address: String) {
-        sensorDao.markSensorForDeletion(address)
-        sensorDao.deleteTank(address)
-    }
-
-    suspend fun saveTankConfig(tank: Tank) {
+    suspend fun saveTankConfig(tank: Tank,uploadSensorData: Boolean) {
         // 1. Convert domain Tank to Entity and mark as PENDING for cloud sync
-        val tankEntity = tank.toEntity().copy(syncStatus = SyncStatus.PENDING)
+        val tankEntity = tank.toEntity().copy(syncStatus = SyncStatus.PENDING, lastModifiedLocally = System.currentTimeMillis())
 
         // 2. Save/Update the Tank (This is where your Name lives!)
         sensorDao.insertTank(tankEntity)
@@ -333,7 +339,8 @@ class SensorRepository @Inject constructor(
                     address = tank.sensorAddress,
                     name = tank.name, // Initial name
                     registered = true,
-                    syncStatus = SyncStatus.PENDING
+                    syncStatus = SyncStatus.PENDING,
+                    lastModifiedLocally = System.currentTimeMillis()
                 )
             )
         } else {
@@ -343,7 +350,8 @@ class SensorRepository @Inject constructor(
         }
 
         // 4. Push to Cloud
-        triggerSync()
+        if(uploadSensorData)
+            triggerSync()
     }
 
 
@@ -376,109 +384,140 @@ class SensorRepository @Inject constructor(
         )
     }
 
-    suspend fun uploadPendingChanges() {
-        val userId = auth.currentUser?.uid ?: run {
-            Timber.tag(TAG).w("📤 Upload aborted: No authenticated user.")
-            return
-        }
-
-        Timber.tag(TAG).d("📤 Starting upload sync for user: $userId")
+    /**
+     * Pushes local changes (inserts, updates, and deletes) to Firestore.
+     * @return Total number of successful cloud operations.
+     */
+    /**
+     * Pushes local changes (PENDING or DELETED) to Firestore.
+     * @return Total number of successful cloud operations.
+     */
+    suspend fun uploadPendingChanges(): Int {
+        val userId = auth.currentUser?.uid ?: return 0
+        var totalProcessed = 0
 
         try {
-            // --- 1. Sync Sensors (Updates & Deletes) ---
+            // --- 1. Sync Sensors ---
             val pendingSensors = sensorDao.getUnsyncedSensors()
-            if (pendingSensors.isNotEmpty()) {
-                Timber.tag(TAG).i("📡 Found ${pendingSensors.size} pending sensor changes.")
-            }
-
             pendingSensors.forEach { sensor ->
                 val docRef = firestore.collection("users/$userId/sensors").document(sensor.address)
-
+                val tankRef = firestore.collection("users/$userId/tanks").document(sensor.address)
                 if (sensor.syncStatus == SyncStatus.DELETED) {
-                    Timber.tag(TAG).d("🗑️ Deleting sensor from cloud: ${sensor.address}")
                     docRef.delete().await()
+                    //tankRef.delete().await() // This clears the ghost tank from the cloud
+                    // Clean up local DB
                     sensorDao.deleteSensorPermanently(sensor.address)
-                    Timber.tag(TAG).v("✅ Successfully deleted ${sensor.address} locally and from cloud.")
+                    //sensorDao.deleteTankPermanently(sensor.address)
                 } else {
-                    Timber.tag(TAG).d("☁️ Uploading sensor data: ${sensor.address} (Status: ${sensor.syncStatus})")
-                    docRef.set(sensor).await()
+                    val sensorToUpload = sensor.copy(syncStatus = SyncStatus.SYNCED)
+                    docRef.set(sensorToUpload).await()
                     sensorDao.updateSyncStatus(sensor.address, SyncStatus.SYNCED)
-                    Timber.tag(TAG).v("✅ Sensor ${sensor.address} marked as SYNCED.")
                 }
+                totalProcessed++
             }
 
-            // --- 2. Sync Tanks (Updates) ---
+            // --- 2. Sync Tanks ---
             val pendingTanks = sensorDao.getUnsyncedTanks()
-            if (pendingTanks.isNotEmpty()) {
-                Timber.tag(TAG).i("🛢️ Found ${pendingTanks.size} pending tank configurations.")
-            }
-
             pendingTanks.forEach { tank ->
                 val docRef = firestore.collection("users/$userId/tanks").document(tank.sensorAddress)
 
-                Timber.tag(TAG).d("📤 Uploading tank config: ${tank.sensorAddress}")
-                docRef.set(tank).await()
-                sensorDao.updateTankSyncStatus(tank.sensorAddress, SyncStatus.SYNCED)
-                Timber.tag(TAG).v("✅ Tank ${tank.sensorAddress} marked as SYNCED.")
+                // ADDED: Check for DELETED status here too!
+                if (tank.syncStatus == SyncStatus.DELETED) {
+                    docRef.delete().await()
+                    sensorDao.deleteTankPermanently(tank.sensorAddress)
+                } else {
+                    // Normal Upload
+                    val tankToUpload = tank.copy(syncStatus = SyncStatus.SYNCED)
+                    docRef.set(tankToUpload).await()
+                    sensorDao.updateTankSyncStatus(tank.sensorAddress, SyncStatus.SYNCED)
+                }
+                totalProcessed++
             }
-
-            Timber.tag(TAG).i("🏁 Local upload sync completed successfully.")
-
+            return totalProcessed
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "❌ Critical error during upload sync. WorkManager will retry.")
-            throw e // Rethrow to trigger WorkManager's backoff/retry policy
+            throw e
         }
     }
 
-    suspend fun downloadRemoteChanges() {
+    /**
+     * Pulls changes from Firestore and updates local database.
+     * @return Total number of records downloaded/updated.
+     */
+    /**
+     * Pulls changes from Firestore and updates local database.
+     * @return Total number of records downloaded/updated.
+     */
+    suspend fun downloadRemoteChanges(): Int {
         val userId = auth.currentUser?.uid ?: run {
             Timber.tag(TAG).w("📥 Download aborted: No authenticated user.")
-            return
+            return 0
         }
 
+        var totalDownloaded = 0
         Timber.tag(TAG).d("📥 Starting remote sync for user: $userId")
 
         try {
             // --- 1. Sync Sensors ---
-            val sensorSnapshot = firestore.collection("users/$userId/sensors").get().await()
-            val remoteSensors = sensorSnapshot.toObjects(SensorEntity::class.java)
+            // 1. Get the latest timestamp from your local Room DB
+            val lastSensorSyncTime: Long = sensorDao.getLatestSensorModified()?:0L
 
-            Timber.tag(TAG).i("📡 Found ${remoteSensors.size} sensors in Firestore.")
+            // To something more robust for first-time sync:
+            val query = firestore.collection("users/$userId/sensors")
+
+            val sensorSnapshot = if (lastSensorSyncTime == 0L) {
+                // Fresh install: Get everything
+                query.get().await()
+            } else {
+                // Update: Get only new stuff
+                query.whereGreaterThan("last_modified_locally", lastSensorSyncTime).get().await()
+            }
+
+            val remoteSensors = sensorSnapshot.toObjects(SensorEntity::class.java)
 
             remoteSensors.forEach { remote ->
                 val local = sensorDao.getSensor(remote.address)
 
-                // Only update if local is already SYNCED or doesn't exist
+                // Logic: If local doesn't exist (new app) OR local is already SYNCED,
+                // then it's safe to update with cloud data.
                 if (local == null || local.syncStatus == SyncStatus.SYNCED) {
+                    // Force status to SYNCED so the local app knows it's up to date
                     sensorDao.upsertSensor(remote.copy(syncStatus = SyncStatus.SYNCED))
-                    Timber.tag(TAG).v("✅ Updated sensor: ${remote.address}")
+                    totalDownloaded++
                 } else {
-                    Timber.tag(TAG).d("⏭️ Skipping sensor ${remote.address}: Local has pending changes (Status: ${local.syncStatus})")
+                    Timber.tag(TAG).d("⏭️ Skipping sensor ${remote.address}: Local has unsynced changes.")
                 }
             }
 
             // --- 2. Sync Tanks ---
-            val tankSnapshot = firestore.collection("users/$userId/tanks").get().await()
-            val remoteTanks = tankSnapshot.toObjects(TankEntity::class.java)
+            val lastTankSyncTime: Long = sensorDao.getLatestTankModified()?:0L
+            val queryTank = firestore.collection("users/$userId/tanks")
 
-            Timber.tag(TAG).i("🛢️ Found ${remoteTanks.size} tanks in Firestore.")
+            val tankSnapshot = if (lastTankSyncTime == 0L) {
+                // Fresh install: Get everything
+                queryTank.get().await()
+            } else {
+                // Update: Get only new stuff
+                queryTank.whereGreaterThan("last_modified_locally", lastSensorSyncTime).get().await()
+            }
+            val remoteTanks = tankSnapshot.toObjects(TankEntity::class.java)
 
             remoteTanks.forEach { remote ->
                 val local = sensorDao.getTank(remote.sensorAddress)
 
                 if (local == null || local.syncStatus == SyncStatus.SYNCED) {
                     sensorDao.upsertTank(remote.copy(syncStatus = SyncStatus.SYNCED))
-                    Timber.tag(TAG).v("✅ Updated tank config: ${remote.sensorAddress}")
+                    totalDownloaded++
                 } else {
-                    Timber.tag(TAG).d("⏭️ Skipping tank ${remote.sensorAddress}: Local settings are newer (Status: ${local.syncStatus})")
+                    Timber.tag(TAG).d("⏭️ Skipping tank ${remote.sensorAddress}: Local has unsynced changes.")
                 }
             }
 
-            Timber.tag(TAG).i("🏁 Remote download sync completed successfully.")
+            Timber.tag(TAG).i("🏁 Download sync complete. Updated: $totalDownloaded")
+            return totalDownloaded
 
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "❌ Error during remote download sync")
-            throw e // Rethrow so Worker can handle retry logic if needed
+            throw e
         }
     }
 

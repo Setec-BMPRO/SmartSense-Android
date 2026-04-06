@@ -1,5 +1,6 @@
 package com.smartsense.app.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.smartsense.app.domain.model.DEFAULT_ALARM_THRESHOLD_PERCENT
@@ -29,5 +30,10 @@ data class TankEntity(
     val qualityThreshold: String= QualityThreshold.default().name,
 
     // ✅ ADD THIS for Cloud Sync
-    val syncStatus: SyncStatus = SyncStatus.PENDING
+    // --- Sync Fields ---
+    @ColumnInfo(name = "sync_status")
+    val syncStatus: SyncStatus = SyncStatus.SYNCED,
+
+    @ColumnInfo(name = "last_modified_locally")
+    val lastModifiedLocally: Long = System.currentTimeMillis(),
 )

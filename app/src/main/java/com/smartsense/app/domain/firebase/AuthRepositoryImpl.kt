@@ -1,6 +1,7 @@
 package com.smartsense.app.domain.firebase
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -53,8 +54,14 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun deleteAccount(): Result<Unit> {
         return try {
             val user = firebaseAuth.currentUser ?: throw Exception("No authenticated user found.")
-            user.delete().await()
-            Result.success(Unit)
+
+            try {
+                user.delete().await()
+                Result.success(Unit)
+            } catch (e: FirebaseAuthRecentLoginRequiredException) {
+                // This is where you trigger a UI event to ask the user to re-login
+                Result.failure(Exception("Please re-authenticate to delete your account."))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
