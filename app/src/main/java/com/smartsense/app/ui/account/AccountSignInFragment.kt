@@ -69,10 +69,11 @@ class AccountSignInFragment : Fragment() {
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
-                        viewModel.setUploadSensorDataTrue()
+                        if(shouldEnableUpload)
+                            viewModel.setUploadSensorDataTrue()
                         viewModel.updateLoginStatus(true)
+                        viewModel.setUserEmail(binding.etEmail.text.toString().trim())
                         findNavController().navigate(R.id.scanFragment)
-                        // Optional: viewModel.resetLoginState() here if needed
                     } else {
                         showSnackbar(getString(R.string.sign_in_failed))
                         viewModel.resetLoginState()

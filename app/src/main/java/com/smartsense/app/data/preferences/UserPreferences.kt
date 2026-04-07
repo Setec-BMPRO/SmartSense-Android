@@ -39,6 +39,7 @@ class UserPreferences @Inject constructor(
         val GROUP_FILTER_ENABLED = booleanPreferencesKey("group_filter_enabled")
         val DEVICE_SEARCH_FILTER_ENABLED = booleanPreferencesKey("device_search_filter_enabled")
         val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
+        val USER_EMAIL = stringPreferencesKey("user_email")
     }
 
     // -------------------------------------------------------------------------
@@ -74,6 +75,8 @@ class UserPreferences @Inject constructor(
     val groupFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.GROUP_FILTER_ENABLED] ?: false }
     val deviceSearchFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] ?: false }
     val isSignedIn: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_SIGNED_IN] ?: false }
+
+    val userEmail: Flow<String?> = context.dataStore.data.map { it[Keys.USER_EMAIL] }
 
     // -------------------------------------------------------------------------
     // ✍️ Update Functions (Setters)
@@ -122,5 +125,16 @@ class UserPreferences @Inject constructor(
     suspend fun setIsSignedIn(isSignedIn: Boolean) {
         Timber.tag(TAG).i("Setting IsSignedIn status: $isSignedIn")
         context.dataStore.edit { it[Keys.IS_SIGNED_IN] = isSignedIn }
+    }
+
+    suspend fun setUserEmail(email: String?) {
+        Timber.tag(TAG).d("Setting UserEmail: $email")
+        context.dataStore.edit { prefs ->
+            if (email == null) {
+                prefs.remove(Keys.USER_EMAIL)
+            } else {
+                prefs[Keys.USER_EMAIL] = email
+            }
+        }
     }
 }

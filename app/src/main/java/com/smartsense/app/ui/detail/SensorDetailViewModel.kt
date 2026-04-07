@@ -7,6 +7,7 @@ import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.UiState
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.domain.usecase.DetailUseCase
 import com.smartsense.app.domain.usecase.ScanUseCase
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -50,6 +52,10 @@ class Sensor1DetailViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SensorDetailUiState())
     val uiState: StateFlow<SensorDetailUiState> = _uiState.asStateFlow()
+
+    private val _removeUiState = MutableStateFlow(UiState())
+    // 2. Public Read-only StateFlow for the UI
+    val removeUiState = _removeUiState.asStateFlow()
 
     private var observeJob: Job? = null
     private val tickerFlow = flow {
@@ -102,8 +108,25 @@ class Sensor1DetailViewModel @Inject constructor(
 
     fun unregisterSensor() {
         viewModelScope.launch {
-            useCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
+            val result = useCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
+            result.onSuccess { wasSyncTriggered ->
+                Timber.d("✅ UI: Deletion successful for $sensorAddress. Sync triggered: $wasSyncTriggered")
+                _removeUiState.update {
+                    it.copy(
+                        successMessage = if (wasSyncTriggered) "Device removed & Sync started" else "Device removed locally"
+                    )
+                }
+            }.onFailure { error ->
+                val errorMsg = error.message ?: "Unknown Error"
+                Timber.e("❌ UI: Deletion failed for $sensorAddress. Error: $errorMsg")
+                _removeUiState.update {
+                    it.copy(errorMessage = errorMsg)
+                }
+            }
         }
+    }
+    fun clearMessages() {
+        _removeUiState.update { it.copy(successMessage = null) }
     }
 }
 

@@ -11,6 +11,7 @@ import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.firebase.AuthRepositoryImpl
+import com.smartsense.app.domain.network.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -68,8 +69,9 @@ object AppModule {
     @Singleton
     fun provideAuthRepository(
         auth: FirebaseAuth,
-        store: FirebaseFirestore
-    ): AuthRepository = AuthRepositoryImpl(auth, store)
+        store: FirebaseFirestore,
+        networkConnectivityObserver: NetworkConnectivityObserver
+    ): AuthRepository = AuthRepositoryImpl(auth, store,networkConnectivityObserver)
 
     // --- System & Utilities ---
 

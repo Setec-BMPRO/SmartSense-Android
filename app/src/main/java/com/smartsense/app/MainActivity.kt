@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -159,7 +160,7 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
 
     override fun handleTabSelection(destinationId: Int) {
         val selectedView = when (destinationId) {
-            R.id.tab_account, R.id.accountSensorsFragment, R.id.accountRegisterFragment -> binding.tabAccount
+            R.id.tab_account, R.id.accountSensorsFragment, R.id.accountRegisterFragment, R.id.accountSignInFragment -> binding.tabAccount
             R.id.tab_settings, R.id.settingsFragment -> binding.tabSettings
             else -> null
         }

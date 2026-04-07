@@ -163,5 +163,8 @@
     <string name="local_only">Local</string>
     <string name="sign_in_required">Sign In Required</string>
     <string name="you_must_sign_in_to_your_account_to_enable_the_upload_sensor_data_setting">You must sign in to your account to enable the UPLOAD_SENSOR_DATA setting.</string>
+    <string name="re_authentication_required">Re-authentication Required</string>
+    <string name="for_your_security_please_enter_your_password_to_confirm_account_deletion">For your security, please enter your password to confirm account deletion.</string>
+    <string name="confirm">Confirm</string>
 
 </resources>

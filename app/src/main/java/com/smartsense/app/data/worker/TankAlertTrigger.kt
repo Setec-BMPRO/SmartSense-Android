@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Build
 
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.domain.usecase.ScanUseCase
+import com.smartsense.app.domain.usecase.DetailUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -14,10 +14,10 @@ import javax.inject.Singleton
 
 @Singleton
 class TankAlertTrigger @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val userPreferences: UserPreferences,
-    private val userCase: ScanUseCase
-) {
+    private val detailUseCase: DetailUseCase,
+    @ApplicationContext private val context: Context
+    ) {
 
     /**
      * Orchestrates the notification rules.
@@ -34,7 +34,7 @@ class TankAlertTrigger @Inject constructor(
 
             // 2. RULE: Check Specific Item (Tank) Notification Setting
             // Fetching config from Database via UseCase
-            val tankConfig = userCase.getTankConfig(address)
+            val tankConfig = detailUseCase.getTankConfig(address)
             val isItemNotificationEnabled = tankConfig?.notificationsEnabled ?: false
 
             if (!isItemNotificationEnabled) {

@@ -85,8 +85,6 @@ class SettingsFragment : Fragment() {
         binding.switchUploadSensorData.setOnCheckedChangeListener { view, isChecked ->
             if (view.isPressed) {
                 val isSignedIn = viewModel.isSignedIn.value
-                val isCurrentlyEnabled = viewModel.uploadSensorData.value
-
                 when {
                     // Case 1: User is signed in -> Just save the setting
                     isSignedIn -> {

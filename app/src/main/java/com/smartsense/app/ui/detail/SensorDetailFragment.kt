@@ -30,6 +30,7 @@ import timber.log.Timber
 import kotlin.text.ifEmpty
 import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
+import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.domain.model.Sensor
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -140,6 +141,7 @@ class SensorDetailFragment : Fragment() {
         toolbar.tvSubTitle.text = sensor.name
         // Set text IMMEDIATELY so it's "Just now" without waiting for the timer
         lastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+        setupObserve()
 
         setupTankDisplay(sensor)
         setupStatusRow(sensor)
@@ -149,6 +151,19 @@ class SensorDetailFragment : Fragment() {
 
     }
 
+    private fun setupObserve(){
+        // Remove Sensor
+        viewModel.removeUiState
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { state ->
+                // Error Handling
+                state.errorMessage?.let { msg ->
+                    Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                    viewModel.clearMessages()
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
     private fun FragmentSensorDetailBinding.setupTankDisplay(sensor: Sensor) {
         val levelPercent = sensor.tankLevel?.percentage ?: 0f
         detailTank.setLevel(

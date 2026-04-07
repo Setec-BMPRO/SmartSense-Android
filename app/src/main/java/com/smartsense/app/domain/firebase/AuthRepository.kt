@@ -1,5 +1,6 @@
 package com.smartsense.app.domain.firebase
 
+import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseUser
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.domain.model.Sensor
@@ -17,4 +18,6 @@ interface AuthRepository {
 
     fun signOut(): Unit
     fun getRemoteSensorsFlow(): Flow<List<SensorEntity>>
+
+    suspend fun reauthenticateAndDelete(credential: AuthCredential): Result<Unit>
 }

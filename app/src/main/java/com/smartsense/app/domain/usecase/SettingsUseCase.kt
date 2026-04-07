@@ -1,16 +1,15 @@
 package com.smartsense.app.domain.usecase
+import com.google.firebase.auth.FirebaseUser
 import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.model.Sensor
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import javax.inject.Inject
 
 class SettingsUseCase @Inject constructor(
     private val repository: SensorRepository,
     private val authRepository: AuthRepository,
-    private val scanUseCase: ScanUseCase,
     private val sharedUseCase: SharedUseCase
 ) {
     suspend fun unregisterAllSensors(uploadSensorData: Boolean) {
@@ -33,7 +32,7 @@ class SettingsUseCase @Inject constructor(
                 }
                 else -> {
                     Timber.tag("SyncTrigger").d("🚀 Bulk Sync triggered for all deleted items.")
-                    scanUseCase.triggerSync()
+                    sharedUseCase.triggerSync()
                 }
             }
         } catch (e: Exception) {

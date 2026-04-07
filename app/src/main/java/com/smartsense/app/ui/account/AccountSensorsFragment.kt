@@ -16,16 +16,21 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
+import com.smartsense.app.databinding.DialogReauthBinding
 import com.smartsense.app.databinding.FragmentAccountSensorsBinding
 import com.smartsense.app.databinding.ItemAccSensorBinding
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
 import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 
 @AndroidEntryPoint
 class AccountSensorsFragment : Fragment() {
@@ -47,6 +52,7 @@ class AccountSensorsFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         setupObservers()
+
     }
 
     private fun setupRecyclerView() {
@@ -113,16 +119,21 @@ class AccountSensorsFragment : Fragment() {
 
                     it.onFailure { exception ->
                         val errorMessage = exception.message ?: "Could not delete account."
-                        Snackbar.make(requireView(), errorMessage, Snackbar.LENGTH_LONG).show()
                         viewModel.resetDeleteAccountState()
+                        if(exception is FirebaseAuthRecentLoginRequiredException)
+                            showM3ReAuthDialog()
+                        else Snackbar.make(requireView(), errorMessage, Snackbar.LENGTH_LONG).show()
+
+
+
                     }
                 }
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
-        // Remove
-        viewModel.removeUiState
+        // Remove Sensor
+        viewModel.removeSensorUiState
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach { state ->
                 binding.swipeRefresh.isRefreshing=false
@@ -133,6 +144,14 @@ class AccountSensorsFragment : Fragment() {
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewModel.userEmail
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { it ->
+                binding.tvUserEmail.text=it
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
     }
     private fun setupListeners() {
         with(binding) {
@@ -179,6 +198,36 @@ class AccountSensorsFragment : Fragment() {
     }
 
 
+    private fun showM3ReAuthDialog() {
+        val dialogBinding = DialogReauthBinding.inflate(layoutInflater)
+
+        // Create the M3 Dialog
+        val dialog = MaterialAlertDialogBuilder(requireContext(),
+            com.google.android.material.R.style.ThemeOverlay_Material3_MaterialAlertDialog)
+            .setIcon(R.drawable.ic_warning) // M3 supports header icons
+            .setTitle(getString(R.string.re_authentication_required))
+            .setMessage(getString(R.string.for_your_security_please_enter_your_password_to_confirm_account_deletion))
+            .setView(dialogBinding.root)
+            .setPositiveButton(getString(R.string.confirm)) { _, _ ->
+                val password = dialogBinding.etPassword.text.toString()
+                if (password.isNotBlank()) {
+                    handleReAuthAndProceed(password)
+                }
+            }
+            .create()
+
+        dialog.show()
+    }
+
+    private fun handleReAuthAndProceed(password: String) {
+        val email = viewModel.userEmail.value ?: return
+        val credential = EmailAuthProvider.getCredential(email, password)
+
+        // Trigger the background deletion we built earlier
+        toggleGlobalLoading(true)
+        viewModel.finalizeForceDelete(credential)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -206,7 +255,7 @@ class AccountSensorAdapter(
             // UI Logic for the 3 States
             when (item.location) {
                 SensorLocation.LOCAL_ONLY -> {
-                    binding.ivSensorType.setImageResource(R.drawable.ic_location)
+                    binding.ivSensorType.setImageResource(R.drawable.ic_device)
                 }
                 SensorLocation.CLOUD_ONLY -> {
                     binding.ivSensorType.setImageResource(R.drawable.ic_cloud)

@@ -12,6 +12,8 @@ import com.google.firebase.auth.FirebaseUser
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.usecase.ScanUseCase
+import com.smartsense.app.domain.usecase.SharedUseCase
+import com.smartsense.app.domain.usecase.SharedUseCase.Companion.SYNC_WORK_NAME
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -30,8 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
-    @ApplicationContext private val context: Context,
-    private val scanUseCase: ScanUseCase
+    private val sharedUseCase: SharedUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     // --- UI State ---
@@ -51,7 +53,7 @@ class MainViewModel @Inject constructor(
 
     // Sync
     val syncWorkInfo: LiveData<List<WorkInfo>> =
-        WorkManager.getInstance(context).getWorkInfosForUniqueWorkLiveData("sensor_sync_job")
+        WorkManager.getInstance(context).getWorkInfosForUniqueWorkLiveData(SYNC_WORK_NAME)
 
     init {
         checkAuthState()
@@ -89,7 +91,7 @@ class MainViewModel @Inject constructor(
                     // 2. 🛡️ THE GUARD
                     if (isAuthenticated && isSyncEnabled && uid != null) {
                         Timber.i("🚀 SYNC TRIGGERED for UID: $uid")
-                        scanUseCase.triggerSync()
+                        sharedUseCase.triggerSync()
                     } else {
                         // Log exactly why it skipped for debugging
                         val reason = when {

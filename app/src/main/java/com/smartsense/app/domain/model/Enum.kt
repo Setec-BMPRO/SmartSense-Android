@@ -25,3 +25,10 @@ data class SensorUIModel(
     val sensor: Sensor,
     val location: SensorLocation
 )
+
+
+data class UiState(
+    val isDeleting: Boolean = false,
+    val errorMessage: String? = null,
+    val successMessage: String? = null
+)
