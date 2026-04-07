@@ -24,7 +24,7 @@
     <string name="scan_auto_pair_hint">Supported sensors are added automatically</string>
     <string name="sensors_found">%1$d sensor(s) found</string>
     <string name="connected_sensors">Connected</string>
-    <string name="sensor_count_label">%1$d sensors</string>
+    <string name="sensor_count_label">%1$d sensor(s)</string>
     <string name="select_tank_type">Select Tank Type</string>
 
     <!-- Detail -->
@@ -151,20 +151,20 @@
     <string name="all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above">All sensors synced locally to the app will be added to your account and listed above</string>
     <string name="delete_account">Delete Account</string>
     <string name="account">Account</string>
-    <string name="just_a_moment_while_we_get_things_ready">Just a moment while we get things ready...</string>
     <string name="remove_sensor_data_both">Are you sure you want to remove this sensor? It will be deleted from your device and cloud storage.</string>
     <string name="remove_sensor_data_local">This sensor is only stored on this device. If you remove it, you will need to scan it again to add it back.</string>
     <string name="remove_sensor_data_cloud">This sensor is stored in your account but not on this phone. Removing it will permanently delete it from your cloud storage.</string>
-    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out?\nSigning out will automatically disable the Upload Sensor Data setting</string>
+    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out?</string>
     <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data from your cloud. Proceed?</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="tank_info">Tank Info</string>
     <string name="local_only">Local</string>
     <string name="sign_in_required">Sign In Required</string>
-    <string name="you_must_sign_in_to_your_account_to_enable_the_upload_sensor_data_setting">You must sign in to your account to enable the UPLOAD_SENSOR_DATA setting.</string>
+
     <string name="re_authentication_required">Re-authentication Required</string>
     <string name="for_your_security_please_enter_your_password_to_confirm_account_deletion">For your security, please enter your password to confirm account deletion.</string>
     <string name="confirm">Confirm</string>
+    <string name="this_setting_only_works_when_you_re_signed_in">This setting only works when you\'re signed in.</string>
 
 </resources>

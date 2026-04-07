@@ -27,10 +27,8 @@ import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
 import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import timber.log.Timber
 
 @AndroidEntryPoint
 class AccountSensorsFragment : Fragment() {
@@ -65,6 +63,8 @@ class AccountSensorsFragment : Fragment() {
                         SensorLocation.LOCAL_ONLY -> R.string.remove_sensor_data_local
                         else  -> R.string.remove_sensor_data_cloud
                     }),
+                    positiveText = getString(R.string.yes),
+                    negativeText = getString(R.string.no),
                     onConfirm = {
                         viewModel.removeSensor(item)
                     }
@@ -78,6 +78,9 @@ class AccountSensorsFragment : Fragment() {
                 layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
             }
         }
+        binding.swipeRefresh.post {
+            binding.swipeRefresh.isRefreshing = true
+        }
     }
 
     // Inside onViewCreated or onStart
@@ -89,6 +92,7 @@ class AccountSensorsFragment : Fragment() {
             .onEach { list ->
                 // Update your Adapter
                 sensorAdapter.submitList(list)
+                binding.tvSensorCount.text=getString(R.string.sensor_count_label, list.size)
                 binding.swipeRefresh.isRefreshing=false
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -147,7 +151,7 @@ class AccountSensorsFragment : Fragment() {
 
         viewModel.userEmail
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .onEach { it ->
+            .onEach {
                 binding.tvUserEmail.text=it
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -161,6 +165,8 @@ class AccountSensorsFragment : Fragment() {
                 requireContext().showConfirmationDialog(
                     title = getString(R.string.sign_out),
                     message = getString(R.string.are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors),
+                    positiveText = getString(R.string.yes),
+                    negativeText = getString(R.string.no),
                     onConfirm = { viewModel.signOut() }
                 )
             }

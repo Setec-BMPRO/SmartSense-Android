@@ -3,6 +3,7 @@ package com.smartsense.app.ui.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.pipeline.Expression.Companion.ceil
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.model.NotificationFrequency
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.ceil
 
 @HiltViewModel
 class DetailTankSettingsViewModel @Inject constructor(
@@ -209,8 +211,8 @@ data class TankSettingsUiState(
     val useInches: Boolean = true
 ) {
     val customHeightDisplay: String
-        get() = if (useInches) {
-            "%.1f".format(customHeightMeters * 39.3701)
+        get() = if (levelUnit== TankLevelUnit.INCHES) {
+            ceil(customHeightMeters * 39.3701).toInt().toString()
         } else {
             "%.1f".format(customHeightMeters * 100)
         }

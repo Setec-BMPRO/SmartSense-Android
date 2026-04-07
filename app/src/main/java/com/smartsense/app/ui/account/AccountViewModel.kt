@@ -1,5 +1,6 @@
 package com.smartsense.app.ui.account
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.AuthCredential
@@ -11,8 +12,8 @@ import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
 import com.smartsense.app.domain.model.UiState
-import com.smartsense.app.domain.network.NetworkConnectivityObserver
 import com.smartsense.app.domain.usecase.AccountUseCase
+import com.smartsense.app.ui.settings.SettingsFragment.Companion.KEY_ENABLE_UPLOAD_SENSOR_DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -37,7 +37,7 @@ class AccountViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferences: UserPreferences,
     private val useCase: AccountUseCase,
-    private val connectivityObserver: NetworkConnectivityObserver
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     // --- Authentication State Flows ---
@@ -56,9 +56,10 @@ class AccountViewModel @Inject constructor(
     val userEmail: StateFlow<String?> = userPreferences.userEmail
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000), // Keeps flow alive for 5s after UI stops
+            started = SharingStarted.Eagerly, // Keeps flow alive for 5s after UI stops
             initialValue = null
         )
+    val shouldEnableUpload = savedStateHandle[KEY_ENABLE_UPLOAD_SENSOR_DATA] ?: false
 
     // --- Account Management State Flows ---
     private val _signOutState = MutableStateFlow<Boolean?>(null)
@@ -107,7 +108,7 @@ class AccountViewModel @Inject constructor(
                 //userPreferences.setUploadSensorData(false)
                 // Optional network cleanup with safety timeout
                 withTimeoutOrNull(5000) { /* repository.unregisterPushToken() */ }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 userPreferences.setIsSignedIn(false)
             } finally {
                 _signOutState.value = true
@@ -179,9 +180,8 @@ class AccountViewModel @Inject constructor(
     private val refreshTrigger = MutableStateFlow(System.currentTimeMillis())
     val combinedSensors: Flow<List<SensorUIModel>> = combine(
         useCase.getAllRegisteredSensors(),    // Flow<List<Sensor>> from Room
-        refreshTrigger.flatMapLatest { authRepository.getRemoteSensorsFlow() },
-        connectivityObserver.status
-    ) { localList, cloudList, connectionStatus ->
+        refreshTrigger.flatMapLatest { authRepository.getRemoteSensorsFlow() }
+    ) { localList, cloudList ->
         Timber.tag("SyncLog").d("📊 Combine Triggered: Local=${localList.size}, Cloud=${cloudList.size}")
         // Get every unique address from both lists
         val allAddresses = (localList.map { it.address } + cloudList.map { it.address }).distinct()

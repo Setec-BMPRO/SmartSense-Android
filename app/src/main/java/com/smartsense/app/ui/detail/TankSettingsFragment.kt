@@ -348,7 +348,7 @@ class TankSettingsFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(resTitleId)
             .setMessage(resMessageId)
-            .setPositiveButton(R.string.remove) { _, _ -> }
+            .setPositiveButton(R.string.ok) { _, _ -> }
             .show()
     }
 

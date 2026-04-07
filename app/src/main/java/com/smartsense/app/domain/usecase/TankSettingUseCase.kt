@@ -8,8 +8,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class TankSettingUseCase @Inject constructor(
-    private val repository: SensorRepository,
-    private val sharedUseCase: SharedUseCase
+    private val repository: SensorRepository
 ) {
 
     suspend fun saveTankConfig(tank: Tank)=repository.saveTankConfig(tank)

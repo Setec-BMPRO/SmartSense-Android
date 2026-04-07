@@ -151,6 +151,7 @@ class AccountRegisterFragment : Fragment() {
         binding.toolbar.btnBack.isVisible = binding.toolbar.btnRight.isVisible == false
         binding.toolbar.tvTitle.text = getString(R.string.register)
         binding.toolbar.tvSubTitle.text = ""
+        binding.toolbar.btnRight.isVisible=false
     }
 
     override fun onDestroyView() {

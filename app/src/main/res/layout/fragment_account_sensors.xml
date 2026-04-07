@@ -22,7 +22,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/account_sensors"
                 android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -36,6 +35,15 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvAccountTitle" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/tv_sensor_count"
+                android:layout_width="wrap_content"
+                app:layout_constraintTop_toTopOf="@+id/tvAccountTitle"
+                app:layout_constraintBottom_toBottomOf="@+id/tvUserEmail"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                tools:text="5 sensors"/>
             <LinearLayout
                 android:id="@+id/layoutRefresh"
                 android:layout_width="wrap_content"

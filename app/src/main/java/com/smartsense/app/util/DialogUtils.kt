@@ -13,20 +13,30 @@ import com.smartsense.app.R
 fun Context.showConfirmationDialog(
     title: String,
     message: String,
-    positiveText: String=getString(android.R.string.ok),
-    negativeText: String=getString(android.R.string.cancel),
+    positiveText: String = getString(android.R.string.ok),
+    negativeText: String = getString(android.R.string.cancel),
+    neutralText: String? = null, // Optional neutral text
     onConfirm: () -> Unit,
-    onCancel: () -> Unit={}
+    onCancel: () -> Unit = {},
+    onNeutral: (() -> Unit)? = null // Optional neutral callback
 ) {
-    MaterialAlertDialogBuilder(this)
+    val builder = MaterialAlertDialogBuilder(this)
         .setTitle(title)
         .setMessage(message)
         .setCancelable(false)
-        .setNegativeButton(negativeText){_,_ ->
+        .setNegativeButton(negativeText) { _, _ ->
             onCancel()
         }
         .setPositiveButton(positiveText) { _, _ ->
             onConfirm()
         }
-        .show()
+
+    // Only add the neutral button if text is provided
+    if (neutralText != null) {
+        builder.setNeutralButton(neutralText) { _, _ ->
+            onNeutral?.invoke()
+        }
+    }
+
+    builder.show()
 }

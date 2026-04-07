@@ -413,7 +413,8 @@ class SensorRepository @Inject constructor(
                 rawHeightMeters = reading?.rawHeightMeters ?: 0.0,
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                 tankType = calculateTankUseCase.calculateTankType(tank)
-            ).apply { percentage = Random.nextFloat() * 100f }
+            )
+                //.apply { percentage = Random.nextFloat() * 100f }
         } else null
 
         return Sensor(

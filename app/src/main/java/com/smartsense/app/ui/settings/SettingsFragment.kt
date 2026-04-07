@@ -92,29 +92,24 @@ class SettingsFragment : Fragment() {
                     }
 
                     // Case 2: Not signed in, but trying to turn it ON -> Show Warning
-                    !isSignedIn && isChecked -> {
-                        // Immediately revert the switch UI so it doesn't look "ON" while the dialog is open
-                        binding.switchUploadSensorData.isChecked = false
-
+                    isChecked -> {
                         requireContext().showConfirmationDialog(
-                            title = getString(R.string.sign_in_required),
-                            message = getString(R.string.you_must_sign_in_to_your_account_to_enable_the_upload_sensor_data_setting),
+                            title = getString(R.string.upload_sensor_data),
+                            message = getString(R.string.this_setting_only_works_when_you_re_signed_in),
                             positiveText = getString(R.string.sign_in),
+                            negativeText = getString(R.string.ok),
+                            neutralText = getString(R.string.cancel),
                             onConfirm = {
                                 val bundle = bundleOf(KEY_ENABLE_UPLOAD_SENSOR_DATA to true)
                                 findNavController().navigate(R.id.accountSignInFragment, bundle)
-
                                 // Navigate to the correct tab
                                 (requireActivity() as? MainActivityListener)?.handleTabSelection(R.id.tab_account)
-                            }
-                            // onCancel isn't strictly needed here since we already reverted the switch
+                            },
+                            onNeutral = {binding.switchUploadSensorData.isChecked = false}
                         )
                     }
-                    // Case 3: Not signed in, but turning it OFF (or already OFF) -> Allow it
-                    else -> {
-                        // will not happen because it will auto turn off when signed out
-                        viewModel.setUploadSensorData(false)
-                    }
+                    else ->{}
+
                 }
             }
         }

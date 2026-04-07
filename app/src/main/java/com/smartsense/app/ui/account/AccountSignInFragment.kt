@@ -24,17 +24,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
-import com.smartsense.app.databinding.DialogNewPasswordBinding
 import com.smartsense.app.databinding.FragmentAccountSigninBinding
-import com.smartsense.app.ui.settings.SettingsFragment.Companion.KEY_ENABLE_UPLOAD_SENSOR_DATA
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class AccountSignInFragment : Fragment() {
-
-    val shouldEnableUpload = arguments?.getBoolean(KEY_ENABLE_UPLOAD_SENSOR_DATA) ?: false
 
     private var _binding: FragmentAccountSigninBinding? = null
     private val binding get() = _binding!!
@@ -69,7 +65,7 @@ class AccountSignInFragment : Fragment() {
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
-                        if(shouldEnableUpload)
+                        if(viewModel.shouldEnableUpload)
                             viewModel.setUploadSensorDataTrue()
                         viewModel.updateLoginStatus(true)
                         viewModel.setUserEmail(binding.etEmail.text.toString().trim())
@@ -112,7 +108,7 @@ class AccountSignInFragment : Fragment() {
         }
 
         binding.tvRegister.setOnClickListener {
-            findNavController().navigateUp()
+            findNavController().navigate(R.id.accountRegisterFragment)
         }
 
         binding.tvForgotPassword.setOnClickListener {
