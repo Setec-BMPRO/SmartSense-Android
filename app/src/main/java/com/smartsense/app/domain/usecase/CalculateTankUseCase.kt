@@ -1,15 +1,17 @@
 package com.smartsense.app.domain.usecase
 
-import android.util.Log
 import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevel
 import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankPreset.TankType
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.pow
+
 class CalculateTankUseCase @Inject constructor() {
 
     companion object {
+        private const val TAG = "CalculateTankUseCase"
         private const val MIN_OFFSET_METERS = 0.0381
         private const val SCALE_FACTOR = 0.78
     }
@@ -23,18 +25,18 @@ class CalculateTankUseCase @Inject constructor() {
         logStart(rawHeightMeters, tankHeightMm, tankType)
 
         val tankHeightMeters = tankHeightMm / 1000.0
-        Log.d("TankCalc", "tankHeightMeters = $tankHeightMeters")
+        Timber.tag(TAG).d("tankHeightMeters = $tankHeightMeters")
 
         if (tankHeightMeters <= 0) {
-            Log.d("TankCalc", "Invalid tank height → return 0")
+            Timber.tag(TAG).d("Invalid tank height → return 0")
             return TankLevel(0f, 0f)
         }
 
         val effectiveHeight = tankHeightMeters * SCALE_FACTOR
-        Log.d("TankCalc", "effectiveHeight = $effectiveHeight")
+        Timber.tag(TAG).d("effectiveHeight = $effectiveHeight")
 
         if (rawHeightMeters < MIN_OFFSET_METERS) {
-            Log.d("TankCalc", "Below MIN_OFFSET_METERS ($MIN_OFFSET_METERS) → return 0")
+            Timber.tag(TAG).d("Below MIN_OFFSET_METERS ($MIN_OFFSET_METERS) → return 0")
             return TankLevel(0f, 0f)
         }
 
@@ -51,15 +53,14 @@ class CalculateTankUseCase @Inject constructor() {
             )
         }
 
-        Log.d("TankCalc", "percent (raw) = $percent")
+        Timber.tag(TAG).d("percent (raw) = $percent")
 
         val clampedPercent = percent.toFloat().coerceIn(0f, 100f)
-        Log.d("TankCalc", "clampedPercent = $clampedPercent")
+        Timber.tag(TAG).d("clampedPercent = $clampedPercent")
 
         val heightMm = (rawHeightMeters * 1000.0).toFloat()
-        Log.d("TankCalc", "heightMm = $heightMm")
-
-        Log.d("TankCalc", "---- END ----")
+        Timber.tag(TAG).d("heightMm = $heightMm")
+        Timber.tag(TAG).d("---- END ----")
 
         return TankLevel(clampedPercent, heightMm)
     }
@@ -72,17 +73,16 @@ class CalculateTankUseCase @Inject constructor() {
         rawHeightMeters: Double,
         effectiveHeight: Double
     ): Double {
-
-        Log.d("TankCalc", "Mode = VERTICAL/CUSTOM")
+        Timber.tag(TAG).d("Mode = VERTICAL/CUSTOM")
 
         return if (MIN_OFFSET_METERS >= effectiveHeight) {
-            Log.d("TankCalc", "MIN_OFFSET >= effectiveHeight → 100%")
+            Timber.tag(TAG).d("MIN_OFFSET >= effectiveHeight → 100%")
             100.0
         } else {
             val value = 100.0 * (rawHeightMeters - MIN_OFFSET_METERS) /
                     (effectiveHeight - MIN_OFFSET_METERS)
 
-            Log.d("TankCalc", "Vertical formula result = $value")
+            Timber.tag(TAG).d("Vertical formula result = $value")
             value
         }
     }
@@ -91,34 +91,32 @@ class CalculateTankUseCase @Inject constructor() {
         rawHeightMeters: Double,
         effectiveHeight: Double
     ): Double {
-
-        Log.d("TankCalc", "Mode = HORIZONTAL")
-
-        Log.d("TankCalc", "diameter = $effectiveHeight")
+        Timber.tag(TAG).d("Mode = HORIZONTAL")
+        Timber.tag(TAG).d("diameter = $effectiveHeight")
 
         return when {
             rawHeightMeters >= effectiveHeight -> {
-                Log.d("TankCalc", "rawHeight >= diameter → 100%")
+                Timber.tag(TAG).d("rawHeight >= diameter → 100%")
                 100.0
             }
 
             rawHeightMeters <= 0 -> {
-                Log.d("TankCalc", "rawHeight <= 0 → 0%")
+                Timber.tag(TAG).d("rawHeight <= 0 → 0%")
                 0.0
             }
 
             else -> {
                 val norm = rawHeightMeters / effectiveHeight
-                Log.d("TankCalc", "normalized height = $norm")
+                Timber.tag(TAG).d("normalized height = $norm")
 
                 val p = -1.16533 * norm.pow(3) +
                         1.7615 * norm.pow(2) +
                         0.40923 * norm
 
-                Log.d("TankCalc", "polynomial p = $p")
+                Timber.tag(TAG).d("polynomial p = $p")
 
                 val result = 100.0 * p
-                Log.d("TankCalc", "Horizontal result = $result")
+                Timber.tag(TAG).d("Horizontal result = $result")
 
                 result
             }
@@ -134,10 +132,10 @@ class CalculateTankUseCase @Inject constructor() {
         tankHeightMm: Float,
         tankType: TankType
     ) {
-        Log.d("TankCalc", "---- START ----")
-        Log.d("TankCalc", "rawHeightMeters = $rawHeightMeters")
-        Log.d("TankCalc", "tankHeightMm = $tankHeightMm")
-        Log.d("TankCalc", "tankType = $tankType")
+        Timber.tag(TAG).d("---- START ----")
+        Timber.tag(TAG).d("rawHeightMeters = $rawHeightMeters")
+        Timber.tag(TAG).d("tankHeightMm = $tankHeightMm")
+        Timber.tag(TAG).d("tankType = $tankType")
     }
 
     // --------------------------------------

@@ -17,6 +17,7 @@ import no.nordicsemi.android.support.v18.scanner.ScanCallback
 import no.nordicsemi.android.support.v18.scanner.ScanFilter
 import no.nordicsemi.android.support.v18.scanner.ScanResult
 import no.nordicsemi.android.support.v18.scanner.ScanSettings
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,7 +63,7 @@ class BleManager @Inject constructor(
             }
 
             override fun onScanFailed(errorCode: Int) {
-                Log.e(TAG, "Nordic BLE scan failed: $errorCode")
+                Timber.e("Nordic BLE scan failed: $errorCode")
             }
         }
 
@@ -71,9 +72,9 @@ class BleManager @Inject constructor(
         try {
             // Nordic scanner handles compatibility across Android versions internally
             scanner.startScan(buildScanFilters(), buildScanSettings(), callback)
-            Log.d(TAG, "Nordic BLE scan started")
+            Timber.d("Nordic BLE scan started")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to start scan", e)
+            Timber.e(e, "Failed to start scan")
             close(e)
         }
 

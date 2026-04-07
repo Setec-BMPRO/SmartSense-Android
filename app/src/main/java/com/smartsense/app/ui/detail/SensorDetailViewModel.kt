@@ -8,7 +8,7 @@ import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.UnitSystem
-import com.smartsense.app.domain.usecase.SensorScanUseCase
+import com.smartsense.app.domain.usecase.ScanUseCase
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import com.smartsense.app.util.TimeUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class Sensor1DetailViewModel @Inject constructor(
-    private val userCase: SensorScanUseCase,
+    private val userCase: ScanUseCase,
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
     private val alertTrigger: TankAlertTrigger
@@ -102,11 +102,6 @@ class Sensor1DetailViewModel @Inject constructor(
     fun unregisterSensor() {
         viewModelScope.launch {
             userCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
-        }
-    }
-    fun triggerSync() {
-        viewModelScope.launch {
-            userCase.triggerSync()
         }
     }
 }

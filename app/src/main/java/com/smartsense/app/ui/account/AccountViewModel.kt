@@ -10,7 +10,7 @@ import com.smartsense.app.data.repository.SensorRepository
 import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
-import com.smartsense.app.domain.usecase.SensorScanUseCase
+import com.smartsense.app.domain.usecase.ScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
@@ -30,7 +30,7 @@ import javax.inject.Inject
 class AccountViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferences: UserPreferences,
-    private val sensorScanUseCase: SensorScanUseCase,
+    private val scanUseCase: ScanUseCase,
     private val sensorRepository: SensorRepository
 ) : ViewModel() {
 
@@ -91,7 +91,7 @@ class AccountViewModel @Inject constructor(
             try {
                 authRepository.signOut()
                 userPreferences.setIsSignedIn(false)
-
+                userPreferences.setUploadSensorData(false)
                 // Optional network cleanup with safety timeout
                 withTimeoutOrNull(5000) { /* repository.unregisterPushToken() */ }
             } catch (e: Exception) {
@@ -183,7 +183,7 @@ class AccountViewModel @Inject constructor(
             try {
                 when (uiModel.location) {
                     SensorLocation.LOCAL_ONLY -> {
-                        sensorScanUseCase.unregisterSensorTankPermanent(uiModel.sensor.address)
+                        scanUseCase.unregisterSensorTankPermanent(uiModel.sensor.address)
                     }
                     SensorLocation.CLOUD_ONLY -> {
                         val result = authRepository.deleteSensor(uiModel.sensor.address)
@@ -192,7 +192,7 @@ class AccountViewModel @Inject constructor(
                         }
                     }
                     SensorLocation.BOTH -> {
-                        sensorScanUseCase.unregisterSensor(uiModel.sensor.address, true)
+                        scanUseCase.unregisterSensor(uiModel.sensor.address, true)
                     }
                 }
             } catch (e: Exception) {
@@ -214,6 +214,13 @@ class AccountViewModel @Inject constructor(
             // 1. Force the Flow to restart by changing the timestamp
             refreshTrigger.value = System.currentTimeMillis()
         }
+    }
+
+    fun setUploadSensorDataTrue(){
+        viewModelScope.launch {
+            userPreferences.setUploadSensorData(true)
+        }
+
     }
 
 }

@@ -3,27 +3,26 @@ package com.smartsense.app.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.domain.model.AppTheme
-import com.smartsense.app.domain.model.ScanIntervals
-import com.smartsense.app.domain.model.SortPreference
-import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.domain.model.*
 import com.smartsense.app.domain.usecase.SettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
     private val settingsUseCase: SettingsUseCase
-
 ) : ViewModel() {
 
-    // --- StateFlows using Enums ---
+    // -------------------------------------------------------------------------
+    // 📊 Preference States (Enums)
+    // -------------------------------------------------------------------------
+
     val unitSystem: StateFlow<UnitSystem> = userPreferences.unitSystem
         .stateIn(viewModelScope, SharingStarted.Eagerly, UnitSystem.METRIC)
 
@@ -35,8 +34,13 @@ class SettingsViewModel @Inject constructor(
 
     val sortPreference: StateFlow<SortPreference> = userPreferences.sortPreference
         .stateIn(viewModelScope, SharingStarted.Eagerly, SortPreference.NAME)
+    val isSignedIn: StateFlow<Boolean> = userPreferences.isSignedIn
+        .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = false)
 
-    // --- Boolean States ---
+    // -------------------------------------------------------------------------
+    // 🎛️ Toggle States (Booleans)
+    // -------------------------------------------------------------------------
+
     val notificationsEnabled: StateFlow<Boolean> = userPreferences.notificationsEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
@@ -49,28 +53,39 @@ class SettingsViewModel @Inject constructor(
     val deviceSearchFilterEnabled: StateFlow<Boolean> = userPreferences.deviceSearchFilterEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    // --- Update Functions ---
-    fun setUnitSystem(unit: UnitSystem) = viewModelScope.launch { userPreferences.setUnitSystem(unit) }
+    // -------------------------------------------------------------------------
+    // ✍️ Update Functions
+    // -------------------------------------------------------------------------
 
-    fun setScanInterval(interval: ScanIntervals) = viewModelScope.launch { userPreferences.setScanInterval(interval) }
+    fun setUnitSystem(unit: UnitSystem) =
+        viewModelScope.launch { userPreferences.setUnitSystem(unit) }
 
-    fun setAppTheme(theme: AppTheme) = viewModelScope.launch { userPreferences.setAppTheme(theme) }
+    fun setScanInterval(interval: ScanIntervals) =
+        viewModelScope.launch { userPreferences.setScanInterval(interval) }
 
-    fun setSortPreference(sort: SortPreference) = viewModelScope.launch { userPreferences.setSortPreference(sort) }
+    fun setAppTheme(theme: AppTheme) =
+        viewModelScope.launch { userPreferences.setAppTheme(theme) }
 
-    fun setNotificationsEnabled(enabled: Boolean) = viewModelScope.launch { userPreferences.setNotificationsEnabled(enabled) }
+    fun setSortPreference(sort: SortPreference) =
+        viewModelScope.launch { userPreferences.setSortPreference(sort) }
 
-    fun setUploadSensorData(enabled: Boolean) = viewModelScope.launch { userPreferences.setUploadSensorData(enabled) }
+    fun setNotificationsEnabled(enabled: Boolean) =
+        viewModelScope.launch { userPreferences.setNotificationsEnabled(enabled) }
 
-    fun setGroupFilterEnabled(enabled: Boolean) = viewModelScope.launch { userPreferences.setGroupFilterEnabled(enabled) }
+    fun setUploadSensorData(enabled: Boolean) =
+        viewModelScope.launch { userPreferences.setUploadSensorData(enabled) }
 
-    fun setDeviceSearchFilterEnabled(enabled: Boolean) = viewModelScope.launch { userPreferences.setDeviceSearchFilterEnabled(enabled) }
+    fun setGroupFilterEnabled(enabled: Boolean) =
+        viewModelScope.launch { userPreferences.setGroupFilterEnabled(enabled) }
 
-    fun deleteAllSensors() = viewModelScope.launch {  settingsUseCase.unregisterAllSensors()  }
+    fun setDeviceSearchFilterEnabled(enabled: Boolean) =
+        viewModelScope.launch { userPreferences.setDeviceSearchFilterEnabled(enabled) }
 
 
+    // -------------------------------------------------------------------------
+    // 🗑️ Data Management
+    // -------------------------------------------------------------------------
 
+    fun deleteAllSensors() =
+        viewModelScope.launch { settingsUseCase.unregisterAllSensors() }
 }
-
-
-

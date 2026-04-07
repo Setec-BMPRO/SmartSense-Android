@@ -26,7 +26,6 @@ import com.smartsense.app.databinding.FragmentAccountRegisterBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class AccountRegisterFragment : Fragment() {
 
@@ -84,6 +83,7 @@ class AccountRegisterFragment : Fragment() {
 
         binding.tvSignIn.setOnClickListener {
             findNavController().navigate(R.id.action_to_sign_in)
+            (requireActivity() as MainActivityListener).handleTabSelection(R.id.tab_account)
         }
     }
 
@@ -123,7 +123,7 @@ class AccountRegisterFragment : Fragment() {
     }
 
     private fun setupSignInLink() {
-        val fullText = "Sign In"
+        val fullText = getString(R.string.sign_in)
         val spannable = SpannableString(fullText)
         val linkColor = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorPrimary)
 
@@ -149,7 +149,7 @@ class AccountRegisterFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.toolbar.btnBack.isVisible = binding.toolbar.btnRight.isVisible == false
-        binding.toolbar.tvTitle.text = "Register"
+        binding.toolbar.tvTitle.text = getString(R.string.register)
         binding.toolbar.tvSubTitle.text = ""
     }
 

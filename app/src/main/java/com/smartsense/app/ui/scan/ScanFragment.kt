@@ -15,7 +15,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -48,7 +47,7 @@ class ScanFragment : Fragment() {
     private var _binding: FragmentScanBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: Scan1ViewModel by viewModels()
+    private val viewModel: ScanViewModel by viewModels()
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
     // Initialize the helper
     private lateinit var blePermissionManager: BlePermissionManager
@@ -106,7 +105,7 @@ class ScanFragment : Fragment() {
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
             viewModel.setFilterQuery(text.toString())
         }
-        binding.filterLayout.isVisible=viewModel.deviceSearchFilterEnabled
+        binding.filterLayout.isVisible=viewModel.deviceSearchFilterEnabled.value
     }
 
     private fun observeViewModel() {

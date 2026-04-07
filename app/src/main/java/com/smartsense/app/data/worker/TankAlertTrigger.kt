@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Build
 
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.domain.usecase.SensorScanUseCase
+import com.smartsense.app.domain.usecase.ScanUseCase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -16,7 +16,7 @@ import javax.inject.Singleton
 class TankAlertTrigger @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userPreferences: UserPreferences,
-    private val userCase: SensorScanUseCase
+    private val userCase: ScanUseCase
 ) {
 
     /**

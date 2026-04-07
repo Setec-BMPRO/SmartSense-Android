@@ -22,6 +22,7 @@ import com.smartsense.app.databinding.FragmentAccountSensorsBinding
 import com.smartsense.app.databinding.ItemAccSensorBinding
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
+import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -51,7 +52,7 @@ class AccountSensorsFragment : Fragment() {
     private fun setupRecyclerView() {
         sensorAdapter = AccountSensorAdapter(
             onDeleteClick = { item ->
-                showConfirmationDialog(
+                requireContext().showConfirmationDialog(
                     title = getString(R.string.remove_sensor),
                     message = getString(when(item.location){
                         SensorLocation.BOTH -> R.string.remove_sensor_data_both
@@ -138,7 +139,7 @@ class AccountSensorsFragment : Fragment() {
             toolbar.btnBack.setOnClickListener { findNavController().popBackStack() }
 
             toolbar.btnRight.setOnClickListener {
-                showConfirmationDialog(
+                requireContext().showConfirmationDialog(
                     title = getString(R.string.sign_out),
                     message = getString(R.string.are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors),
                     onConfirm = { viewModel.signOut() }
@@ -150,7 +151,7 @@ class AccountSensorsFragment : Fragment() {
             }
 
             btnDeleteAccount.setOnClickListener {
-                showConfirmationDialog(
+                requireContext().showConfirmationDialog(
                     title = getString(R.string.delete_account),
                     message = getString(R.string.this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed),
                     onConfirm = {
@@ -160,17 +161,6 @@ class AccountSensorsFragment : Fragment() {
                 )
             }
         }
-    }
-
-    private fun showConfirmationDialog(title: String, message: String, onConfirm: () -> Unit) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(title)
-            .setMessage(message)
-            .setNegativeButton(getString(R.string.no), null)
-            .setPositiveButton(getString(R.string.yes)) { _, _ ->
-                onConfirm()
-            }
-            .show()
     }
 
     private fun toggleGlobalLoading(show: Boolean) {

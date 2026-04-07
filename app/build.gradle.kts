@@ -10,9 +10,6 @@ plugins {
 android {
     namespace = "com.smartsense.app"
     compileSdk = 35
-    buildFeatures {
-        buildConfig = true
-    }
 
     defaultConfig {
         applicationId = "com.smartsense.app"
@@ -22,6 +19,11 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        buildConfig = true
+        viewBinding = true
     }
 
     buildTypes {
@@ -42,69 +44,65 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-
-    buildFeatures {
-        viewBinding = true
-    }
 }
 
 dependencies {
-    implementation(libs.material)
+    // --- AndroidX & Core ---
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
+    implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.recyclerview)
     implementation(libs.swiperefreshlayout)
+    implementation(libs.fragment.ktx)
 
+    // --- Navigation ---
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
 
+    // --- Lifecycle ---
+    implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.lifecycle.livedata.ktx)
-    implementation(libs.lifecycle.runtime.ktx)
-    implementation(libs.fragment.ktx)
 
+    // --- Dependency Injection (Hilt) ---
     implementation(libs.hilt.android)
-
     kapt(libs.hilt.compiler)
+    implementation(libs.hilt.work)
+    kapt(libs.hilt.work.compiler)
 
+    // --- WorkManager ---
+    implementation(libs.work.runtime.ktx)
+
+    // --- Data Storage (Room & DataStore) ---
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
     implementation(libs.datastore.preferences)
+    implementation(libs.sqlite.ktx)
+    implementation(libs.sqlite)
 
-    implementation(libs.coroutines.android)
+    // --- Coroutines ---
     implementation(libs.coroutines.core)
+    implementation(libs.coroutines.android)
+    implementation(libs.coroutines.play.services)
 
+    // --- Firebase ---
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+
+    // --- Bluetooth & Utility ---
+    implementation(libs.nordic.scanner)
+    implementation(libs.play.services.location)
+    implementation(libs.timber)
+
+    // --- UI Helpers (Groupie) ---
+    implementation(libs.groupie)
+    implementation(libs.groupie.viewbinding)
+
+    // --- Testing ---
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
-
-    // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
-    implementation("com.google.android.gms:play-services-location:21.0.1")
-    implementation("com.jakewharton.timber:timber:5.0.1")
-
-    implementation("com.github.lisawray.groupie:groupie:2.10.1")
-    implementation("com.github.lisawray.groupie:groupie-viewbinding:2.10.1")
-
-    implementation(platform("com.google.firebase:firebase-bom:34.11.0"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-storage")
-    // Hilt WorkManager Integration
-    implementation("androidx.hilt:hilt-work:1.2.0")
-
-    // Use Kapt or KSP for the compiler (match what you use for Hilt)
-    kapt("androidx.hilt:hilt-compiler:1.2.0")
-
-    // Standard WorkManager (Kotlin + Coroutines support)
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
-
-    implementation("no.nordicsemi.android.support.v18:scanner:1.6.0")
-//    implementation("androidx.sqlite:sqlite-bundled:2.5.0-alpha01")
-    // ✅ ADD THIS to resolve the Missing Class error:
-    implementation("androidx.sqlite:sqlite-ktx:2.4.0")
-    implementation("androidx.sqlite:sqlite:2.4.0")
-
 }

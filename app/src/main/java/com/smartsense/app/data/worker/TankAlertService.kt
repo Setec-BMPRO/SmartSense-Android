@@ -14,11 +14,13 @@ import com.smartsense.app.R
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.TankEntity
 import com.smartsense.app.domain.model.NotificationFrequency
+import com.smartsense.app.domain.model.TriggerAlarmUnit
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -64,8 +66,8 @@ class TankAlertService : Service() {
 
                 // Logic check: Above or Below
                 val isTriggered = when (tank.triggerAlarmUnit.lowercase().trim()) {
-                    "above" -> currentLevel >= tank.alarmThresholdPercent
-                    "below" -> currentLevel < tank.alarmThresholdPercent
+                    TriggerAlarmUnit.ABOVE.name.lowercase() -> currentLevel >= tank.alarmThresholdPercent
+                    TriggerAlarmUnit.BELOW.name.lowercase() -> currentLevel < tank.alarmThresholdPercent
                     else -> false
                 }
 
@@ -79,7 +81,7 @@ class TankAlertService : Service() {
                     resetAlertState(tank.sensorAddress)
                 }
             } catch (e: Exception) {
-                Log.e("TankAlertService", "Error processing scan: ${e.message}")
+                Timber.e("Error processing scan: ${e.message}")
             } finally {
                 // 3. PERFORMANCE: Stop the service once this specific task is finished
                 // If 5 scans are running, it only stops after the last startId is reached

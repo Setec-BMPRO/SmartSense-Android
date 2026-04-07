@@ -2,7 +2,6 @@ package com.smartsense.app
 
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.repository.SensorRepository
+import com.smartsense.app.domain.usecase.ScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -24,13 +24,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val sensorRepository: SensorRepository,
     private val userPreferences: UserPreferences,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val scanUseCase: ScanUseCase
 ) : ViewModel() {
 
     // --- UI State ---
@@ -67,20 +68,37 @@ class MainViewModel @Inject constructor(
                 userPreferences.uploadSensorData.distinctUntilChanged(),
                 authStateFlow.distinctUntilChanged()
             ) { isSignedIn, isSyncEnabled, firebaseUser ->
-                // Create a stable data bundle
+                // Log the raw inputs before processing
+                Timber.d("📥 Raw Input - SignedIn: $isSignedIn, SyncEnabled: $isSyncEnabled, UID: ${firebaseUser?.uid}")
+
                 Triple(isSignedIn && firebaseUser != null, isSyncEnabled, firebaseUser?.uid)
             }
-                .distinctUntilChanged() // 👈 Only proceed if the Triple actually changes
+                .distinctUntilChanged()
                 .collectLatest { (isAuthenticated, isSyncEnabled, uid) ->
+                    Timber.i("🔄 Combined State - Auth: $isAuthenticated, Sync: $isSyncEnabled, UID: $uid")
 
-                    // 1. Update UI State regardless
-                    _uiState.value = if (isAuthenticated) MainUiState.Authenticated else MainUiState.Unauthenticated
+                    // 1. Update UI State
+                    _uiState.value = if (isAuthenticated) {
+                        Timber.d("✅ UI State: Authenticated")
+                        MainUiState.Authenticated
+                    } else {
+                        Timber.d("❌ UI State: Unauthenticated")
+                        MainUiState.Unauthenticated
+                    }
 
-                    // 2. 🛡️ THE GUARD: Only trigger sync if we have a valid User + Sync is ON
-                    // This prevents the 'null' or 'false' emissions from starting the worker
+                    // 2. 🛡️ THE GUARD
                     if (isAuthenticated && isSyncEnabled && uid != null) {
-                        Log.d("Sync", "🚀 Valid Sync Triggered for UID: $uid")
-                        sensorRepository.triggerSync()
+                        Timber.i("🚀 SYNC TRIGGERED for UID: $uid")
+                        scanUseCase.triggerSync()
+                    } else {
+                        // Log exactly why it skipped for debugging
+                        val reason = when {
+                            !isAuthenticated -> "User not authenticated"
+                            !isSyncEnabled -> "Sync toggle is OFF"
+                            uid == null -> "UID is null"
+                            else -> "Unknown condition"
+                        }
+                        Timber.w("🛑 Sync Skipped: $reason")
                     }
                 }
         }

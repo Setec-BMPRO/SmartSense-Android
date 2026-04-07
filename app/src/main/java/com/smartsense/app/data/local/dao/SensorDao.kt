@@ -82,8 +82,12 @@ interface SensorDao {
     @Query("SELECT * FROM sensors WHERE sync_status != 'SYNCED'")
     suspend fun getUnsyncedSensors(): List<SensorEntity>
 
-    @Query("UPDATE sensors SET sync_status = :status WHERE address = :address")
-    suspend fun updateSyncStatus(address: String, status: SyncStatus)
+    @Query(" UPDATE sensors SET sync_status = :status, last_modified_locally = :timestamp WHERE address = :address")
+    suspend fun updateSyncStatus(
+        address: String,
+        status: SyncStatus,
+        timestamp: Long = System.currentTimeMillis()
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertSensor(sensor: SensorEntity)
@@ -94,8 +98,12 @@ interface SensorDao {
     @Query("SELECT * FROM tanks WHERE sync_status != 'SYNCED'")
     suspend fun getUnsyncedTanks(): List<TankEntity>
 
-    @Query("UPDATE tanks SET sync_status = :status WHERE sensorAddress = :address")
-    suspend fun updateTankSyncStatus(address: String, status: SyncStatus)
+    @Query(" UPDATE tanks SET sync_status = :status, last_modified_locally = :timestamp WHERE sensorAddress = :address")
+    suspend fun updateTankSyncStatus(
+        address: String,
+        status: SyncStatus,
+        timestamp: Long = System.currentTimeMillis()
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertTank(tank: TankEntity)
@@ -110,10 +118,11 @@ interface SensorDao {
     /**
      * Updated: Uses parameter to ensure DELETED status is applied correctly.
      */
-    @Query("UPDATE sensors SET sync_status = :status WHERE address = :address")
+    @Query("UPDATE sensors SET sync_status = :status, last_modified_locally = :timestamp WHERE address = :address")
     suspend fun markSensorForDeletion(
         address: String,
-        status: SyncStatus = SyncStatus.DELETED
+        status: SyncStatus = SyncStatus.DELETED,
+        timestamp: Long = System.currentTimeMillis()
     )
 
     @Query("DELETE FROM sensors WHERE address = :address")

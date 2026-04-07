@@ -155,11 +155,14 @@
     <string name="remove_sensor_data_both">Are you sure you want to remove this sensor? It will be deleted from your device and cloud storage.</string>
     <string name="remove_sensor_data_local">This sensor is only stored on this device. If you remove it, you will need to scan it again to add it back.</string>
     <string name="remove_sensor_data_cloud">This sensor is stored in your account but not on this phone. Removing it will permanently delete it from your cloud storage.</string>
-    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out? You’ll need to sign back in to access your sensors.</string>
+    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out?\n
+Signing out will automatically disable the Upload Sensor Data setting</string>
     <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data. Proceed?</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="tank_info">Tank Info</string>
     <string name="local_only">Local</string>
+    <string name="sign_in_required">Sign In Required</string>
+    <string name="you_must_sign_in_to_your_account_to_enable_the_upload_sensor_data_setting">You must sign in to your account to enable the UPLOAD_SENSOR_DATA setting.</string>
 
 </resources>

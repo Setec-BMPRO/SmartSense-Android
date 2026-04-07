@@ -14,9 +14,8 @@ import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,21 +25,25 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 class UserPreferences @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    companion object {
+        private const val TAG = "UserPreferences"
+    }
+
     private object Keys {
         val UNIT_SYSTEM = stringPreferencesKey("unit_system")
-        val SCAN_INTERVAL = intPreferencesKey("scan_interval_value") // Store the Int value
+        val SCAN_INTERVAL = intPreferencesKey("scan_interval_value")
         val APP_THEME = stringPreferencesKey("app_theme")
         val SORT_PREFERENCE = stringPreferencesKey("sort_preference")
-
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val UPLOAD_SENSOR_DATA = booleanPreferencesKey("upload_sensor_data")
         val GROUP_FILTER_ENABLED = booleanPreferencesKey("group_filter_enabled")
         val DEVICE_SEARCH_FILTER_ENABLED = booleanPreferencesKey("device_search_filter_enabled")
-
         val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
     }
 
-    // --- Enum-based Flow Observables ---
+    // -------------------------------------------------------------------------
+    // 📡 Enum-based Flow Observables
+    // -------------------------------------------------------------------------
 
     val unitSystem: Flow<UnitSystem> = context.dataStore.data.map { prefs ->
         val name = prefs[Keys.UNIT_SYSTEM] ?: UnitSystem.METRIC.name
@@ -62,55 +65,62 @@ class UserPreferences @Inject constructor(
         SortPreference.entries.find { it.name == name } ?: SortPreference.NAME
     }
 
-    // --- Boolean Flow Observables ---
+    // -------------------------------------------------------------------------
+    // 📡 Boolean Flow Observables
+    // -------------------------------------------------------------------------
 
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.NOTIFICATIONS_ENABLED] ?: true }
-    val uploadSensorData: Flow<Boolean> = context.dataStore.data.map { it[Keys.UPLOAD_SENSOR_DATA] ?: false }
+    val uploadSensorData: Flow<Boolean> = context.dataStore.data.map { it[Keys.UPLOAD_SENSOR_DATA] ?: true }
     val groupFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.GROUP_FILTER_ENABLED] ?: false }
     val deviceSearchFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] ?: false }
+    val isSignedIn: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_SIGNED_IN] ?: false }
 
-    val isSignedIn: Flow<Boolean> = context.dataStore.data
-        .map { prefs ->
-            prefs[Keys.IS_SIGNED_IN] ?: false
-        }
-    // --- Update Functions ---
+    // -------------------------------------------------------------------------
+    // ✍️ Update Functions (Setters)
+    // -------------------------------------------------------------------------
 
     suspend fun setUnitSystem(unitSystem: UnitSystem) {
+        Timber.tag(TAG).d("Setting UnitSystem: ${unitSystem.name}")
         context.dataStore.edit { it[Keys.UNIT_SYSTEM] = unitSystem.name }
     }
 
     suspend fun setScanInterval(interval: ScanIntervals) {
+        Timber.tag(TAG).d("Setting ScanInterval: ${interval.name} (${interval.value}ms)")
         context.dataStore.edit { it[Keys.SCAN_INTERVAL] = interval.value }
     }
 
     suspend fun setAppTheme(theme: AppTheme) {
+        Timber.tag(TAG).d("Setting AppTheme: ${theme.name}")
         context.dataStore.edit { it[Keys.APP_THEME] = theme.name }
     }
 
     suspend fun setSortPreference(sort: SortPreference) {
+        Timber.tag(TAG).d("Setting SortPreference: ${sort.name}")
         context.dataStore.edit { it[Keys.SORT_PREFERENCE] = sort.name }
     }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
+        Timber.tag(TAG).d("Setting NotificationsEnabled: $enabled")
         context.dataStore.edit { it[Keys.NOTIFICATIONS_ENABLED] = enabled }
     }
 
     suspend fun setUploadSensorData(enabled: Boolean) {
+        Timber.tag(TAG).d("Setting UploadSensorData: $enabled")
         context.dataStore.edit { it[Keys.UPLOAD_SENSOR_DATA] = enabled }
     }
 
     suspend fun setGroupFilterEnabled(enabled: Boolean) {
+        Timber.tag(TAG).d("Setting GroupFilterEnabled: $enabled")
         context.dataStore.edit { it[Keys.GROUP_FILTER_ENABLED] = enabled }
     }
 
     suspend fun setDeviceSearchFilterEnabled(enabled: Boolean) {
+        Timber.tag(TAG).d("Setting DeviceSearchFilterEnabled: $enabled")
         context.dataStore.edit { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] = enabled }
     }
 
     suspend fun setIsSignedIn(isSignedIn: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[Keys.IS_SIGNED_IN] = isSignedIn
-        }
+        Timber.tag(TAG).i("Setting IsSignedIn status: $isSignedIn")
+        context.dataStore.edit { it[Keys.IS_SIGNED_IN] = isSignedIn }
     }
-
 }

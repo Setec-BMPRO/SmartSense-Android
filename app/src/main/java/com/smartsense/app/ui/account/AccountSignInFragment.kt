@@ -26,12 +26,15 @@ import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
 import com.smartsense.app.databinding.DialogNewPasswordBinding
 import com.smartsense.app.databinding.FragmentAccountSigninBinding
+import com.smartsense.app.ui.settings.SettingsFragment.Companion.KEY_ENABLE_UPLOAD_SENSOR_DATA
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class AccountSignInFragment : Fragment() {
+
+    val shouldEnableUpload = arguments?.getBoolean(KEY_ENABLE_UPLOAD_SENSOR_DATA) ?: false
 
     private var _binding: FragmentAccountSigninBinding? = null
     private val binding get() = _binding!!
@@ -66,6 +69,7 @@ class AccountSignInFragment : Fragment() {
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
+                        viewModel.setUploadSensorDataTrue()
                         viewModel.updateLoginStatus(true)
                         findNavController().navigate(R.id.scanFragment)
                         // Optional: viewModel.resetLoginState() here if needed

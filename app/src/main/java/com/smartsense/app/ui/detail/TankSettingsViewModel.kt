@@ -13,7 +13,7 @@ import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
-import com.smartsense.app.domain.usecase.SensorScanUseCase
+import com.smartsense.app.domain.usecase.ScanUseCase
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,14 +22,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
 class DetailTankSettingsViewModel @Inject constructor(
     private val repository: SensorRepository,
     savedStateHandle: SavedStateHandle,
-    private val userCase: SensorScanUseCase,
+    private val userCase: ScanUseCase,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
 
@@ -153,7 +152,7 @@ class DetailTankSettingsViewModel @Inject constructor(
     fun save() {
         val state = _uiState.value
         viewModelScope.launch {
-            repository.saveTankConfig(
+            userCase.saveTankConfig(
                 Tank(
                     sensorAddress = state.sensorAddress,
                     name = state.name,
@@ -167,8 +166,10 @@ class DetailTankSettingsViewModel @Inject constructor(
                     alarmThresholdPercent = state.alarmThresholdPercent,
                     notificationFrequency = state.notificationFrequency,
                     triggerAlarmUnit = state.triggerAlarmUnit
-                ), userPreferences.uploadSensorData.first()
+                )
             )
+            if(userPreferences.uploadSensorData.first())
+                userCase.triggerSync()
             _uiState.update { it.copy(isSaved = true) }
         }
     }

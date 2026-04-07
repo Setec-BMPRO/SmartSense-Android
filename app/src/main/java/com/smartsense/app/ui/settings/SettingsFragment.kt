@@ -1,16 +1,20 @@
 package com.smartsense.app.ui.settings
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
 import com.smartsense.app.SmartSenseApplication
 import com.smartsense.app.databinding.FragmentSettingsBinding
@@ -19,14 +23,18 @@ import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.detail.SelectedAdapter
+import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
-
+    companion object{
+        const val KEY_ENABLE_UPLOAD_SENSOR_DATA = "ENABLE_UPLOAD_SENSOR_DATA"
+    }
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by viewModels()
@@ -79,8 +87,43 @@ class SettingsFragment : Fragment() {
             viewModel.setNotificationsEnabled(isChecked)
         }
         binding.switchUploadSensorData.setOnCheckedChangeListener { view, isChecked ->
-            if (view.isPressed)
-            viewModel.setUploadSensorData(isChecked) }
+            if (view.isPressed) {
+                val isSignedIn = viewModel.isSignedIn.value
+                val isCurrentlyEnabled = viewModel.uploadSensorData.value
+
+                when {
+                    // Case 1: User is signed in -> Just save the setting
+                    isSignedIn -> {
+                        viewModel.setUploadSensorData(isChecked)
+                    }
+
+                    // Case 2: Not signed in, but trying to turn it ON -> Show Warning
+                    !isSignedIn && isChecked -> {
+                        // Immediately revert the switch UI so it doesn't look "ON" while the dialog is open
+                        binding.switchUploadSensorData.isChecked = false
+
+                        requireContext().showConfirmationDialog(
+                            title = getString(R.string.sign_in_required),
+                            message = getString(R.string.you_must_sign_in_to_your_account_to_enable_the_upload_sensor_data_setting),
+                            positiveText = getString(R.string.sign_in),
+                            onConfirm = {
+                                val bundle = bundleOf(KEY_ENABLE_UPLOAD_SENSOR_DATA to true)
+                                findNavController().navigate(R.id.accountSignInFragment, bundle)
+
+                                // Navigate to the correct tab
+                                (requireActivity() as? MainActivityListener)?.handleTabSelection(R.id.tab_account)
+                            }
+                            // onCancel isn't strictly needed here since we already reverted the switch
+                        )
+                    }
+                    // Case 3: Not signed in, but turning it OFF (or already OFF) -> Allow it
+                    else -> {
+                        // will not happen because it will auto turn off when signed out
+                        viewModel.setUploadSensorData(false)
+                    }
+                }
+            }
+        }
         binding.switchGroupSensor.setOnCheckedChangeListener { view, isChecked ->
             if (view.isPressed)
             viewModel.setGroupFilterEnabled(isChecked) }
@@ -168,4 +211,6 @@ class SettingsFragment : Fragment() {
                 .show()
         }
     }
+
+
 }

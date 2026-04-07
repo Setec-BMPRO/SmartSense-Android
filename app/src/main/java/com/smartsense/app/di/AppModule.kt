@@ -25,42 +25,32 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+    // --- Local Data & Preferences ---
+
     @Provides
     @Singleton
     fun provideUserPreferences(
         @ApplicationContext context: Context
     ): UserPreferences = UserPreferences(context)
 
+    @Provides
+    @Singleton
+    fun provideDatabase(
+        @ApplicationContext context: Context
+    ): MopekaDatabase = Room.databaseBuilder(
+        context,
+        MopekaDatabase::class.java,
+        "mopeka_db"
+    )
+        .addMigrations(MopekaDatabase.MIGRATION_1_2, MopekaDatabase.MIGRATION_2_3)
+        .fallbackToDestructiveMigration()
+        .build()
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): MopekaDatabase {
-        return Room.databaseBuilder(
-            context,
-            MopekaDatabase::class.java,
-            "mopeka_db"
-        )
-            .addMigrations(MopekaDatabase.MIGRATION_1_2, MopekaDatabase.MIGRATION_2_3)
-            .fallbackToDestructiveMigration()
-            .build()
-    }
+    fun provideSensorDao(database: MopekaDatabase): SensorDao = database.sensorDao()
 
-    @Provides
-    @Singleton
-    fun provideSensorDao(database: MopekaDatabase): SensorDao {
-        return database.sensorDao()
-    }
-
-    @Module
-    @InstallIn(SingletonComponent::class)
-    object CoroutineModule {
-
-        @Provides
-        @Singleton
-        @ApplicationScope
-        fun provideApplicationScope(): CoroutineScope =
-            CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    }
+    // --- Firebase Services ---
 
     @Provides
     @Singleton
@@ -68,9 +58,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAuthRepository(auth: FirebaseAuth,store: FirebaseFirestore): AuthRepository {
-        return AuthRepositoryImpl(auth,store)
-    }
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
     @Provides
     @Singleton
@@ -78,10 +66,22 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+    fun provideAuthRepository(
+        auth: FirebaseAuth,
+        store: FirebaseFirestore
+    ): AuthRepository = AuthRepositoryImpl(auth, store)
+
+    // --- System & Utilities ---
 
     @Provides
     @Singleton
-    fun provideWorkManager(@ApplicationContext context: Context): WorkManager =
-        WorkManager.getInstance(context)
+    fun provideWorkManager(
+        @ApplicationContext context: Context
+    ): WorkManager = WorkManager.getInstance(context)
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }
