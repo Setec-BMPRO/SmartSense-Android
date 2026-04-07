@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -16,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val userPreferences: UserPreferences,
-    private val settingsUseCase: SettingsUseCase
+    private val useCase: SettingsUseCase
 ) : ViewModel() {
 
     // -------------------------------------------------------------------------
@@ -37,6 +38,13 @@ class SettingsViewModel @Inject constructor(
     val isSignedIn: StateFlow<Boolean> = userPreferences.isSignedIn
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = false)
 
+    val hasRegisteredSensors: StateFlow<Boolean> = useCase.getAllRegisteredSensors()
+        .map { size -> size.count() > 0 }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = false
+        )
     // -------------------------------------------------------------------------
     // 🎛️ Toggle States (Booleans)
     // -------------------------------------------------------------------------
@@ -86,6 +94,6 @@ class SettingsViewModel @Inject constructor(
     // 🗑️ Data Management
     // -------------------------------------------------------------------------
 
-    fun deleteAllSensors() =
-        viewModelScope.launch { settingsUseCase.unregisterAllSensors() }
+    fun unregisterAllSensors() =
+        viewModelScope.launch { useCase.unregisterAllSensors(userPreferences.uploadSensorData.first()) }
 }

@@ -5,12 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseUser
 import com.smartsense.app.data.local.entity.toSensor
 import com.smartsense.app.data.preferences.UserPreferences
-import com.smartsense.app.data.repository.SensorRepository
 
 import com.smartsense.app.domain.firebase.AuthRepository
 import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
-import com.smartsense.app.domain.usecase.ScanUseCase
+import com.smartsense.app.domain.usecase.AccountUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
@@ -30,8 +29,7 @@ import javax.inject.Inject
 class AccountViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userPreferences: UserPreferences,
-    private val scanUseCase: ScanUseCase,
-    private val sensorRepository: SensorRepository
+    private val useCase: AccountUseCase
 ) : ViewModel() {
 
     // --- Authentication State Flows ---
@@ -105,11 +103,14 @@ class AccountViewModel @Inject constructor(
     fun deleteAccount() {
         viewModelScope.launch {
             _deleteAccountState.value = null // Show loading
-
             runCatching {
                 withTimeout(15000) { authRepository.deleteAccount() }
             }.onSuccess { result ->
-                result.onSuccess { userPreferences.setIsSignedIn(false) }
+                result.onSuccess {
+                    userPreferences.setUploadSensorData(false)
+                    useCase.resetLocalDataForNewAccount()
+                    userPreferences.setIsSignedIn(false)
+                }
                 _deleteAccountState.value = result
             }.onFailure { e ->
                 val errorMessage = if (e is TimeoutCancellationException) {
@@ -156,7 +157,7 @@ class AccountViewModel @Inject constructor(
 
     private val refreshTrigger = MutableStateFlow(System.currentTimeMillis())
     val combinedSensors: Flow<List<SensorUIModel>> = combine(
-        sensorRepository.getAllRegisteredSensors(),    // Flow<List<Sensor>> from Room
+        useCase.getAllRegisteredSensors(),    // Flow<List<Sensor>> from Room
         refreshTrigger.flatMapLatest { authRepository.getRemoteSensorsFlow() }
     ) { localList, cloudList ->
         Timber.tag("SyncLog").d("📊 Combine Triggered: Local=${localList.size}, Cloud=${cloudList.size}")
@@ -183,7 +184,7 @@ class AccountViewModel @Inject constructor(
             try {
                 when (uiModel.location) {
                     SensorLocation.LOCAL_ONLY -> {
-                        scanUseCase.unregisterSensorTankPermanent(uiModel.sensor.address)
+                        useCase.unregisterSensorTankPermanent(uiModel.sensor.address)
                     }
                     SensorLocation.CLOUD_ONLY -> {
                         val result = authRepository.deleteSensor(uiModel.sensor.address)
@@ -192,7 +193,7 @@ class AccountViewModel @Inject constructor(
                         }
                     }
                     SensorLocation.BOTH -> {
-                        scanUseCase.unregisterSensor(uiModel.sensor.address, true)
+                        useCase.unregisterSensor(uiModel.sensor.address, true)
                     }
                 }
             } catch (e: Exception) {

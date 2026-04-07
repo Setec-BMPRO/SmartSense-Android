@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ScanViewModel @Inject constructor(
-    private val scanUseCase: ScanUseCase,
+    private val useCase: ScanUseCase,
     private val userPreferences: UserPreferences,
     private val alertTrigger: TankAlertTrigger,
 ) : ViewModel() {
@@ -45,7 +45,7 @@ class ScanViewModel @Inject constructor(
     val collapsedGroups = _collapsedGroups.asStateFlow()
 
     // Single Source of Truth for the filtered sensor list
-    val filteredSensors: StateFlow<List<Sensor>> = scanUseCase.filterSensors(
+    val filteredSensors: StateFlow<List<Sensor>> = useCase.filterSensors(
         sensorsFlow = uiState.map { it.sensors }.distinctUntilChanged(),
         queryFlow = _filterQuery
     ).stateIn(
@@ -69,7 +69,7 @@ class ScanViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
-        _uiState.update { it.copy(isBluetoothEnabled = scanUseCase.isBluetoothEnabled) }
+        _uiState.update { it.copy(isBluetoothEnabled = useCase.isBluetoothEnabled) }
     }
 
     // -------------------------------------------------------------------------
@@ -83,7 +83,7 @@ class ScanViewModel @Inject constructor(
             val interval = userPreferences.scanInterval.first().value.toLong() * 1000
             Timber.tag(TAG).d("Starting observation with interval: $interval ms")
 
-            scanUseCase.observeRegisteredSensors(interval)
+            useCase.observeRegisteredSensors(interval)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     if (sensors.isNotEmpty()) autoPairDone = true
@@ -112,7 +112,7 @@ class ScanViewModel @Inject constructor(
             _uiState.update { it.copy(isScanning = true) }
             val interval = userPreferences.scanInterval.first().value.toLong() * 1000
 
-            scanUseCase.startScan(interval)
+            useCase.startScan(interval)
                 .catch { e ->
                     Timber.tag(TAG).e(e, "Scan failed")
                     _uiState.update { it.copy(error = e.message, isScanning = false) }
@@ -161,7 +161,7 @@ class ScanViewModel @Inject constructor(
             Timber.tag(TAG).i("Registering sensor: $address ($name)")
             autoPairDone = true
             val uploadEnabled = userPreferences.uploadSensorData.first()
-            scanUseCase.registerSensor(address, name, uploadEnabled)
+            useCase.registerSensor(address, name, uploadEnabled)
         }
     }
 
@@ -171,7 +171,7 @@ class ScanViewModel @Inject constructor(
 
     override fun onCleared() {
         Timber.tag(TAG).d("ViewModel cleared, stopping BLE scan")
-        scanUseCase.stopScan()
+        useCase.stopScan()
         super.onCleared()
     }
 }

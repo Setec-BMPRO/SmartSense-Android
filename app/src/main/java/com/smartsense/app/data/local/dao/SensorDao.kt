@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.SyncStatus
 import com.smartsense.app.data.local.entity.TankEntity
@@ -73,6 +74,11 @@ interface SensorDao {
         status: SyncStatus = SyncStatus.DELETED,
         timestamp: Long = System.currentTimeMillis()
     )
+    @Query("UPDATE tanks SET sync_status = :status, last_modified_locally = :timestamp")
+    suspend fun markAllTanksForDeletion(
+        status: SyncStatus = SyncStatus.DELETED,
+        timestamp: Long = System.currentTimeMillis()
+    )
 
 
     // =========================================================================
@@ -124,13 +130,28 @@ interface SensorDao {
         status: SyncStatus = SyncStatus.DELETED,
         timestamp: Long = System.currentTimeMillis()
     )
+    @Query("UPDATE sensors SET sync_status = :status, last_modified_locally = :timestamp")
+    suspend fun markAllSensorsForDeletion(
+        status: SyncStatus = SyncStatus.DELETED,
+        timestamp: Long = System.currentTimeMillis()
+    )
 
     @Query("DELETE FROM sensors WHERE address = :address")
     suspend fun deleteSensorPermanently(address: String)
 
-    @Query("DELETE FROM sensors")
-    suspend fun deleteAllSensors()
 
-    @Query("DELETE FROM tanks")
-    suspend fun deleteAllTanks()
+
+    @Transaction
+    suspend fun resetLocalDataForNewAccount() {
+        val now = System.currentTimeMillis()
+        // Resetting to PENDING tells the SyncWorker: "Treat these as brand new"
+        updateAllSensorsStatus(SyncStatus.PENDING, now)
+        updateAllTanksStatus(SyncStatus.PENDING, now)
+    }
+
+    @Query("UPDATE sensors SET sync_status = :status, last_modified_locally = :ts WHERE registered = 1")
+    suspend fun updateAllSensorsStatus(status: SyncStatus, ts: Long)
+
+    @Query("UPDATE tanks SET sync_status = :status, last_modified_locally = :ts")
+    suspend fun updateAllTanksStatus(status: SyncStatus, ts: Long)
 }

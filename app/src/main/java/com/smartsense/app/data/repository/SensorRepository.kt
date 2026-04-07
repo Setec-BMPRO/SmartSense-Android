@@ -208,6 +208,18 @@ class SensorRepository @Inject constructor(
         }
     }
 
+    suspend fun markAllSensorsTanksAsDeleted() {
+        Timber.i("💾 Repository: Marking all sensors and tanks as DELETED")
+        try {
+            sensorDao.markAllSensorsForDeletion()
+            sensorDao.markAllTanksForDeletion()
+            Timber.d("✅ Local DB updated successfully")
+        } catch (e: Exception) {
+            Timber.e(e, "❌ Failed to update local status")
+            throw e
+        }
+    }
+
     suspend fun saveTankConfig(tank: Tank) {
         val now = System.currentTimeMillis()
         val tankEntity = tank.toEntity().copy(syncStatus = SyncStatus.PENDING, lastModifiedLocally = now)
@@ -232,10 +244,10 @@ class SensorRepository @Inject constructor(
         sensorDao.deleteTankPermanently(address)
     }
 
-    suspend fun unregisterAllSensors() {
-        sensorDao.deleteAllSensors()
-        sensorDao.deleteAllTanks()
-    }
+//    suspend fun unregisterAllSensors() {
+//        sensorDao.deleteAllSensors()
+//        sensorDao.deleteAllTanks()
+//    }
 
     suspend fun getTankConfig(sensorAddress: String): Tank? =
         sensorDao.getTank(sensorAddress)?.toDomain()
@@ -383,6 +395,8 @@ class SensorRepository @Inject constructor(
             throw e
         }
     }
+
+    suspend fun resetLocalDataForNewAccount()=sensorDao.resetLocalDataForNewAccount()
 
     // --------------------------------------
     // 🧠 MAPPING LOGIC

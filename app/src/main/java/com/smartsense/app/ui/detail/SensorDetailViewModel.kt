@@ -8,6 +8,7 @@ import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.domain.usecase.DetailUseCase
 import com.smartsense.app.domain.usecase.ScanUseCase
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import com.smartsense.app.util.TimeUtils
@@ -30,7 +31,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class Sensor1DetailViewModel @Inject constructor(
-    private val userCase: ScanUseCase,
+    private val useCase: DetailUseCase,
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
     private val alertTrigger: TankAlertTrigger
@@ -76,7 +77,7 @@ class Sensor1DetailViewModel @Inject constructor(
             val interval = userPreferences.scanInterval.first().value.toLong() * 1000
 
             // Collect the flow directly
-            userCase.observeDetailSensor(sensorAddress, interval)
+            useCase.observeDetailSensor(sensorAddress, interval)
                 .collect { sensor ->
                     _uiState.update {
                         it.copy(sensor = sensor, isLoading = false)
@@ -101,7 +102,7 @@ class Sensor1DetailViewModel @Inject constructor(
 
     fun unregisterSensor() {
         viewModelScope.launch {
-            userCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
+            useCase.unregisterSensor(sensorAddress,userPreferences.uploadSensorData.first())
         }
     }
 }

@@ -55,10 +55,24 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
                     val up = workInfo.outputData.getInt("KEY_UPLOADED_COUNT", 0)
                     val down = workInfo.outputData.getInt("KEY_DOWNLOADED_COUNT", 0)
 
-                    val message = if (up == 0 && down == 0) ""
-                    else "Sync finished! Uploaded: $up, Downloaded: $down"
+                    // 1. Create an empty list to hold active parts
+                    val parts = mutableListOf<String>()
 
-                    handleSyncResult(message)
+                    // 2. Only add parts that are greater than 0
+                    if (up > 0) parts.add("Uploaded: $up")
+                    if (down > 0) parts.add("Downloaded: $down")
+
+                    // 3. Join them with a comma and prefix with "Sync finished! "
+                    val message = if (parts.isNotEmpty()) {
+                        "Sync finished! ${parts.joinToString(", ")}"
+                    } else {
+                        null // Or "" if you prefer
+                    }
+
+                    // 4. Usage: Only show if there was actually activity
+                    message?.let {
+                        handleSyncResult(it)
+                    }
                 }
                 WorkInfo.State.FAILED -> {
                     handleSyncResult("Cloud Sync Failed")

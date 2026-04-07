@@ -39,7 +39,7 @@
     <string name="remove_sensor">Remove Sensor</string>
     <string name="remove_sensor_confirm_title">Remove Sensor(s)</string>
     <string name="remove_sensor_confirm">This sensor will be hidden from your dashboard. It will reappear on the next scan.</string>
-    <string name="remove_all_sensors_confirm">This will permanently remove all saved sensors from your list. You will need to scan again to find them.</string>
+    <string name="remove_all_sensors_confirm">Are you sure you want to remove All sensors? It will be deleted from your device and cloud storage.</string>
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
 
@@ -155,9 +155,8 @@
     <string name="remove_sensor_data_both">Are you sure you want to remove this sensor? It will be deleted from your device and cloud storage.</string>
     <string name="remove_sensor_data_local">This sensor is only stored on this device. If you remove it, you will need to scan it again to add it back.</string>
     <string name="remove_sensor_data_cloud">This sensor is stored in your account but not on this phone. Removing it will permanently delete it from your cloud storage.</string>
-    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out?\n
-Signing out will automatically disable the Upload Sensor Data setting</string>
-    <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data. Proceed?</string>
+    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">Are you sure you want to sign out?\nSigning out will automatically disable the Upload Sensor Data setting</string>
+    <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">This action is permanent and will erase all your sensor data from your cloud. Proceed?</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="tank_info">Tank Info</string>

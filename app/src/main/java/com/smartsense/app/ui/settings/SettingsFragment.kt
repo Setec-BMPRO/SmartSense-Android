@@ -1,6 +1,5 @@
 package com.smartsense.app.ui.settings
 
-import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.MainActivityListener
@@ -25,10 +23,8 @@ import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.detail.SelectedAdapter
 import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
@@ -184,6 +180,13 @@ class SettingsFragment : Fragment() {
             .onEach { binding.switchSearchFilter.isChecked = it }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
+        viewModel.hasRegisteredSensors
+            .onEach {
+                binding.btnForgetAllDevice.isEnabled=it
+                binding.btnForgetAllDevice.alpha = if (it) 1.0f else 0.5f
+            }
+            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            .launchIn(scope)
 
         // --- Theme ---
         viewModel.appTheme
@@ -207,7 +210,7 @@ class SettingsFragment : Fragment() {
                 .setTitle(R.string.remove_sensor_confirm_title)
                 .setMessage(R.string.remove_all_sensors_confirm)
                 .setNegativeButton(R.string.cancel, null)
-                .setPositiveButton(R.string.ok) { _, _ -> viewModel.deleteAllSensors() }
+                .setPositiveButton(R.string.ok) { _, _ -> viewModel.unregisterAllSensors() }
                 .show()
         }
     }
