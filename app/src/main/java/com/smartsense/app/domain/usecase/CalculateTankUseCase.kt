@@ -142,14 +142,20 @@ class CalculateTankUseCase @Inject constructor() {
     // 🔄 MAPPERS
     // --------------------------------------
 
-    fun calculateTankHeightMm(tank: Tank?) =
-        when (val type = tank?.type) {
-            com.smartsense.app.domain.model.TankType.ARBITRARY ->
-                tank.customHeightMeters.toFloat()
-
-            else ->
-                type?.heightMeters?.toFloat()
-        } ?: com.smartsense.app.domain.model.TankType.default().heightMeters.toFloat()
+    fun calculateTankHeightMm(tank: Tank?): Float {
+        val heightMm = when (val type = tank?.type) {
+            com.smartsense.app.domain.model.TankType.ARBITRARY -> {
+                // Convert custom height (m) to mm
+                tank.customHeightMeters.toFloat() * 1000f
+            }
+            else -> {
+                // Convert predefined type height (m) to mm
+                (type?.heightMeters?.toFloat() ?: com.smartsense.app.domain.model.TankType.default().heightMeters.toFloat()) * 1000f
+            }
+        }
+        Timber.d("Final calculated height: ${heightMm}mm")
+        return heightMm
+    }
 
     fun calculateTankType(tank: Tank?) =
         when (

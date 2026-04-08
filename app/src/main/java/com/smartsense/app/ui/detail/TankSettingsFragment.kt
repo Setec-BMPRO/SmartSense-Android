@@ -38,6 +38,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class TankSettingsFragment : Fragment() {
@@ -139,7 +140,7 @@ class TankSettingsFragment : Fragment() {
             }
 
             viewModel.updateLevelUnit(unit)
-            viewModel.toggleUnits()
+            //viewModel.toggleUnits()
         }
 
         // Notifications
@@ -225,7 +226,7 @@ class TankSettingsFragment : Fragment() {
             binding.layoutTankSizeCustom.isVisible = isCustom
             if (!isCustom) {
                 viewModel.updateCustomHeight("0")
-                viewModel.updateOrientation(TankOrientation.VERTICAL)
+                viewModel.updateOrientation(TankType.default().orientation)
             }
         }
     }
@@ -321,7 +322,11 @@ class TankSettingsFragment : Fragment() {
         // Tank Level Unit
         toggleTankLevelUnits.check(levelUnitId)
 
-        tvHeightUnit.text = TankLevelUnit.valueOf(state.levelUnit.name).shortName
+        when(state.levelUnit){
+            TankLevelUnit.PERCENT -> tvHeightUnit.text= TankLevelUnit.CENTIMETERS.shortName
+            else -> tvHeightUnit.text = TankLevelUnit.valueOf(state.levelUnit.name).shortName
+        }
+
     }
 
     private fun handleNotification(state: TankSettingsUiState) = with(binding) {

@@ -7,8 +7,10 @@ import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.UiState
 import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import com.smartsense.app.domain.usecase.DetailUseCase
 import com.smartsense.app.domain.usecase.ScanUseCase
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
@@ -36,7 +38,8 @@ class Sensor1DetailViewModel @Inject constructor(
     private val useCase: DetailUseCase,
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
-    private val alertTrigger: TankAlertTrigger
+    private val alertTrigger: TankAlertTrigger,
+    private val calculateTankUseCase: CalculateTankUseCase
 ) : ViewModel() {
 
     val sensorAddress: String =
@@ -102,6 +105,16 @@ class Sensor1DetailViewModel @Inject constructor(
         observeJob = null
     }
 
+
+    fun loadTankConfig() {
+        viewModelScope.launch {
+            val tank = useCase.getTankConfig(sensorAddress)
+            _uiState.update { state ->
+                state.copy(tank = tank)
+            }
+        }
+    }
+
     // --------------------------------------
     // ⚙️ ACTIONS
     // --------------------------------------
@@ -128,9 +141,12 @@ class Sensor1DetailViewModel @Inject constructor(
     fun clearMessages() {
         _removeUiState.update { it.copy(successMessage = null) }
     }
+
+    fun calculateTankHeightMm(tank: Tank)=calculateTankUseCase.calculateTankHeightMm(tank)
 }
 
 data class SensorDetailUiState(
     val sensor: Sensor? = null,
+    val tank: Tank? = null,
     val isLoading: Boolean = true
 )

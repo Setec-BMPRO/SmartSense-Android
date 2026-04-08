@@ -414,7 +414,7 @@ class SensorRepository @Inject constructor(
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                 tankType = calculateTankUseCase.calculateTankType(tank)
             )
-                //.apply { percentage = Random.nextFloat() * 100f }
+                .apply { percentage = Random.nextFloat() * 100f }
         } else null
 
         return Sensor(

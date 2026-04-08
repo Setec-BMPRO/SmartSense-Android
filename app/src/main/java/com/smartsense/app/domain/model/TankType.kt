@@ -10,9 +10,9 @@ enum class TankOrientation {
 }
 
 enum class TankLevelUnit(val displayName: String,val shortName: String) {
-    PERCENT("Percent","%."),
-    CENTIMETERS("Centimeters","cm."),
-    INCHES("Inches","in.");
+    PERCENT("Percent","%"),
+    CENTIMETERS("Centimeters","Cm"),
+    INCHES("Inches","In");
 
     companion object{
         fun default():TankLevelUnit=PERCENT

@@ -10,7 +10,7 @@ import javax.inject.Inject
 class TankSettingUseCase @Inject constructor(
     private val repository: SensorRepository
 ) {
-
+    suspend fun getTankConfig(sensorAddress: String) = repository.getTankConfig(sensorAddress)
     suspend fun saveTankConfig(tank: Tank)=repository.saveTankConfig(tank)
 
 }

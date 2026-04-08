@@ -24,12 +24,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.ceil
 
 @HiltViewModel
 class DetailTankSettingsViewModel @Inject constructor(
-    private val repository: SensorRepository,
     savedStateHandle: SavedStateHandle,
     private val useCase: TankSettingUseCase,
     private val sharedUseCase: SharedUseCase,
@@ -50,7 +50,7 @@ class DetailTankSettingsViewModel @Inject constructor(
 
     fun loadTankConfig() {
         viewModelScope.launch {
-            val tank = repository.getTankConfig(sensorAddress)
+            val tank = useCase.getTankConfig(sensorAddress)
 
             _uiState.update { state ->
                 tank?.let {
@@ -103,6 +103,7 @@ class DetailTankSettingsViewModel @Inject constructor(
     fun updateTankType(type: TankType) =
         updateState {
             it.copy(
+                oldTankType = it.tankType,
                 tankType = type,
                 orientation = type.orientation
             )
@@ -132,22 +133,28 @@ class DetailTankSettingsViewModel @Inject constructor(
         updateState { it.copy(notificationFrequency = frequency) }
 
     fun updateCustomHeight(displayValue: String) {
-        val value = displayValue.toDoubleOrNull() ?: return
-
-        val meters = if (_uiState.value.useInches) {
+        val value = displayValue.toDoubleOrNull()
+        if (value == null) {
+            Timber.w("Invalid custom height input: '$displayValue'")
+            return
+        }
+        val useInches = _uiState.value.levelUnit== TankLevelUnit.INCHES
+        val meters = if (useInches) {
             value / 39.3701
         } else {
+            // Converting from CM to Meters
             value / 100.0
         }
+        Timber.i("Updating height: Input=$value, Unit=${if (useInches) "Inches" else "CM"}, Saved=${meters}m")
 
         updateState {
             it.copy(customHeightMeters = meters)
         }
     }
 
-    fun toggleUnits() {
-        _uiState.update { it.copy(useInches = !it.useInches) }
-    }
+//    fun toggleUnits() {
+//        _uiState.update { it.copy(useInches = !it.useInches) }
+//    }
 
     // --------------------------------------
     // 💾 SAVE
@@ -208,13 +215,28 @@ data class TankSettingsUiState(
     val notificationFrequency: NotificationFrequency = NotificationFrequency.EVERY_12_HOURS,
     val isLoading: Boolean = true,
     val isSaved: Boolean = false,
-    val useInches: Boolean = true
+    // Move oldTankType into the constructor for better immutability support
+    val oldTankType: TankType = TankType.default()
 ) {
+
     val customHeightDisplay: String
-        get() = if (levelUnit== TankLevelUnit.INCHES) {
-            ceil(customHeightMeters * 39.3701).toInt().toString()
-        } else {
-            "%.1f".format(customHeightMeters * 100)
+        get() {
+            // 1. Determine base height source
+            val isCustom = customHeightMeters > 0
+            val baseHeightM = if (isCustom) customHeightMeters else oldTankType.heightMeters
+
+            // 2. Perform conversion and formatting
+            val result = when (levelUnit) {
+                TankLevelUnit.INCHES -> {
+                    val inches = ceil(baseHeightM * 39.3701).toInt()
+                    inches.toString()
+                }
+                else -> {
+                    val cm = baseHeightM * 100
+                    "%.1f".format(cm)
+                }
+            }
+            return result
         }
 
     val availableTankTypes: List<TankType>

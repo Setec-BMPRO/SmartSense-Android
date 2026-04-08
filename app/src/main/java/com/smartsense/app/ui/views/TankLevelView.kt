@@ -13,6 +13,9 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import com.smartsense.app.R
 import com.smartsense.app.domain.model.LevelStatus
+import com.smartsense.app.domain.model.TankLevelUnit
+import timber.log.Timber
+import kotlin.math.ceil
 
 class TankLevelView @JvmOverloads constructor(
     context: Context,
@@ -82,11 +85,39 @@ class TankLevelView @JvmOverloads constructor(
             shadowPaint.color = 0x18000000
         }
     }
-
+     var levelUnit: TankLevelUnit= TankLevelUnit.default()
+    var tankHeightMm: Float=0F
+    fun setLevelUnit(levelUnit: TankLevelUnit,tankHeightMm: Float){
+        this.levelUnit=levelUnit
+        this.tankHeightMm=tankHeightMm
+    }
     fun setLevel(percentage: Float, status: LevelStatus) {
         this.percentage = percentage.coerceIn(0f, 100f)
         this.levelStatus = status
-        this.levelText = if (percentage <= 0f) "Empty" else "${percentage.toInt()}%"
+        this.levelText = if (percentage <= 0f) {
+            "Empty".also { Timber.d("Level: Empty") }
+        } else {
+            val result = when (levelUnit) {
+                TankLevelUnit.INCHES -> {
+                    // (mm to inches) * (percentage / 100)
+                    val currentInches = (tankHeightMm * 0.0393701f) * (percentage / 100f)
+                    "${currentInches.toInt()} ${levelUnit.shortName}"
+                }
+
+                TankLevelUnit.PERCENT -> {
+                    "${percentage.toInt()} ${levelUnit.shortName}"
+                }
+
+                else -> {
+                    // Default to CM: (mm to cm) * (percentage / 100)
+                    val currentCm = (tankHeightMm / 10f) * (percentage / 100f)
+                    "${currentCm.toInt()} ${levelUnit.shortName}"
+                }
+            }
+
+            Timber.i("Level Calculation -> Height: ${tankHeightMm}mm, Percent: $percentage%, Result: $result")
+            result
+        }
 
         fillPaint.color = when (status) {
             LevelStatus.GREEN -> ContextCompat.getColor(context, R.color.level_green)

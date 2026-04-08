@@ -64,6 +64,7 @@ class SensorDetailFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         viewModel.startObserveDetailSensor()
+        viewModel.loadTankConfig()
     }
 
     override fun onStop() {
@@ -91,6 +92,17 @@ class SensorDetailFragment : Fragment() {
                     bindSensor(it)
                     // Start/Restart the timer only when the sensor data changes
                     startLastUpdatedTimer(it.reading?.timestampMillis)
+                }
+            }
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+        viewModel.uiState
+            .map { it.tank }
+            .distinctUntilChanged()
+            .onEach { tank ->
+                tank?.let {
+                    binding.detailTank.setLevelUnit(it.levelUnit,
+                        viewModel.calculateTankHeightMm(it))
                 }
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -163,6 +175,7 @@ class SensorDetailFragment : Fragment() {
     }
     private fun FragmentSensorDetailBinding.setupTankDisplay(sensor: Sensor) {
         val levelPercent = sensor.tankLevel?.percentage ?: 0f
+
         detailTank.setLevel(
             levelPercent,
             sensor.tankLevel?.status ?: LevelStatus.RED
