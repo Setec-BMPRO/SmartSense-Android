@@ -181,6 +181,7 @@ class SensorRepository @Inject constructor(
             lastModifiedLocally = now
         )
         val tank = TankEntity(
+            name=calculateTankUseCase.calculateName(),
             sensorAddress = address,
             syncStatus = SyncStatus.PENDING,
             lastModifiedLocally = now
@@ -414,12 +415,12 @@ class SensorRepository @Inject constructor(
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                 tankType = calculateTankUseCase.calculateTankType(tank)
             )
-                .apply { percentage = Random.nextFloat() * 100f }
+                //.apply { percentage = Random.nextFloat() * 100f }
         } else null
 
         return Sensor(
             address = scanned.address,
-            name = calculateName(scanned, tank),
+            name = calculateTankUseCase.calculateName(scanned.parsed?.sensorType, tank?.name),
             advertisedName = scanned.name,
             sensorType = scanned.parsed?.sensorType,
             syncPressed = scanned.parsed?.syncPressed ?: false,
@@ -439,14 +440,7 @@ class SensorRepository @Inject constructor(
         else -> ReadQuality.POOR
     }
 
-    private fun calculateName(scanned: ScannedSensor?, tank: Tank?): String =
-        tank?.name?.takeIf { it.isNotBlank() } ?: run {
-            when {
-                scanned?.parsed?.sensorType?.isLpg != false -> "New LPG Device"
-                scanned.parsed.sensorType == MopekaSensorType.BOTTOM_UP_WATER -> "New water sensor"
-                else -> "New ${scanned.parsed.sensorType.displayName} Device"
-            }
-        }
+
 
     // --- Entity/Domain Mappers ---
 

@@ -6,6 +6,7 @@ import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.data.worker.TankAlertTrigger
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.UnitSystem
+import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import com.smartsense.app.domain.usecase.ScanUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -19,6 +20,7 @@ class ScanViewModel @Inject constructor(
     private val useCase: ScanUseCase,
     private val userPreferences: UserPreferences,
     private val alertTrigger: TankAlertTrigger,
+    private val calculateTankUseCase: CalculateTankUseCase
 ) : ViewModel() {
 
     companion object {
@@ -132,7 +134,7 @@ class ScanViewModel @Inject constructor(
         sensors.firstOrNull { it.syncPressed }?.let { syncSensor ->
             Timber.tag(TAG).d("Auto-pairing syncPressed sensor detected: ${syncSensor.address}")
             autoPairDone = true
-            registerSensor(syncSensor.address, "New LPG Device")
+            registerSensor(syncSensor.address, calculateTankUseCase.calculateName())
         }
     }
 

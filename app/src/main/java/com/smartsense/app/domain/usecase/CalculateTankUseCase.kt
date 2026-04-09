@@ -1,5 +1,7 @@
 package com.smartsense.app.domain.usecase
 
+import com.smartsense.app.data.ble.ScannedSensor
+import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevel
 import com.smartsense.app.domain.model.TankOrientation
@@ -7,6 +9,7 @@ import com.smartsense.app.domain.model.TankPreset.TankType
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.math.pow
+import kotlin.run
 
 class CalculateTankUseCase @Inject constructor() {
 
@@ -168,5 +171,14 @@ class CalculateTankUseCase @Inject constructor() {
         ) {
             TankOrientation.VERTICAL -> TankType.PROPANE_VERTICAL
             else -> TankType.PROPANE_HORIZONTAL
+        }
+
+     fun calculateName(sensorType:MopekaSensorType?=null,tankName: String?=null): String =
+         tankName?.takeIf { it.isNotBlank() } ?: run {
+            when {
+                (sensorType ==null) or (sensorType?.isLpg!=false) -> "New LPG Device"
+                sensorType == MopekaSensorType.BOTTOM_UP_WATER -> "New water sensor"
+                else -> "New ${sensorType!!.displayName} Device"
+            }
         }
 }
