@@ -56,8 +56,23 @@ class SensorDetailFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupToolbar()
         setupClickListeners()
         observeViewModel()
+    }
+
+    private fun setupToolbar() = with(binding.toolbar) {
+        setNavigationIcon(R.drawable.ic_back)
+        setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
+        inflateMenu(R.menu.menu_settings)
+        setOnMenuItemClickListener {
+            if (it.itemId == R.id.action_settings) {
+                navigateToSettings()
+                true
+            } else false
+        }
     }
 
 
@@ -114,17 +129,11 @@ class SensorDetailFragment : Fragment() {
     // --------------------------------------
 
     private fun setupClickListeners() = with(binding) {
-        toolbar.btnBack.setOnClickListener { findNavController().popBackStack() }
-
         btnUnpair.setOnClickListener { showUnpairConfirmationDialog() }
 
         additionalInfoHeader.setOnClickListener { toggleAdditionalInfo() }
 
         qualityWarning.setOnClickListener { showQualityDialog() }
-
-        toolbar.btnRight.setOnClickListener {
-            navigateToSettings()
-        }
     }
 
     private fun showQualityDialog() {
@@ -147,7 +156,8 @@ class SensorDetailFragment : Fragment() {
     // --------------------------------------
 
     private fun bindSensor(sensor: Sensor) = with(binding) {
-        toolbar.tvSubTitle.text = sensor.name
+        toolbar.title = getString(R.string.tank_info)
+        toolbar.subtitle = sensor.name
         // Set text IMMEDIATELY so it's "Just now" without waiting for the timer
         lastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
         setupObserve()

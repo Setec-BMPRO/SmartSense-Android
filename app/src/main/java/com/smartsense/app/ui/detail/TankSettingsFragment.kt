@@ -79,10 +79,20 @@ class TankSettingsFragment : Fragment() {
     // 🔙 TOOLBAR
     // --------------------------------------
 
-    private fun setupToolbar() = with(binding) {
-        btnBack.setOnClickListener {
+    private fun setupToolbar() = with(binding.toolbar) {
+        setNavigationIcon(R.drawable.ic_back)
+        setNavigationOnClickListener {
             findNavController().popBackStack()
         }
+        inflateMenu(R.menu.menu_save)
+        setOnMenuItemClickListener {
+            if (it.itemId == R.id.action_save) {
+                viewModel.save()
+                true
+            } else false
+        }
+        title = getString(R.string.tank_info)
+        subtitle = viewModel.uiState.value.name
     }
 
     // --------------------------------------
@@ -171,9 +181,6 @@ class TankSettingsFragment : Fragment() {
 
         // Frequency
         setupFrequencyDropdown()
-
-        // Actions
-        btnSave.setOnClickListener { viewModel.save() }
 
         imgQuestionAlarmThreshold.setOnClickListener {
             showQuestionDialog(R.string.alarm_threshold, R.string.help_alarm_threshold)
@@ -273,6 +280,7 @@ class TankSettingsFragment : Fragment() {
                 // 2. Handle sub-logic
                 handleSetting(state)
                 handleNotification(state)
+                binding.toolbar.subtitle = state.name
 
                 // 3. Handle Navigation
                 if (state.isSaved) {

@@ -25,6 +25,13 @@
         android:name="com.smartsense.app.ui.account.AccountSignInFragment"
         android:label="@string/sign_in"
         tools:layout="@layout/fragment_account_signin">
+        <action
+            android:id="@+id/action_to_register"
+            app:destination="@id/accountRegisterFragment"
+            app:enterAnim="@anim/slide_in_left"
+            app:exitAnim="@anim/slide_out_right"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left" />
     </fragment>
     <fragment
         android:id="@+id/accountSensorsFragment"

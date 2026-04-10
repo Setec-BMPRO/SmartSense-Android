@@ -148,10 +148,7 @@ class AccountRegisterFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        binding.toolbar.btnBack.isVisible = binding.toolbar.btnRight.isVisible == false
-        binding.toolbar.tvTitle.text = getString(R.string.register)
-        binding.toolbar.tvSubTitle.text = ""
-        binding.toolbar.btnRight.isVisible=false
+        binding.toolbar.title = getString(R.string.register)
     }
 
     override fun onDestroyView() {

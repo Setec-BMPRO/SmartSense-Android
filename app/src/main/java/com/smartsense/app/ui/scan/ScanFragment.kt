@@ -105,7 +105,6 @@ class ScanFragment : Fragment() {
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
             viewModel.setFilterQuery(text.toString())
         }
-        binding.filterLayout.isVisible=viewModel.deviceSearchFilterEnabled.value
     }
 
     private fun observeViewModel() {
@@ -147,15 +146,23 @@ class ScanFragment : Fragment() {
         // 3. Observe Filtered Sensors and Collapsed Groups (Combined)
         combine(
             viewModel.filteredSensors,
-            viewModel.collapsedGroups
-        ) { sensors, collapsed ->
-            buildDisplayGroups(sensors, collapsed) to sensors.size
+            viewModel.collapsedGroups,
+            viewModel.groupFilterEnabled
+        ) { sensors, collapsed,groupFilterEnabled ->
+            buildDisplayGroups(sensors, collapsed,groupFilterEnabled) to sensors.size
         }
             .onEach { (displayGroups, filteredCount) ->
                 updateUI(displayGroups, filteredCount)
             }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
+
+        viewModel.deviceSearchFilterEnabled
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach {
+                binding.filterLayout.isVisible=it
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     /**
@@ -163,7 +170,8 @@ class ScanFragment : Fragment() {
      */
     private fun buildDisplayGroups(
         sensors: List<Sensor>,
-        collapsed: Set<String>
+        collapsed: Set<String>,
+        groupFilterEnabled: Boolean
     ): List<com.xwray.groupie.Group> {
         return sensors.groupBy { it.groudName }.map { (groupName, list) ->
             val sensorItems = list.map { sensor ->
@@ -173,7 +181,7 @@ class ScanFragment : Fragment() {
                 }
             }
 
-            if (viewModel.groupFilterEnabled.value) {
+            if (groupFilterEnabled) {
                 val isExpanded = !collapsed.contains(groupName)
 
                 ExpandableGroup(HeaderItem(groupName) {

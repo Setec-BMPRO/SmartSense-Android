@@ -159,16 +159,18 @@ class AccountSensorsFragment : Fragment() {
     }
     private fun setupListeners() {
         with(binding) {
-            toolbar.btnBack.setOnClickListener { findNavController().popBackStack() }
-
-            toolbar.btnRight.setOnClickListener {
-                requireContext().showConfirmationDialog(
-                    title = getString(R.string.sign_out),
-                    message = getString(R.string.are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors),
-                    positiveText = getString(R.string.yes),
-                    negativeText = getString(R.string.no),
-                    onConfirm = { viewModel.signOut() }
-                )
+            toolbar.inflateMenu(R.menu.menu_account)
+            toolbar.setOnMenuItemClickListener {
+                if (it.itemId == R.id.action_signout) {
+                    requireContext().showConfirmationDialog(
+                        title = getString(R.string.sign_out),
+                        message = getString(R.string.are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors),
+                        positiveText = getString(R.string.yes),
+                        negativeText = getString(R.string.no),
+                        onConfirm = { viewModel.signOut() }
+                    )
+                    true
+                } else false
             }
 
             swipeRefresh.setOnRefreshListener {
@@ -195,11 +197,9 @@ class AccountSensorsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         with(binding.toolbar) {
-            btnBack.isVisible = false
-            btnRight.isVisible = true
-            btnRight.setIconResource(R.drawable.ic_signout)
-            tvTitle.text = getString(R.string.account)
-            tvSubTitle.text = ""
+            navigationIcon = null
+            title = getString(R.string.account)
+            subtitle = ""
         }
     }
 

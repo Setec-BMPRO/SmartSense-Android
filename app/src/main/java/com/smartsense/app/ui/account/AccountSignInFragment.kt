@@ -108,7 +108,7 @@ class AccountSignInFragment : Fragment() {
         }
 
         binding.tvRegister.setOnClickListener {
-            findNavController().navigate(R.id.accountRegisterFragment)
+            findNavController().navigate(R.id.action_to_register)
         }
 
         binding.tvForgotPassword.setOnClickListener {
@@ -123,8 +123,10 @@ class AccountSignInFragment : Fragment() {
                 }
             }
         }
-        binding.toolbar.btnBack.setOnClickListener {
-            findNavController().navigate(R.id.accountRegisterFragment)
+
+        binding.toolbar.setNavigationIcon(R.drawable.ic_back)
+        binding.toolbar.setNavigationOnClickListener {
+            findNavController().navigate(R.id.action_to_register)
         }
     }
 
@@ -213,10 +215,7 @@ class AccountSignInFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        binding.toolbar.btnBack.isVisible=true
-        binding.toolbar.btnRight.isVisible=false
-        binding.toolbar.tvTitle.text=getString(R.string.sign_in)
-        binding.toolbar.tvSubTitle.text=""
+        binding.toolbar.title = getString(R.string.sign_in)
     }
 
     override fun onDestroyView() {

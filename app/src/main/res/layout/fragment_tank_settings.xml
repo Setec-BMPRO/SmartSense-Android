@@ -1,79 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools">
+    android:background="?attr/colorSurface"
+    tools:context=".ui.detail.TankSettingsFragment"
+    tools:theme="@style/Theme.SmartSense">
 
-<androidx.core.widget.NestedScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.detail.SensorDetailFragment">
-
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:background="?attr/colorSurface">
 
-        <!-- Toolbar with back, title, settings -->
-        <LinearLayout
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingHorizontal="@dimen/spacing_sm"
-            android:paddingVertical="@dimen/spacing_sm"
-            android:background="?attr/colorSurface"
-            android:elevation="2dp">
+            android:minHeight="?attr/actionBarSize"
+            app:titleCentered="true"
+            app:subtitleCentered="true" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_back"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@drawable/ic_back"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                style="@style/Widget.Material3.Button.IconButton"/>
+    </com.google.android.material.appbar.AppBarLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/sensor_name" android:visibility="gone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceBodySmall"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    tools:text="New LPG Device"/>
-            </LinearLayout>
-
-            <!-- Spacer to balance the back button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_save"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                app:icon="@drawable/ic_check"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                style="@style/Widget.Material3.Button.IconButton"/>
-        </LinearLayout>
-
-        <!-- Top row: Battery | Quality | Signal -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -81,392 +34,413 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Device Name -->
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/device_name"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"/>
-                <ImageView android:layout_marginStart="@dimen/spacing_sm"
-                    android:layout_width="wrap_content"
-                    android:src="@drawable/ic_question"
-                    android:id="@+id/img_question_device"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
+            <!-- Device Information Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                style="@style/Widget.Material3.CardView.Elevated">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etName"
-                    android:layout_width="match_parent"
-                    android:imeOptions="actionDone"
-                    android:selectAllOnFocus="true"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="24dp"
-                android:background="?attr/colorOutlineVariant"/>
-
-            <!-- Settings -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/region"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorPrimary"/>
-
-            <!-- Tank Region -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/region_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                <AutoCompleteTextView
-                    android:id="@+id/region_dropdown"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none"
-                    tools:text="5 seconds"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
-            <!-- Tank Size -->
-            <LinearLayout
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/tank_size"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"/>
-                <ImageView android:layout_marginStart="@dimen/spacing_sm"
-                    android:layout_width="wrap_content"
-                    android:src="@drawable/ic_question"
-                    android:id="@+id/img_question_tank_size"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tank_size_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                        <TextView
+                            style="@style/Widget.SmartSense.Label"
+                            android:layout_marginBottom="0dp"
+                            android:text="@string/device_name" />
 
-                <AutoCompleteTextView
-                    android:id="@+id/tank_size_dropdown"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="none"
-                    tools:text="5 seconds"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                        <ImageView
+                            android:id="@+id/img_question_device"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:src="@drawable/ic_question" />
+                    </LinearLayout>
 
-            <!-- Arbitrary -->
-            <LinearLayout android:id="@+id/layout_tank_size_custom"
-                android:layout_width="match_parent"
-                android:visibility="visible"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                android:layout_height="wrap_content" android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Arbitrary"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorPrimary"/>
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggle_orientation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                app:singleSelection="true"
-                app:selectionRequired="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_vertical"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Vertical"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_horizontal"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Horizontal"/>
-
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" >
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="170dp"
-                    android:layout_height="wrap_content">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etHeight"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="@string/tank_height"
-                        android:imeOptions="actionDone"
-                        android:selectAllOnFocus="true"
-                        android:inputType="numberDecimal"/>
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_marginTop="8dp">
 
-                <TextView
-                    android:id="@+id/tv_height_Unit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="cm"
-                    android:layout_marginStart="@dimen/spacing_md"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"/>
-            </LinearLayout>
-            </LinearLayout>
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:selectAllOnFocus="true" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Quality -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/quality_threshold"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorPrimary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/quality_layout"
+            <!-- Tank Settings Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                style="@style/Widget.Material3.CardView.Elevated">
 
-                <AutoCompleteTextView
-                    android:id="@+id/quality_dropdown"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none"
-                    tools:text="5 seconds"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
+                    <!-- Tank Region -->
+                    <TextView
+                        style="@style/Widget.SmartSense.Label"
+                        android:text="@string/region" />
 
-            <!-- Tank Level Units -->
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/tank_level_units"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"/>
-                <ImageView android:layout_marginStart="@dimen/spacing_sm"
-                    android:layout_width="wrap_content"
-                    android:src="@drawable/ic_question"
-                    android:id="@+id/img_question_tank_level"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/region_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_lg">
 
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleTankLevelUnits"
+                        <AutoCompleteTextView
+                            android:id="@+id/region_dropdown"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            tools:text="Region Name" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Tank Size -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/Widget.SmartSense.Label"
+                            android:layout_marginBottom="0dp"
+                            android:text="@string/tank_size" />
+
+                        <ImageView
+                            android:id="@+id/img_question_tank_size"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:src="@drawable/ic_question" />
+                    </LinearLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tank_size_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="@dimen/spacing_lg">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/tank_size_dropdown"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            tools:text="Standard Size" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Arbitrary -->
+                    <LinearLayout
+                        android:id="@+id/layout_tank_size_custom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="visible">
+
+                        <TextView
+                            style="@style/Widget.SmartSense.Label"
+                            android:text="Arbitrary" />
+
+                        <com.google.android.material.button.MaterialButtonToggleGroup
+                            android:id="@+id/toggle_orientation"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="@dimen/spacing_lg"
+                            app:selectionRequired="true"
+                            app:singleSelection="true">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/mb_vertical"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Vertical" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/mb_horizontal"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Horizontal" />
+
+                        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                android:layout_width="170dp"
+                                android:layout_height="wrap_content">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/etHeight"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="@string/tank_height"
+                                    android:imeOptions="actionDone"
+                                    android:inputType="numberDecimal"
+                                    android:selectAllOnFocus="true" />
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <TextView
+                                android:id="@+id/tv_height_Unit"
+                                style="@style/Widget.SmartSense.Label"
+                                android:layout_marginBottom="0dp"
+                                android:layout_marginStart="@dimen/spacing_md"
+                                android:text="cm" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Quality -->
+                    <TextView
+                        style="@style/Widget.SmartSense.Label"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/quality_threshold" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/quality_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_lg">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/quality_dropdown"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            tools:text="Quality Level" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Tank Level Units -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/Widget.SmartSense.Label"
+                            android:layout_marginBottom="0dp"
+                            android:text="@string/tank_level_units" />
+
+                        <ImageView
+                            android:id="@+id/img_question_tank_level"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:src="@drawable/ic_question" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggleTankLevelUnits"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/mb_percent"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/percent" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/mb_centimeter"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/centimeter" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/mb_inches"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/inches" />
+
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Notifications Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:singleSelection="true"
-                app:selectionRequired="true">
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                style="@style/Widget.Material3.CardView.Elevated">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_percent"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/percent"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_centimeter"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/centimeter"/>
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_inches"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/inches"/>
-
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="24dp"
-                android:background="?attr/colorOutlineVariant"/>
-
-            <!-- Notifications -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/notifications"
-                android:textAppearance="?attr/textAppearanceTitleLarge"
-                android:textColor="?attr/colorAccent"/>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="@dimen/spacing_md"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
-                    android:text="@string/notifications"/>
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchNotifications"
-                    android:layout_width="wrap_content"
-                    app:useMaterialThemeColors="true"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <!-- Trigger Alarm -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/trigger_alarm_above_or_below_threshold"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorPrimary"/>
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggle_trigger_alarm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                app:singleSelection="true"
-                app:selectionRequired="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_above"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/above"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/mb_below"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/below"/>
-
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-
-            <!-- Alarm Threshold -->
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:gravity="center_vertical"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/alarm_threshold"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"/>
-                <ImageView android:layout_marginStart="@dimen/spacing_sm"
-                    android:layout_width="wrap_content"
-                    android:src="@drawable/ic_question"
-                    android:id="@+id/img_question_alarm_threshold"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvThreshold"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="50%"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textStyle="bold"
-                android:layout_marginTop="4dp"/>
-
-            <SeekBar
-                android:id="@+id/seekThreshold"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                android:progressTint="?attr/colorPrimary"
-                android:thumbTint="?attr/colorPrimary"
-                android:progressBackgroundTint="?attr/colorSurfaceVariant"/>
-
-            <!-- Notification Frequency -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/notification_frequency"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                android:textColor="?attr/colorPrimary"/>
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/frequency_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-                <AutoCompleteTextView
-                    android:id="@+id/frequency_dropdown"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none"
-                    tools:text="5 seconds"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="24dp">
 
-            <!-- Bottom spacing for FAB -->
-<!--            <View-->
-<!--                android:layout_width="match_parent"-->
-<!--                android:layout_height="96dp"/>-->
+                    <TextView
+                        style="@style/Widget.SmartSense.Label"
+                        android:text="@string/notifications" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_md"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/notifications"
+                            android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switchNotifications"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <!-- Trigger Alarm -->
+                    <TextView
+                        style="@style/Widget.SmartSense.Label"
+                        android:text="@string/trigger_alarm_above_or_below_threshold" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/toggle_trigger_alarm"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="@dimen/spacing_lg"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/mb_above"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/above" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/mb_below"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/below" />
+
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                    <!-- Alarm Threshold -->
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@style/Widget.SmartSense.Label"
+                            android:layout_marginBottom="0dp"
+                            android:text="@string/alarm_threshold" />
+
+                        <ImageView
+                            android:id="@+id/img_question_alarm_threshold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/spacing_sm"
+                            android:src="@drawable/ic_question" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvThreshold"
+                        style="@style/Widget.SmartSense.Label"
+                        android:layout_marginTop="4dp"
+                        android:text="50%"
+                        android:textStyle="bold" />
+
+                    <SeekBar
+                        android:id="@+id/seekThreshold"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/spacing_lg"
+                        android:max="100"
+                        android:progressBackgroundTint="?attr/colorSurfaceVariant"
+                        android:progressTint="?attr/colorPrimary"
+                        android:thumbTint="?attr/colorPrimary" />
+
+                    <!-- Notification Frequency -->
+                    <TextView
+                        style="@style/Widget.SmartSense.Label"
+                        android:text="@string/notification_frequency" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/frequency_layout"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/frequency_dropdown"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="none"
+                            tools:text="Every 1 Hour" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
-    </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

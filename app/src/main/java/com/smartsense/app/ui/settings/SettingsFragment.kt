@@ -54,6 +54,15 @@ class SettingsFragment : Fragment() {
         setupButtons()
     }
 
+    override fun onResume() {
+        super.onResume()
+        with(binding.toolbar) {
+            navigationIcon = null
+            title = getString(R.string.settings_title)
+            subtitle = ""
+        }
+    }
+
     private fun setupDropdowns() {
         // --- Unit System ---
         val units = UnitSystem.entries

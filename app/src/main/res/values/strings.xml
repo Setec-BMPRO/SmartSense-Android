@@ -159,6 +159,7 @@
     <string name="no">No</string>
     <string name="yes">Yes</string>
     <string name="tank_info">Tank Info</string>
+    <string name="save">Save</string>
     <string name="local_only">Local</string>
     <string name="sign_in_required">Sign In Required</string>
 
