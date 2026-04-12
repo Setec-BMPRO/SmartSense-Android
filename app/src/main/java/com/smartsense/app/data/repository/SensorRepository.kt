@@ -58,6 +58,7 @@ class SensorRepository @Inject constructor(
     }
 
     // --- State Management ---
+    private val _rawReadings = kotlinx.coroutines.flow.MutableSharedFlow<ScannedSensor>(extraBufferCapacity = 1)
     private val liveReadings = MutableStateFlow<Map<String, ScannedSensor>>(emptyMap())
 
     val sharedReadings = liveReadings.stateIn(
@@ -91,8 +92,12 @@ class SensorRepository @Inject constructor(
 
     fun stopScan() = bleManager.stopScan()
 
+    fun observeRawReadings(): Flow<ScannedSensor> = _rawReadings
+
+
     private fun cacheReading(scanned: ScannedSensor) {
         liveReadings.update { it + (scanned.address to scanned) }
+        _rawReadings.tryEmit(scanned)
     }
 
     // --------------------------------------
@@ -181,7 +186,7 @@ class SensorRepository @Inject constructor(
             lastModifiedLocally = now
         )
         val tank = TankEntity(
-            name=calculateTankUseCase.calculateName(),
+            name=name,
             sensorAddress = address,
             syncStatus = SyncStatus.PENDING,
             lastModifiedLocally = now

@@ -114,6 +114,20 @@ class ScanViewModel @Inject constructor(
             _uiState.update { it.copy(isScanning = true) }
             val interval = userPreferences.scanInterval.first().value.toLong() * 1000
 
+            // Fast path: monitor raw BLE readings for sync-pressed devices
+            // to trigger auto-pairing immediately without waiting for the sample interval
+            launch {
+                useCase.observeRawReadings()
+                    .collect { scanned ->
+                        if (!autoPairDone && scanned.parsed?.syncPressed == true) {
+                            val sensorType = scanned.parsed.sensorType
+                            Timber.tag(TAG).d("Fast auto-pairing syncPressed sensor: ${scanned.address}")
+                            autoPairDone = true
+                            registerSensor(scanned.address, calculateTankUseCase.calculateName(sensorType))
+                        }
+                    }
+            }
+
             useCase.startScan(interval)
                 .catch { e ->
                     Timber.tag(TAG).e(e, "Scan failed")
@@ -131,10 +145,11 @@ class ScanViewModel @Inject constructor(
     }
 
     private fun handleAutoPairing(sensors: List<Sensor>) {
+        if (autoPairDone) return
         sensors.firstOrNull { it.syncPressed }?.let { syncSensor ->
             Timber.tag(TAG).d("Auto-pairing syncPressed sensor detected: ${syncSensor.address}")
             autoPairDone = true
-            registerSensor(syncSensor.address, calculateTankUseCase.calculateName())
+            registerSensor(syncSensor.address, calculateTankUseCase.calculateName(syncSensor.sensorType))
         }
     }
 

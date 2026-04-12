@@ -26,6 +26,9 @@ enum class MopekaSensorType(val displayName: String, val isLpg: Boolean) {
     TOP_DOWN_AIR("Pro", isLpg = false),
     BOTTOM_UP_WATER("Pro", isLpg = false),
 
+    // Setec next-gen types
+    SETEC_GAS("Gas Sensor", isLpg = true),
+
     UNKNOWN("Unknown", isLpg = false);
 
     companion object {

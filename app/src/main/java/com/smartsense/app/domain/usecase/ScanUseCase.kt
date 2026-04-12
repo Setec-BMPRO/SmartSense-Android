@@ -20,6 +20,8 @@ class ScanUseCase @Inject constructor(
 
     fun stopScan() = repository.stopScan()
 
+    fun observeRawReadings(): Flow<com.smartsense.app.data.ble.ScannedSensor> = repository.observeRawReadings()
+
     fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor>> = repository.observeRegisteredSensors(scanIntervalMillis)
 
     suspend fun registerSensor(address: String, name: String, uploadSensorData: Boolean) {

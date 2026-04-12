@@ -13,8 +13,14 @@ object BleConstants {
     /** NRF52 manufacturer ID: 0x0059 (Nordic Semiconductor) */
     const val MANUFACTURER_ID_NRF52 = 0x0059
 
+    /** Setec manufacturer ID: 0x051F (Setec Pty Ltd) */
+    const val MANUFACTURER_ID_SETEC = 0x051F
+
     /** Default RSSI threshold — reject signals weaker than this */
     const val DEFAULT_RSSI_THRESHOLD = -60
+
+    /** Relaxed RSSI threshold for sync-pressed (pairing) devices */
+    const val SYNC_RSSI_THRESHOLD = -90
 
     /** Service UUID indicating CC2540 hardware */
     val SERVICE_UUID_CC2540: UUID = shortUuid("ADA0")
@@ -30,7 +36,17 @@ object BleConstants {
         const val LIPPERT_BOTTOM_UP = 0x06
         const val PLUS_BOTTOM_UP = 0x08
         const val PRO_UNIVERSAL = 0x0C
+        const val GAS_SENSOR = 0x06
     }
+
+    /** Setec 3rd-party sensor data type marker */
+    const val SETEC_DATA_TYPE_3RD_PARTY = 0xFF
+
+    /** Sigmawit company ID within the Setec protocol */
+    const val SETEC_COMPANY_SIGMAWIT = 0x01
+
+    /** Setec payload size after manufacturer ID is stripped (bytes 14-30 = 17 bytes) */
+    const val SETEC_PAYLOAD_SIZE = 17
 
     /** BMPRO brand filter: device byte (masked 0xCF) must be one of these */
     val BMPRO_ACCEPTED_DEVICE_BYTES = setOf(0x46, 0x48)

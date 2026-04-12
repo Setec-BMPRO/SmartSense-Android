@@ -176,6 +176,7 @@ class CalculateTankUseCase @Inject constructor() {
      fun calculateName(sensorType:MopekaSensorType?=null,tankName: String?=null): String =
          tankName?.takeIf { it.isNotBlank() } ?: run {
             when {
+                sensorType == MopekaSensorType.SETEC_GAS -> "Setec LPG Device"
                 (sensorType ==null) or (sensorType?.isLpg!=false) -> "New LPG Device"
                 sensorType == MopekaSensorType.BOTTOM_UP_WATER -> "New water sensor"
                 else -> "New ${sensorType!!.displayName} Device"

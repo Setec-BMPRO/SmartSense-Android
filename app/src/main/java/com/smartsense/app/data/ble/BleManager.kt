@@ -104,10 +104,10 @@ class BleManager @Inject constructor(
             .build()
 
     private fun buildScanFilters(): List<ScanFilter> =
-        listOf(
-            ScanFilter.Builder().setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_CC2540)).build(),
-            ScanFilter.Builder().setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_NRF52)).build()
-        )
+        // Empty filter list = accept all advertisements; filtering is done in parseScanResult.
+        // Mixing service UUID and manufacturer data filters caused the manufacturer data
+        // filter to be silently dropped on some Android versions (notably Android 11).
+        emptyList()
 
     // --- Parsing ---
 
@@ -115,18 +115,22 @@ class BleManager @Inject constructor(
         // Nordic's result.scanRecord is the same as native
         val record = result.scanRecord ?: return null
 
-        if (!isValidRssi(result.rssi)) return null
-
-        val hwType = detectHardwareType(record.serviceUuids) ?: return null
+        val hwType = detectHardwareType(record) ?: return null
 
         // Use the manufacturer ID to get data
         val mfgData = when (hwType) {
             HwType.CC2540 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_CC2540)
             HwType.NRF52 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_NRF52)
+            HwType.SETEC -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_SETEC)
         } ?: return null
 
         val parsed = parseAdvertData(hwType, mfgData, result) ?: return null
         if (!parsed.sensorType.isLpg) return null
+
+        // Relax RSSI threshold for sync-pressed devices to improve pairing reliability
+        val rssiThreshold = if (parsed.syncPressed) BleConstants.SYNC_RSSI_THRESHOLD
+                            else BleConstants.DEFAULT_RSSI_THRESHOLD
+        if (result.rssi < rssiThreshold) return null
 
         return ScannedSensor(
             address = result.device.address,
@@ -135,12 +139,12 @@ class BleManager @Inject constructor(
         )
     }
 
-    private fun isValidRssi(rssi: Int): Boolean = rssi >= BleConstants.DEFAULT_RSSI_THRESHOLD
-
-    private fun detectHardwareType(serviceUuids: List<ParcelUuid>?): HwType? {
+    private fun detectHardwareType(record: no.nordicsemi.android.support.v18.scanner.ScanRecord): HwType? {
+        val serviceUuids = record.serviceUuids
         return when {
             serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_CC2540 } == true -> HwType.CC2540
             serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_NRF52 } == true -> HwType.NRF52
+            record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_SETEC) != null -> HwType.SETEC
             else -> null
         }
     }
@@ -149,9 +153,10 @@ class BleManager @Inject constructor(
         when (hwType) {
             HwType.CC2540 -> SensorAdvertParser.parseCC2540(data, result.rssi, result.device.address)
             HwType.NRF52 -> SensorAdvertParser.parseNRF52(data, result.rssi, result.device.address)
+            HwType.SETEC -> SensorAdvertParser.parseSetec(data, result.rssi, result.device.address)
         }
 
-    private enum class HwType { CC2540, NRF52 }
+    private enum class HwType { CC2540, NRF52, SETEC }
 }
 /**
  * Data model for a detected sensor

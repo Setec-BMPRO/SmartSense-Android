@@ -263,6 +263,83 @@ object SensorAdvertParser {
         return levelSeconds * speedOfSound / 2.0
     }
 
+    /**
+     * Parse Setec (0x051F) next-gen BLE advertisement.
+     *
+     * Payload layout (after Android strips the 2-byte manufacturer ID):
+     *  Byte  0:  0xFF — Setec data type (3rd party sensor)
+     *  Byte  1:  Bits[0-6] = 3rd-party company ID, Bit 7 = sync/pairing flag
+     *  Byte  2:  Protocol version (major 7-4, minor 3-0)
+     *  Byte  3:  Software version (major 7-4, minor 3-0)
+     *  Bytes 4-9:  Repeated sensor MAC address (6 bytes)
+     *  Byte 10:  Battery voltage raw (V = raw * 0.01 + 1.22)
+     *  Byte 11:  Reserved (0x00)
+     *  Byte 12:  Sensor type (6 = gas sensor)
+     *  Bytes 13-14: Gas tank height in mm (big-endian)
+     *  Byte 15:  Data serial number
+     *  Byte 16:  Reporting interval (seconds)
+     */
+    fun parseSetec(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
+        if (data.size < BleConstants.SETEC_PAYLOAD_SIZE) return null
+
+        return try {
+            val dataType = data[0].toInt() and 0xFF
+            if (dataType != BleConstants.SETEC_DATA_TYPE_3RD_PARTY) return null
+
+            val byte1 = data[1].toInt() and 0xFF
+            val companyId = byte1 and 0x7F
+            val syncPressed = (byte1 and 0x80) != 0
+
+            // MAC validation — bytes 4-9 must match BLE address
+            val macBytes = parseMacBytes(bleAddress) ?: return null
+            val payloadMac = ByteArray(6) { data[4 + it] }
+            if (!payloadMac.contentEquals(macBytes)) return null
+
+            val protocolVersion = data[2].toInt() and 0xFF
+            val softwareVersion = data[3].toInt() and 0xFF
+            val protoMajor = (protocolVersion shr 4) and 0x0F
+            val protoMinor = protocolVersion and 0x0F
+            val swMajor = (softwareVersion shr 4) and 0x0F
+            val swMinor = softwareVersion and 0x0F
+
+            val batteryRaw = data[10].toInt() and 0xFF
+            val batteryVoltage = batteryRaw * 0.01f + 1.22f
+
+            val sensorType = data[12].toInt() and 0xFF
+
+            // Tank height reported directly in mm (bytes 13-14, big-endian)
+            val heightMm = ((data[13].toInt() and 0xFF) shl 8) or (data[14].toInt() and 0xFF)
+            val heightMeters = heightMm / 1000.0
+
+            val mopekaSensorType = when (sensorType) {
+                BleConstants.SensorType.GAS_SENSOR -> MopekaSensorType.SETEC_GAS
+                else -> MopekaSensorType.UNKNOWN
+            }
+
+            Log.d(TAG, "SETEC OK $bleAddress: company=$companyId, type=${mopekaSensorType.displayName}, " +
+                    "battery=${"%.2f".format(batteryVoltage)}V, " +
+                    "height=${heightMm}mm, sync=$syncPressed, " +
+                    "proto=$protoMajor.$protoMinor, sw=$swMajor.$swMinor")
+
+            ParsedSensor(
+                reading = SensorReading(
+                    rawHeightMeters = heightMeters,
+                    batteryVoltage = batteryVoltage,
+                    rssi = rssi,
+                    quality = 3, // No quality field in Setec protocol; default to good
+                    temperatureCelsius = 0f, // No temperature field in Setec protocol
+                    firmwareVersion = "$swMajor.$swMinor",
+                    deviceMAC = macBytes.joinToString(":") { byte -> "%02X".format(byte) }
+                ),
+                sensorType = mopekaSensorType,
+                syncPressed = syncPressed
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Error parsing Setec data", e)
+            null
+        }
+    }
+
     private fun parseMacBytes(address: String): ByteArray? {
         return try {
             val parts = address.split(":")
