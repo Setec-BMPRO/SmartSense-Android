@@ -53,9 +53,18 @@ class BleManager @Inject constructor(
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 val record = result.scanRecord
-                val setecData = record?.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_SETEC)
-                if (setecData != null) {
-                    Timber.d("BLE RAW Setec advert from ${result.device.address}, rssi=${result.rssi}, dataSize=${setecData.size}, data=${setecData.joinToString(",") { "%02X".format(it) }}")
+                // DEBUG: Log all devices with any manufacturer data to find the Setec prototype
+                val mfgSparse = record?.manufacturerSpecificData
+                if (mfgSparse != null && mfgSparse.size() > 0) {
+                    val known = setOf(0x000D, 0x0059) // Skip known Mopeka IDs to reduce noise
+                    for (i in 0 until mfgSparse.size()) {
+                        val companyId = mfgSparse.keyAt(i)
+                        if (companyId !in known) {
+                            val data = mfgSparse.valueAt(i)
+                            val hex = data?.joinToString(",") { "%02X".format(it) } ?: "null"
+                            Timber.d("BLE UNKNOWN mfg 0x${"%04X".format(companyId)} from ${result.device.address} name=${result.device.name ?: record?.deviceName ?: "?"} rssi=${result.rssi} data=[$hex]")
+                        }
+                    }
                 }
                 // Nordic's ScanResult is passed here
                 parseScanResult(result)?.let { trySend(it) }
