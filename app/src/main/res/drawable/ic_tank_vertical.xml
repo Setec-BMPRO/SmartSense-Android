@@ -4,71 +4,40 @@
     android:viewportWidth="48"
     android:viewportHeight="48">
 
-    <!-- Valve handle (horizontal bar on top) -->
+    <!-- Collar/Handle -->
     <path
-        android:fillColor="#444444"
-        android:pathData="M18,5 L30,5 L30,7 L18,7 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M16,2h16c1.1,0 2,0.9 2,2s-0.9,2 -2,2H16c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2z"/>
+    <path
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M17,6h3v6h-3z M28,6h3v6h-3z"/>
 
-    <!-- Valve vertical posts -->
+    <!-- Valve -->
     <path
-        android:fillColor="#444444"
-        android:pathData="M20,3 L22,3 L22,7 L20,7 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M21,7h6v2h-6z"/>
     <path
-        android:fillColor="#444444"
-        android:pathData="M26,3 L28,3 L28,7 L26,7 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M23,9h2v4h-2z"/>
 
-    <!-- Valve neck -->
+    <!-- Tank Body - Top section -->
     <path
-        android:fillColor="#666666"
-        android:pathData="M21,7 L27,7 L27,10 L21,10 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M24,12c-6.6,0 -13,3.6 -13,8h26c0,-4.4 -6.4,-8 -13,-8z"/>
 
-    <!-- Tank body (rounded cylinder) -->
+    <!-- Tank Body - Middle section -->
     <path
-        android:fillColor="@android:color/white"
-        android:pathData="M14,10 L34,10 Q38,10 38,15 L38,36 Q38,41 34,41 L14,41 Q10,41 10,36 L10,15 Q10,10 14,10 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M11,21h26v14h-26z"/>
 
-    <!-- Tank body outline -->
+    <!-- Tank Body - Bottom section -->
     <path
-        android:fillColor="#00000000"
-        android:strokeColor="#444444"
-        android:strokeWidth="1.8"
-        android:pathData="M14,10 L34,10 Q38,10 38,15 L38,36 Q38,41 34,41 L14,41 Q10,41 10,36 L10,15 Q10,10 14,10 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M24,45c6.6,0 13,-3.6 13,-8H11c0,4.4 6.4,8 13,8z"/>
 
-    <!-- Shoulder band -->
+    <!-- Foot ring -->
     <path
-        android:strokeColor="#444444"
-        android:strokeWidth="1.2"
-        android:pathData="M10,15 L38,15"/>
-
-    <!-- Lower band -->
-    <path
-        android:strokeColor="#444444"
-        android:strokeWidth="1.2"
-        android:pathData="M10,35 L38,35"/>
-
-    <!-- Flame icon (teardrop shape) -->
-    <path
-        android:fillColor="#444444"
-        android:pathData="M24,19 Q28,23 28,27 Q28,30 24,31 Q20,30 20,27 Q20,23 24,19 Z"/>
-    <!-- Inner flame -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M24,23 Q26,25.5 26,27.5 Q26,29 24,29.5 Q22,29 22,27.5 Q22,25.5 24,23 Z"/>
-
-    <!-- Base/feet -->
-    <path
-        android:fillColor="#666666"
-        android:pathData="M12,41 L36,41 L36,43 Q36,44.5 34,44.5 L14,44.5 Q12,44.5 12,43 Z"/>
-
-    <!-- Foot notches -->
-    <path
-        android:fillColor="#444444"
-        android:pathData="M16,44.5 L18,44.5 L18,46 L16,46 Z"/>
-    <path
-        android:fillColor="#444444"
-        android:pathData="M22,44.5 L26,44.5 L26,46 L22,46 Z"/>
-    <path
-        android:fillColor="#444444"
-        android:pathData="M30,44.5 L32,44.5 L32,46 L30,46 Z"/>
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M18,45h12c0,1.6 -2.7,3 -6,3s-6,-1.4 -6,-3z"/>
 
 </vector>
