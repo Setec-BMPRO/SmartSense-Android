@@ -27,9 +27,9 @@ class TankLevelView @JvmOverloads constructor(
     private var levelStatus: LevelStatus = LevelStatus.RED
     private var levelText: String = "Empty"
 
-    private val tankLeftRatio = 0.30f
-    private val tankRightRatio = 0.70f
-    private val tankTopRatio = 0.18f
+    private val tankLeftRatio = 0.28f
+    private val tankRightRatio = 0.72f
+    private val tankTopRatio = 0.22f
     private val tankBottomRatio = 0.84f
 
     private val tankBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -155,7 +155,8 @@ class TankLevelView @JvmOverloads constructor(
         val tankBottom = h * tankBottomRatio
         val tankWidth = tankRight - tankLeft
         val tankHeight = tankBottom - tankTop
-        val cr = 20f * scale
+        val cx = (tankLeft + tankRight) / 2f
+        val cornerRadius = tankWidth * 0.35f
 
         outlinePaint.strokeWidth = 3f * scale
         handlePaint.strokeWidth = 5f * scale
@@ -183,45 +184,34 @@ class TankLevelView @JvmOverloads constructor(
             }
         }
 
-        val cx = (tankLeft + tankRight) / 2f
+        // --- Handle / Collar (based on reference image) ---
+        val collarWidth = tankWidth * 0.65f
+        val collarTop = tankTop - tankHeight * 0.18f
+        val collarBottom = tankTop + cornerRadius * 0.2f
+        val postWidth = 10f * scale
+        val topBarHeight = 8f * scale
 
-        // --- Handle (rectangular with crossbar, like reference) ---
-        val handleWidth = tankWidth * 0.35f
-        val handleHeight = h * 0.07f
-        val handleTop = tankTop - h * 0.13f
-        val handleBottom = tankTop - h * 0.04f
-        val handleR = 4f * scale
-        // Two vertical posts
-        val postWidth = 4f * scale
-        canvas.drawRoundRect(
-            cx - handleWidth / 2, handleTop, cx - handleWidth / 2 + postWidth, handleBottom + h * 0.02f,
-            handleR, handleR, handlePaint.apply { style = Paint.Style.FILL }
-        )
-        canvas.drawRoundRect(
-            cx + handleWidth / 2 - postWidth, handleTop, cx + handleWidth / 2, handleBottom + h * 0.02f,
-            handleR, handleR, handlePaint
-        )
-        // Horizontal crossbar on top
-        canvas.drawRoundRect(
-            cx - handleWidth / 2, handleTop, cx + handleWidth / 2, handleTop + postWidth,
-            handleR, handleR, handlePaint
-        )
-        handlePaint.style = Paint.Style.STROKE
+        // Collar vertical posts
+        canvas.drawRect(cx - collarWidth * 0.35f, collarTop, cx - collarWidth * 0.35f + postWidth, collarBottom, handlePaint.apply { style = Paint.Style.FILL })
+        canvas.drawRect(cx + collarWidth * 0.35f - postWidth, collarTop, cx + collarWidth * 0.35f, collarBottom, handlePaint)
+        
+        // Collar top horizontal bar
+        canvas.drawRoundRect(cx - collarWidth / 2, collarTop, cx + collarWidth / 2, collarTop + topBarHeight, 4f * scale, 4f * scale, handlePaint)
 
-        // --- Valve stem ---
-        val stemWidth = tankWidth * 0.14f
-        val stemTop = handleBottom
-        val stemBottom = tankTop + cr * 0.3f
-        canvas.drawRoundRect(
-            cx - stemWidth / 2, stemTop, cx + stemWidth / 2, stemBottom,
-            3f * scale, 3f * scale, valveBodyPaint
-        )
+        // --- Valve (based on reference image) ---
+        val valveWidth = tankWidth * 0.2f
+        val valveTop = collarTop + topBarHeight + 10f * scale
+        val valveBottom = tankTop + cornerRadius * 0.1f
+        // Stem
+        canvas.drawRect(cx - 4f * scale, valveTop, cx + 4f * scale, valveBottom, valveBodyPaint)
+        // Valve Cap (T-shape)
+        canvas.drawRect(cx - valveWidth / 2, valveTop, cx + valveWidth / 2, valveTop + 7f * scale, valveCapPaint)
 
-        // --- Tank body ---
+        // --- Tank Body ---
         tankPath.reset()
         tankPath.addRoundRect(
             RectF(tankLeft, tankTop, tankRight, tankBottom),
-            cr, cr, Path.Direction.CW
+            cornerRadius, cornerRadius, Path.Direction.CW
         )
 
         // Drop shadow
@@ -229,13 +219,13 @@ class TankLevelView @JvmOverloads constructor(
             canvas.drawRoundRect(
                 RectF(tankLeft + 3f * scale, tankTop + 3f * scale,
                     tankRight + 3f * scale, tankBottom + 3f * scale),
-                cr, cr, shadowPaint
+                cornerRadius, cornerRadius, shadowPaint
             )
         }
 
         canvas.drawPath(tankPath, tankBodyPaint)
 
-        // --- Liquid fill ---
+        // --- Liquid Fill ---
         if (percentage > 0f) {
             val fillTop = tankBottom - (tankHeight * percentage / 100f)
             canvas.save()
@@ -251,65 +241,34 @@ class TankLevelView @JvmOverloads constructor(
             canvas.restore()
         }
 
-        // --- Shoulder and lower weld lines ---
-        val seamY1 = tankTop + tankHeight * 0.12f
-        val seamY2 = tankBottom - tankHeight * 0.12f
-        canvas.drawLine(tankLeft + cr * 0.5f, seamY1, tankRight - cr * 0.5f, seamY1, weldLinePaint)
-        canvas.drawLine(tankLeft + cr * 0.5f, seamY2, tankRight - cr * 0.5f, seamY2, weldLinePaint)
+        // --- Horizontal Bands (based on reference image) ---
+        // These bands appear as gaps/lines in the silhouette
+        val bandThickness = 10f * scale
+        val band1Y = tankTop + tankHeight * 0.32f
+        val band2Y = tankTop + tankHeight * 0.68f
+        val bandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.FILL
+            color = if (dark) 0xFF1E1E1E.toInt() else 0xFFFFFFFF.toInt()
+        }
+        canvas.drawRect(tankLeft, band1Y, tankRight, band1Y + bandThickness, bandPaint)
+        canvas.drawRect(tankLeft, band2Y, tankRight, band2Y + bandThickness, bandPaint)
 
-        // --- Rims ---
-        val rimHeight = 6f * scale
-        canvas.drawRoundRect(
-            RectF(tankLeft - 1f * scale, tankTop - rimHeight * 0.3f,
-                tankRight + 1f * scale, tankTop + rimHeight * 0.7f),
-            rimHeight / 2, rimHeight / 2, rimPaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankLeft - 1f * scale, tankTop - rimHeight * 0.3f,
-                tankRight + 1f * scale, tankTop + rimHeight * 0.7f),
-            rimHeight / 2, rimHeight / 2, rimStrokePaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankLeft - 1f * scale, tankBottom - rimHeight * 0.7f,
-                tankRight + 1f * scale, tankBottom + rimHeight * 0.3f),
-            rimHeight / 2, rimHeight / 2, rimPaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankLeft - 1f * scale, tankBottom - rimHeight * 0.7f,
-                tankRight + 1f * scale, tankBottom + rimHeight * 0.3f),
-            rimHeight / 2, rimHeight / 2, rimStrokePaint
-        )
-
+        // Outline
         canvas.drawPath(tankPath, outlinePaint)
 
-        // --- Base/feet (wider base plate with legs like reference) ---
-        val baseExtend = tankWidth * 0.08f
-        val baseHeight = 8f * scale
-        val baseTop = tankBottom + rimHeight * 0.3f
-        // Base plate (wider than tank)
-        canvas.drawRoundRect(
-            RectF(tankLeft - baseExtend, baseTop,
-                tankRight + baseExtend, baseTop + baseHeight),
-            3f * scale, 3f * scale, footPaint
-        )
-        // Three legs underneath
-        val legWidth = 6f * scale
-        val legHeight = h * 0.03f
-        val legTop = baseTop + baseHeight
-        val legSpacing = (tankWidth + 2 * baseExtend) / 4f
-        val legStartX = tankLeft - baseExtend
-        for (i in 1..3) {
-            val legCx = legStartX + legSpacing * i
-            canvas.drawRoundRect(
-                RectF(legCx - legWidth / 2, legTop, legCx + legWidth / 2, legTop + legHeight),
-                2f * scale, 2f * scale, footPaint
-            )
-        }
+        // --- Foot Ring (based on reference image) ---
+        val footWidth = tankWidth * 0.75f
+        val footHeight = tankHeight * 0.1f
+        val footTop = tankBottom - cornerRadius * 0.2f
+        val footPath = Path()
+        val footRect = RectF(cx - footWidth / 2, footTop, cx + footWidth / 2, footTop + footHeight)
+        footPath.addRoundRect(footRect, floatArrayOf(0f, 0f, 0f, 0f, cornerRadius * 0.5f, cornerRadius * 0.5f, cornerRadius * 0.5f, cornerRadius * 0.5f), Path.Direction.CW)
+        canvas.drawPath(footPath, footPaint)
 
-        // --- Percentage badge ---
+        // --- Percentage Badge ---
         val badgeRadius = w * 0.11f
         val badgeCx = tankRight + badgeRadius * 0.15f
-        val badgeCy = tankTop + tankHeight * 0.35f
+        val badgeCy = tankTop + tankHeight * 0.45f
 
         if (!dark) {
             canvas.drawCircle(badgeCx + 1.5f * scale, badgeCy + 1.5f * scale, badgeRadius, shadowPaint)
