@@ -13,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentSensorDetailBinding
 import com.smartsense.app.domain.model.LevelStatus
+import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.ReadQuality
 
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
@@ -220,6 +221,9 @@ class SensorDetailFragment : Fragment() {
         detailDeviceAddress.text = formatShortAddress(sensor.address)
         detailTemperature.text = sensor.temperatureFormatted(viewModel.unitSystem)
         detailTankType.text = sensor.tankType
+        // Hide temperature for Setec gas sensors (no temperature in protocol)
+        detailTemperatureContainer.visibility =
+            if (sensor.sensorType == MopekaSensorType.SETEC_GAS) View.GONE else View.VISIBLE
     }
 
     private fun FragmentSensorDetailBinding.updateRefreshRate() {
