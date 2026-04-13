@@ -88,7 +88,7 @@ class ScanViewModel @Inject constructor(
             useCase.observeRegisteredSensors(interval)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
-                    if (sensors.isNotEmpty()) autoPairDone = true
+                    autoPairDone = sensors.isNotEmpty()
 
                     sensors.forEach { scannedSensor ->
                         val level = scannedSensor.tankLevel?.percentage?.toInt() ?: -1

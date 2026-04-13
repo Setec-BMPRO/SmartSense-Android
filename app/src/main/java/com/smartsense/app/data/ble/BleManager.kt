@@ -52,6 +52,11 @@ class BleManager @Inject constructor(
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
+                val record = result.scanRecord
+                val setecData = record?.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_SETEC)
+                if (setecData != null) {
+                    Timber.d("BLE RAW Setec advert from ${result.device.address}, rssi=${result.rssi}, dataSize=${setecData.size}, data=${setecData.joinToString(",") { "%02X".format(it) }}")
+                }
                 // Nordic's ScanResult is passed here
                 parseScanResult(result)?.let { trySend(it) }
             }
