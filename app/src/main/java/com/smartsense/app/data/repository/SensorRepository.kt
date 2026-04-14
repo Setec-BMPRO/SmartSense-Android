@@ -432,7 +432,7 @@ class SensorRepository @Inject constructor(
             reading = reading,
             tankLevel = tankLevel,
             readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) reading?.quality?.toReadQuality() else null,
-            tankType = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL && tank != null) {
+            tankType = if (tank != null) {
                 if (tank.type == TankType.ARBITRARY) "${tank.type.displayName} ${tank.type.orientation.name.uppercaseFirst()}"
                 else tank.type.displayName
             } else null

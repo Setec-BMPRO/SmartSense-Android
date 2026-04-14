@@ -25,6 +25,7 @@ class TankLevelMiniView @JvmOverloads constructor(
 
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
+    private var tankTypeLabel: String = ""
 
     private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -34,6 +35,10 @@ class TankLevelMiniView @JvmOverloads constructor(
     }
     private val outlineBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val hardwareTintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val tankLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+    }
 
     private var tankBitmap: Bitmap? = null
     private var hardwareBitmap: Bitmap? = null
@@ -50,6 +55,13 @@ class TankLevelMiniView @JvmOverloads constructor(
     private fun isDarkMode(): Boolean {
         return (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
+    }
+
+    fun setTankTypeLabel(label: String) {
+        if (label != tankTypeLabel) {
+            tankTypeLabel = label
+            invalidate()
+        }
     }
 
     fun setLevel(percentage: Float, status: LevelStatus) {
@@ -144,6 +156,16 @@ class TankLevelMiniView @JvmOverloads constructor(
         canvas.drawRect(bounds, tankGradientPaint)
         canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
         canvas.restoreToCount(save1)
+
+        // Tank type label
+        if (tankTypeLabel.isNotEmpty()) {
+            val labelCx = s * (SVG_TANK_LEFT_RATIO + SVG_TANK_RIGHT_RATIO) / 2f
+            val labelCy = s * 0.62f
+            tankLabelPaint.textSize = s * 0.16f
+            tankLabelPaint.color = if (dark) 0x90FFFFFF.toInt() else 0x80000000.toInt()
+            val labelY = labelCy - (tankLabelPaint.descent() + tankLabelPaint.ascent()) / 2f
+            canvas.drawText(tankTypeLabel.uppercase(), labelCx, labelY, tankLabelPaint)
+        }
 
         // Liquid fill masked by silhouette
         if (percentage > 0f) {

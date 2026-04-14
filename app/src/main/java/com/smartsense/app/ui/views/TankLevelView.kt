@@ -29,6 +29,7 @@ class TankLevelView @JvmOverloads constructor(
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
     private var levelText: String = "Empty"
+    private var tankTypeLabel: String = ""
 
     private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -45,6 +46,10 @@ class TankLevelView @JvmOverloads constructor(
     private val outlineBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private val hardwareTintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val tankLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+    }
 
     private var tankBitmap: Bitmap? = null
     private var hardwareBitmap: Bitmap? = null
@@ -122,6 +127,13 @@ class TankLevelView @JvmOverloads constructor(
     fun setLevelUnit(levelUnit: TankLevelUnit, tankHeightMm: Float) {
         this.levelUnit = levelUnit
         this.tankHeightMm = tankHeightMm
+    }
+
+    fun setTankTypeLabel(label: String) {
+        if (label != tankTypeLabel) {
+            tankTypeLabel = label
+            invalidate()
+        }
     }
 
     fun setMarkerRatios(top: Float, bottom: Float) {
@@ -260,6 +272,16 @@ class TankLevelView @JvmOverloads constructor(
         canvas.drawRect(bounds, tankGradientPaint)
         canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
         canvas.restoreToCount(save1)
+
+        // Tank type label on the body
+        if (tankTypeLabel.isNotEmpty()) {
+            val labelCx = tankDrawLeft + tankDrawSize * (SVG_TANK_LEFT_RATIO + SVG_TANK_RIGHT_RATIO) / 2f
+            val labelCy = tankDrawTop + tankDrawSize * 0.62f
+            tankLabelPaint.textSize = tankDrawSize * 0.065f
+            tankLabelPaint.color = if (dark) 0x60FFFFFF else 0x50000000
+            val labelY = labelCy - (tankLabelPaint.descent() + tankLabelPaint.ascent()) / 2f
+            canvas.drawText(tankTypeLabel.uppercase(), labelCx, labelY, tankLabelPaint)
+        }
 
         // Liquid fill masked by silhouette
         if (percentage > 0f) {

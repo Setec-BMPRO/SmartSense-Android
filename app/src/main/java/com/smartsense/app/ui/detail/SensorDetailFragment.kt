@@ -84,6 +84,7 @@ class SensorDetailFragment : Fragment() {
             tank?.let {
                 binding.detailTank.setLevelUnit(it.levelUnit, viewModel.calculateTankHeightMm(it))
                 binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
+                binding.detailTank.setTankTypeLabel(it.type.displayName)
             }
         }
     }
