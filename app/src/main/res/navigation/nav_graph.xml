@@ -12,7 +12,7 @@
         tools:layout="@layout/fragment_account_register">
 
         <action
-            android:id="@+id/action_to_sign_in"
+            android:id="@+id/action_register_to_signIn"
             app:destination="@id/accountSignInFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
@@ -26,7 +26,7 @@
         android:label="@string/sign_in"
         tools:layout="@layout/fragment_account_signin">
         <action
-            android:id="@+id/action_to_register"
+            android:id="@+id/action_signIn_to_register"
             app:destination="@id/accountRegisterFragment"
             app:enterAnim="@anim/slide_in_left"
             app:exitAnim="@anim/slide_out_right"
@@ -47,7 +47,7 @@
         tools:layout="@layout/fragment_scan">
 
         <action
-            android:id="@+id/action_scan_to_detail"
+            android:id="@+id/action_scan_to_sensorDetail"
             app:destination="@id/sensorDetailFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
@@ -71,15 +71,15 @@
             android:name="sensorAddress"
             app:argType="string"/>
         <action
-            android:id="@+id/action_detail_to_setting"
-            app:destination="@id/tankSettingFragment"
+            android:id="@+id/action_sensorDetail_to_tankSettings"
+            app:destination="@id/tankSettingsFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right"/>
     </fragment>
     <fragment
-        android:id="@+id/tankSettingFragment"
+        android:id="@+id/tankSettingsFragment"
         android:name="com.smartsense.app.ui.detail.TankSettingsFragment"
         android:label="Settings"
         tools:layout="@layout/fragment_tank_settings">

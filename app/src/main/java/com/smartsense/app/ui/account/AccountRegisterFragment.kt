@@ -22,6 +22,7 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
+import com.smartsense.app.util.hideKeyboard
 import com.smartsense.app.databinding.FragmentAccountRegisterBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
@@ -59,7 +60,7 @@ class AccountRegisterFragment : Fragment() {
                 result?.let {
                     (activity as MainActivityListener).showLoadingIndicator(false)
                     if (it.isSuccess) {
-                        findNavController().navigate(R.id.action_to_sign_in)
+                        findNavController().navigate(R.id.action_register_to_signIn)
                     } else {
                         Snackbar.make(binding.root,
                             getString(R.string.signup_failed), Snackbar.LENGTH_LONG).show()
@@ -72,7 +73,18 @@ class AccountRegisterFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        binding.etConfirmPassword.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_GO) {
+                hideKeyboard()
+                binding.btnRegister.performClick()
+                true
+            } else {
+                false
+            }
+        }
+
         binding.btnRegister.setOnClickListener {
+            hideKeyboard()
             if (performFinalValidation()) {
                 val email = binding.etEmail.text.toString().trim()
                 val password = binding.etPassword.text.toString()
@@ -82,16 +94,16 @@ class AccountRegisterFragment : Fragment() {
         }
 
         binding.tvSignIn.setOnClickListener {
-            findNavController().navigate(R.id.action_to_sign_in)
+            findNavController().navigate(R.id.action_register_to_signIn)
             (requireActivity() as MainActivityListener).handleTabSelection(R.id.tab_account)
         }
     }
 
     private fun setupLiveValidation() {
-        binding.etEmail.doOnTextChanged { _, _, _, _ -> binding.etEmail.error = null }
-        binding.etConfirmEmail.doOnTextChanged { _, _, _, _ -> binding.etConfirmEmail.error = null }
-        binding.etPassword.doOnTextChanged { _, _, _, _ -> binding.etPassword.error = null }
-        binding.etConfirmPassword.doOnTextChanged { _, _, _, _ -> binding.etConfirmPassword.error = null }
+        binding.etEmail.doOnTextChanged { _, _, _, _ -> binding.tilEmail.error = null }
+        binding.etConfirmEmail.doOnTextChanged { _, _, _, _ -> binding.tilConfirmEmail.error = null }
+        binding.etPassword.doOnTextChanged { _, _, _, _ -> binding.tilPassword.error = null }
+        binding.etConfirmPassword.doOnTextChanged { _, _, _, _ -> binding.tilConfirmPassword.error = null }
     }
 
     private fun performFinalValidation(): Boolean {
@@ -103,19 +115,19 @@ class AccountRegisterFragment : Fragment() {
         var isValid = true
 
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.etEmail.error = getString(R.string.enter_a_valid_email_address)
+            binding.tilEmail.error = getString(R.string.enter_a_valid_email_address)
             isValid = false
         }
         if (confirmEmail != email) {
-            binding.etConfirmEmail.error = getString(R.string.emails_do_not_match)
+            binding.tilConfirmEmail.error = getString(R.string.emails_do_not_match)
             isValid = false
         }
         if (password.length < 8) {
-            binding.etPassword.error = getString(R.string.password_must_be_at_least_8_characters)
+            binding.tilPassword.error = getString(R.string.password_must_be_at_least_8_characters)
             isValid = false
         }
         if (confirmPassword != password) {
-            binding.etConfirmPassword.error = getString(R.string.passwords_do_not_match)
+            binding.tilConfirmPassword.error = getString(R.string.passwords_do_not_match)
             isValid = false
         }
 

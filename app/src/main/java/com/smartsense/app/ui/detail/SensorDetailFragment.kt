@@ -156,7 +156,7 @@ class SensorDetailFragment : Fragment() {
         val bundle = Bundle().apply {
             putString(EXTRA_SENSOR_ADDRESS, viewModel.sensorAddress)
         }
-        findNavController().navigate(R.id.action_detail_to_setting, bundle)
+        findNavController().navigate(R.id.action_sensorDetail_to_tankSettings, bundle)
     }
 
     // --------------------------------------

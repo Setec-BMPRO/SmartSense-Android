@@ -165,12 +165,6 @@ class TankLevelView @JvmOverloads constructor(
             result
         }
 
-        fillPaint.color = when (status) {
-            LevelStatus.GREEN -> ContextCompat.getColor(context, R.color.level_green)
-            LevelStatus.YELLOW -> ContextCompat.getColor(context, R.color.level_yellow)
-            LevelStatus.RED -> 0xFFD24520.toInt()
-        }
-
         circleBorderPaint.color = when (status) {
             LevelStatus.GREEN -> ContextCompat.getColor(context, R.color.level_green)
             LevelStatus.YELLOW -> ContextCompat.getColor(context, R.color.level_yellow)
@@ -245,8 +239,12 @@ class TankLevelView @JvmOverloads constructor(
         }
 
         val bitmap = tankBitmap ?: return
+        val hwBitmap = hardwareBitmap
         val scale = tankDrawSize / 447f
         val bounds = RectF(0f, 0f, w, h)
+
+        val fillTopY = tankDrawTop + tankDrawSize * topRatio
+        val fillBottomY = tankDrawTop + tankDrawSize * bottomRatio
 
         // Drop shadow (light mode only)
         if (!dark) {
@@ -267,26 +265,27 @@ class TankLevelView @JvmOverloads constructor(
         canvas.drawBitmap(bitmap, 0f, 0f, outlineBitmapPaint)
         canvas.restore()
 
-        // Tank body: metallic gradient masked by silhouette
+        // Hardware (Handle, Stand)
+        hwBitmap?.let {
+            canvas.drawBitmap(it, 0f, 0f, hardwareTintPaint)
+        }
+
+        // Tank body: metallic gradient masked by silhouette, but only between the lines
         val save1 = canvas.saveLayer(bounds, null)
-        canvas.drawRect(bounds, tankGradientPaint)
+        canvas.drawRect(0f, fillTopY, w, fillBottomY, tankGradientPaint)
         canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
         canvas.restoreToCount(save1)
 
-        // Tank type label on the body
-        if (tankTypeLabel.isNotEmpty()) {
-            val labelCx = tankDrawLeft + tankDrawSize * (SVG_TANK_LEFT_RATIO + SVG_TANK_RIGHT_RATIO) / 2f
-            val labelCy = tankDrawTop + tankDrawSize * 0.62f
-            tankLabelPaint.textSize = tankDrawSize * 0.065f
-            tankLabelPaint.color = if (dark) 0x60FFFFFF else 0x50000000
-            val labelY = labelCy - (tankLabelPaint.descent() + tankLabelPaint.ascent()) / 2f
-            canvas.drawText(tankTypeLabel.uppercase(), labelCx, labelY, tankLabelPaint)
-        }
-
         // Liquid fill masked by silhouette
         if (percentage > 0f) {
-            val fillTopY = tankDrawTop + tankDrawSize * topRatio
-            val fillBottomY = tankDrawTop + tankDrawSize * bottomRatio
+            // Apply vertical gradient: Blue (Bottom) -> Red (Top)
+            fillPaint.shader = LinearGradient(
+                0f, fillBottomY, 0f, fillTopY,
+                0xFF1E88E5.toInt(), // Blue
+                0xFFD24520.toInt(), // Red
+                Shader.TileMode.CLAMP
+            )
+
             val bandHeight = fillBottomY - fillTopY
             val liquidTopY = fillBottomY - (bandHeight * percentage / 100f)
 
@@ -295,7 +294,7 @@ class TankLevelView @JvmOverloads constructor(
             val tankWidth = tankRight - tankLeft
 
             val save2 = canvas.saveLayer(bounds, null)
-            canvas.drawRect(0f, liquidTopY, w, fillBottomY + 10f, fillPaint)
+            canvas.drawRect(0f, liquidTopY, w, fillBottomY, fillPaint)
 
             fillHighlightPaint.shader = LinearGradient(
                 tankLeft, 0f, tankLeft + tankWidth * 0.35f, 0f,
@@ -304,12 +303,23 @@ class TankLevelView @JvmOverloads constructor(
             )
             canvas.drawRect(
                 tankLeft, liquidTopY,
-                tankLeft + tankWidth * 0.35f, fillBottomY + 10f,
+                tankLeft + tankWidth * 0.35f, fillBottomY,
                 fillHighlightPaint
             )
 
             canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
             canvas.restoreToCount(save2)
+        }
+
+        // Tank type label on the body (Drawn after fill to stay on top)
+        if (tankTypeLabel.isNotEmpty()) {
+            val labelCx = tankDrawLeft + tankDrawSize * (SVG_TANK_LEFT_RATIO + SVG_TANK_RIGHT_RATIO) / 2f
+            // Center vertically between fillTopY and fillBottomY
+            val labelCy = (fillTopY + fillBottomY) / 2f
+            tankLabelPaint.textSize = tankDrawSize * 0.065f
+            tankLabelPaint.color = if (dark) 0x60FFFFFF else 0x50000000
+            val labelY = labelCy - (tankLabelPaint.descent() + tankLabelPaint.ascent()) / 2f
+            canvas.drawText(tankTypeLabel.uppercase(), labelCx, labelY, tankLabelPaint)
         }
 
         // Percentage badge

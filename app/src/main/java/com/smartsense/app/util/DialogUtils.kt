@@ -15,12 +15,19 @@ fun Context.showConfirmationDialog(
     message: String,
     positiveText: String = getString(android.R.string.ok),
     negativeText: String = getString(android.R.string.cancel),
-    neutralText: String? = null, // Optional neutral text
+    neutralText: String? = null,
+    isWarning: Boolean = false,
     onConfirm: () -> Unit,
     onCancel: () -> Unit = {},
-    onNeutral: (() -> Unit)? = null // Optional neutral callback
+    onNeutral: (() -> Unit)? = null
 ) {
-    val builder = MaterialAlertDialogBuilder(this)
+    val theme = if (isWarning) {
+        R.style.ThemeOverlay_SmartSense_MaterialAlertDialog_Warning
+    } else {
+        R.style.ThemeOverlay_SmartSense_MaterialAlertDialog
+    }
+
+    val builder = MaterialAlertDialogBuilder(this, theme)
         .setTitle(title)
         .setMessage(message)
         .setCancelable(false)

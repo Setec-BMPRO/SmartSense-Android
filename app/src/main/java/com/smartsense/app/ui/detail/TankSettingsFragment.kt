@@ -202,12 +202,13 @@ class TankSettingsFragment : Fragment() {
 
     private fun setupRegionDropdown() {
         val items = TankRegion.entries.map { it.displayName }
-        val adapter =  SelectedAdapter(
+        val adapter = SelectedAdapter(
             requireContext(),
-            items = items as ArrayList<String>
-        ){items.indexOf(viewModel.uiState.value.region.displayName)}
+            items = items
+        ) { items.indexOf(viewModel.uiState.value.region.displayName) }
 
         binding.regionDropdown.setAdapter(adapter)
+        // Ensure dropdown doesn't filter out items initially
         binding.regionDropdown.setText(viewModel.uiState.value.region.displayName, false)
 
         binding.regionDropdown.setOnItemClickListener { _, _, position, _ ->
@@ -216,24 +217,29 @@ class TankSettingsFragment : Fragment() {
     }
 
     private fun setupTankSizeDropdown() {
-        val tankTypes=viewModel.uiState.value.availableTankTypes.map { it.displayName+", "+
-                it.orientation.name.uppercaseFirst() }
+        val state = viewModel.uiState.value
+        val tankTypes = state.availableTankTypes.map { 
+            it.displayName + ", " + it.orientation.name.uppercaseFirst() 
+        }
         val adapter = SelectedAdapter(
             requireContext(),
-            items = tankTypes as ArrayList<String>
-        ){tankTypes.indexOf(viewModel.uiState.value.qualityThreshold.displayName)}
+            items = tankTypes
+        ) {
+            val currentTankType = viewModel.uiState.value.tankType
+            state.availableTankTypes.indexOfFirst { it.displayName == currentTankType.displayName }
+        }
 
         binding.tankSizeDropdown.setAdapter(adapter)
-        viewModel.updateTankType(viewModel.uiState.value.tankType)
 
         binding.tankSizeDropdown.setOnItemClickListener { _, _, position, _ ->
-            val tankTypes=viewModel.uiState.value.availableTankTypes
-            viewModel.updateTankType(tankTypes[position])
-            val isCustom = position == tankTypes.lastIndex
+            val availableTypes = viewModel.uiState.value.availableTankTypes
+            val selectedType = availableTypes[position]
+            viewModel.updateTankType(selectedType)
+            val isCustom = selectedType.displayName == TankType.ARBITRARY.displayName
             binding.layoutTankSizeCustom.isVisible = isCustom
             if (!isCustom) {
                 viewModel.updateCustomHeight("0")
-                viewModel.updateOrientation(TankType.default().orientation)
+                viewModel.updateOrientation(selectedType.orientation)
             }
         }
     }
@@ -242,10 +248,12 @@ class TankSettingsFragment : Fragment() {
         val items = QualityThreshold.entries.map { it.displayName }
         val adapter = SelectedAdapter(
             requireContext(),
-            items = items as ArrayList<String>
-        ){items.indexOf(viewModel.uiState.value.qualityThreshold.displayName)}
+            items = items
+        ) { items.indexOf(viewModel.uiState.value.qualityThreshold.displayName) }
 
         binding.qualityDropdown.setAdapter(adapter)
+        binding.qualityDropdown.setText(viewModel.uiState.value.qualityThreshold.displayName, false)
+
         binding.qualityDropdown.setOnItemClickListener { _, _, position, _ ->
             viewModel.updateQuality(QualityThreshold.entries[position])
         }
@@ -255,10 +263,12 @@ class TankSettingsFragment : Fragment() {
         val items = NotificationFrequency.entries.map { it.displayName }
         val adapter = SelectedAdapter(
             requireContext(),
-            items = items as ArrayList<String>
-        ){items.indexOf(viewModel.uiState.value.notificationFrequency.displayName)}
+            items = items
+        ) { items.indexOf(viewModel.uiState.value.notificationFrequency.displayName) }
 
         binding.frequencyDropdown.setAdapter(adapter)
+        binding.frequencyDropdown.setText(viewModel.uiState.value.notificationFrequency.displayName, false)
+
         binding.frequencyDropdown.setOnItemClickListener { _, _, position, _ ->
             viewModel.updateNotificationFrequency(NotificationFrequency.entries[position])
         }
@@ -297,15 +307,14 @@ class TankSettingsFragment : Fragment() {
     // --------------------------------------
 
     private fun handleSetting(state: TankSettingsUiState) = with(binding) {
-        regionDropdown.setText(state.region.displayName, false)
+        if (regionDropdown.text.toString() != state.region.displayName) {
+            regionDropdown.setText(state.region.displayName, false)
+        }
+
         // Tank Size
-        val tankTypes=state.availableTankTypes.map { it.displayName}
-        val adapter=SelectedAdapter(
-            requireContext(),
-            tankTypes as ArrayList<String>
-        ){tankTypes.indexOf(state.tankType.displayName)}
-        tankSizeDropdown.setAdapter(adapter)
-        tankSizeDropdown.setText(state.tankType.displayName, false)
+        if (tankSizeDropdown.text.toString() != state.tankType.displayName) {
+            tankSizeDropdown.setText(state.tankType.displayName, false)
+        }
 
         layoutTankSizeCustom.isVisible =
             state.tankType.displayName == TankType.ARBITRARY.displayName
@@ -316,10 +325,14 @@ class TankSettingsFragment : Fragment() {
         }
         toggleOrientation.check(orientationId)
 
-        etHeight.setText(state.customHeightDisplay)
+        if (etHeight.text.toString() != state.customHeightDisplay) {
+            etHeight.setText(state.customHeightDisplay)
+        }
 
         // Quality
-        qualityDropdown.setText(state.qualityThreshold.displayName, false)
+        if (qualityDropdown.text.toString() != state.qualityThreshold.displayName) {
+            qualityDropdown.setText(state.qualityThreshold.displayName, false)
+        }
 
         val levelUnitId = when (state.levelUnit) {
             TankLevelUnit.PERCENT -> mbPercent.id
@@ -374,45 +387,60 @@ class SelectedAdapter(
     context: Context,
     private val items: List<String>,
     private val getSelectedIndex: () -> Int
-) : ArrayAdapter<String>(context, R.layout.item_dropdown_m3, items) {
+) : ArrayAdapter<String>(context, R.layout.item_dropdown_m3, items), android.widget.Filterable {
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        return createView(position, convertView, parent)
+    }
 
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
-        // 1. Inflate view
+        return createView(position, convertView, parent)
+    }
+
+    private fun createView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = convertView ?: LayoutInflater.from(context)
             .inflate(R.layout.item_dropdown_m3, parent, false)
 
+        val cardView = view as? com.google.android.material.card.MaterialCardView
         val textView = view.findViewById<TextView>(R.id.text)
         val isSelected = position == getSelectedIndex()
 
         textView.text = items[position]
 
-        // 2. Apply Material 3 Day/Night Colors Programmatically
         if (isSelected) {
-            // Background: Primary Container (Light Blue in Day, Dark Teal/Blue in Night)
-            val bgColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorPrimaryContainer)
-            view.setBackgroundColor(bgColor)
+            val bgColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorSecondaryContainer)
+            cardView?.setCardBackgroundColor(bgColor)
 
-            // Text: On Primary Container (High contrast text for the background above)
-            val textColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnPrimaryContainer)
+            val textColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnSecondaryContainer)
             textView.setTextColor(textColor)
-
-            // Optional: Make selected text bold
             textView.setTypeface(null, Typeface.BOLD)
+            
+            cardView?.strokeWidth = 2
+            cardView?.strokeColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorPrimary)
         } else {
-            // Unselected: Transparent background and standard OnSurface text
-            view.setBackgroundColor(Color.TRANSPARENT)
+            cardView?.setCardBackgroundColor(Color.TRANSPARENT)
+            cardView?.strokeWidth = 0
 
             val textColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnSurface)
             textView.setTextColor(textColor)
-
             textView.setTypeface(null, Typeface.NORMAL)
         }
 
         return view
     }
 
-    // Usually, you want the main view to look the same as the dropdown view
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        return getDropDownView(position, convertView, parent)
+    override fun getFilter(): android.widget.Filter {
+        return object : android.widget.Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val results = FilterResults()
+                results.values = items
+                results.count = items.size
+                return results
+            }
+
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                notifyDataSetChanged()
+            }
+        }
     }
 }

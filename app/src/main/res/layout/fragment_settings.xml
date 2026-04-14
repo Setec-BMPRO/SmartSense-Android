@@ -9,6 +9,15 @@
     tools:context=".ui.settings.SettingsFragment"
     tools:theme="@style/Theme.SmartSense">
 
+    <View
+        android:id="@+id/focus_thief"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:background="@android:color/transparent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:importantForAccessibility="no" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,8 +33,10 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/settings_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingBottom="@dimen/spacing_lg"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -67,9 +78,9 @@
                         android:id="@+id/theme_toggle_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:checkedButton="@+id/btn_theme_system"
                         app:singleSelection="true"
-                        app:selectionRequired="true">
+                        app:selectionRequired="true"
+                        android:saveEnabled="false">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_theme_light"
@@ -177,6 +188,7 @@
                                 android:textAlignment="viewEnd"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorPrimary"
+                                android:saveEnabled="false"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -230,6 +242,7 @@
                                 android:textAlignment="viewEnd"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorPrimary"
+                                android:saveEnabled="false"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -283,6 +296,7 @@
                                 android:textAlignment="viewEnd"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorPrimary"
+                                android:saveEnabled="false"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -452,7 +466,7 @@
             <!-- Dangerous Zone -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_forget_all_device"
-                style="@style/Widget.SmartSense.Button.Large"
+                style="@style/Widget.SmartSense.Button.Large.Filled"
                 android:text="@string/forget_all_devices" />
 
             <!-- App Info -->
@@ -460,11 +474,11 @@
                 android:id="@+id/app_version"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:layout_marginTop="@dimen/spacing_lg"
+                android:gravity="center"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="Version 1.0.0"/>
+                tools:text="Version 1.0.0" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

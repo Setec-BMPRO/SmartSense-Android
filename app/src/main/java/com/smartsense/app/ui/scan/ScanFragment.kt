@@ -238,7 +238,7 @@ class ScanFragment : Fragment() {
             val sensorItems = list.map { sensor ->
                 SensorItem(sensor, viewModel.unitSystem.value) { selected ->
                     val bundle = Bundle().apply { putString(EXTRA_SENSOR_ADDRESS, selected.address) }
-                    findNavController().navigate(R.id.action_scan_to_detail, bundle)
+                    findNavController().navigate(R.id.action_scan_to_sensorDetail, bundle)
                 }
             }
 

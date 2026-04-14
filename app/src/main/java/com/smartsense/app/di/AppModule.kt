@@ -43,7 +43,6 @@ object AppModule {
         MopekaDatabase::class.java,
         "mopeka_db"
     )
-        .addMigrations(MopekaDatabase.MIGRATION_1_2, MopekaDatabase.MIGRATION_2_3)
         .fallbackToDestructiveMigration()
         .build()
 

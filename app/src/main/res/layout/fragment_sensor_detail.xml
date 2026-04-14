@@ -361,7 +361,7 @@
             <!-- Action Buttons -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_unpair"
-                style="@style/Widget.SmartSense.Button.Large"
+                style="@style/Widget.SmartSense.Button.Large.Filled"
                 android:layout_marginBottom="16dp"
                 android:text="@string/remove_sensor" />
 

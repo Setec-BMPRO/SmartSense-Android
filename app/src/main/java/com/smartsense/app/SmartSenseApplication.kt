@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -21,8 +21,6 @@ class SmartSenseApplication : Application() , Configuration.Provider{
 
     @Inject
     lateinit var userPreferences: UserPreferences
-
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     // Hilt will inject the custom factory here
     @Inject lateinit var workerFactory: HiltWorkerFactory
@@ -35,10 +33,11 @@ class SmartSenseApplication : Application() , Configuration.Provider{
 
     override fun onCreate() {
         super.onCreate()
-        applicationScope.launch {
-            val theme = userPreferences.appTheme.first()
-            applyTheme(theme.displayName)
-        }
+        
+        // Apply theme synchronously at startup to prevent double-recreation flicker
+        val theme = runBlocking { userPreferences.appTheme.first() }
+        applyTheme(theme.displayName)
+
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
@@ -47,11 +46,13 @@ class SmartSenseApplication : Application() , Configuration.Provider{
 
     companion object {
         fun applyTheme(theme: String) {
-            when (theme) {
-                AppTheme.LIGHT.displayName -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                AppTheme.DARK.displayName-> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-
+            val mode = when (theme) {
+                AppTheme.LIGHT.displayName -> AppCompatDelegate.MODE_NIGHT_NO
+                AppTheme.DARK.displayName -> AppCompatDelegate.MODE_NIGHT_YES
+                else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+            }
+            if (AppCompatDelegate.getDefaultNightMode() != mode) {
+                AppCompatDelegate.setDefaultNightMode(mode)
             }
         }
     }

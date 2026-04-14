@@ -27,6 +27,17 @@ class UserPreferences @Inject constructor(
 ) {
     companion object {
         private const val TAG = "UserPreferences"
+
+        // --- Default Values ---
+        val DEFAULT_UNIT_SYSTEM = UnitSystem.METRIC
+        val DEFAULT_SCAN_INTERVAL = ScanIntervals.default()
+        val DEFAULT_APP_THEME = AppTheme.SYSTEM
+        val DEFAULT_SORT_PREFERENCE = SortPreference.NAME
+        const val DEFAULT_NOTIFICATIONS_ENABLED = true
+        const val DEFAULT_UPLOAD_SENSOR_DATA = true
+        const val DEFAULT_GROUP_FILTER_ENABLED = false
+        const val DEFAULT_DEVICE_SEARCH_FILTER_ENABLED = false
+        const val DEFAULT_IS_SIGNED_IN = false
     }
 
     private object Keys {
@@ -40,6 +51,10 @@ class UserPreferences @Inject constructor(
         val DEVICE_SEARCH_FILTER_ENABLED = booleanPreferencesKey("device_search_filter_enabled")
         val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
         val USER_EMAIL = stringPreferencesKey("user_email")
+
+        // Keys for Tank Alert States
+        fun lastLevelKey(address: String) = intPreferencesKey("last_level_$address")
+        fun lastTimeKey(address: String) = intPreferencesKey("last_time_$address")
     }
 
     // -------------------------------------------------------------------------
@@ -47,34 +62,34 @@ class UserPreferences @Inject constructor(
     // -------------------------------------------------------------------------
 
     val unitSystem: Flow<UnitSystem> = context.dataStore.data.map { prefs ->
-        val name = prefs[Keys.UNIT_SYSTEM] ?: UnitSystem.METRIC.name
-        UnitSystem.entries.find { it.name == name } ?: UnitSystem.METRIC
+        val name = prefs[Keys.UNIT_SYSTEM] ?: DEFAULT_UNIT_SYSTEM.name
+        UnitSystem.entries.find { it.name == name } ?: DEFAULT_UNIT_SYSTEM
     }
 
     val scanInterval: Flow<ScanIntervals> = context.dataStore.data.map { prefs ->
-        val value = prefs[Keys.SCAN_INTERVAL] ?: ScanIntervals.default().value
-        ScanIntervals.entries.find { it.value == value } ?: ScanIntervals.default()
+        val value = prefs[Keys.SCAN_INTERVAL] ?: DEFAULT_SCAN_INTERVAL.value
+        ScanIntervals.entries.find { it.value == value } ?: DEFAULT_SCAN_INTERVAL
     }
 
     val appTheme: Flow<AppTheme> = context.dataStore.data.map { prefs ->
-        val name = prefs[Keys.APP_THEME] ?: AppTheme.SYSTEM.name
-        AppTheme.entries.find { it.name == name } ?: AppTheme.SYSTEM
+        val name = prefs[Keys.APP_THEME] ?: DEFAULT_APP_THEME.name
+        AppTheme.entries.find { it.name == name } ?: DEFAULT_APP_THEME
     }
 
     val sortPreference: Flow<SortPreference> = context.dataStore.data.map { prefs ->
-        val name = prefs[Keys.SORT_PREFERENCE] ?: SortPreference.NAME.name
-        SortPreference.entries.find { it.name == name } ?: SortPreference.NAME
+        val name = prefs[Keys.SORT_PREFERENCE] ?: DEFAULT_SORT_PREFERENCE.name
+        SortPreference.entries.find { it.name == name } ?: DEFAULT_SORT_PREFERENCE
     }
 
     // -------------------------------------------------------------------------
     // 📡 Boolean Flow Observables
     // -------------------------------------------------------------------------
 
-    val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.NOTIFICATIONS_ENABLED] ?: true }
-    val uploadSensorData: Flow<Boolean> = context.dataStore.data.map { it[Keys.UPLOAD_SENSOR_DATA] ?: true }
-    val groupFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.GROUP_FILTER_ENABLED] ?: false }
-    val deviceSearchFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] ?: false }
-    val isSignedIn: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_SIGNED_IN] ?: false }
+    val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.NOTIFICATIONS_ENABLED] ?: DEFAULT_NOTIFICATIONS_ENABLED }
+    val uploadSensorData: Flow<Boolean> = context.dataStore.data.map { it[Keys.UPLOAD_SENSOR_DATA] ?: DEFAULT_UPLOAD_SENSOR_DATA }
+    val groupFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.GROUP_FILTER_ENABLED] ?: DEFAULT_GROUP_FILTER_ENABLED }
+    val deviceSearchFilterEnabled: Flow<Boolean> = context.dataStore.data.map { it[Keys.DEVICE_SEARCH_FILTER_ENABLED] ?: DEFAULT_DEVICE_SEARCH_FILTER_ENABLED }
+    val isSignedIn: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_SIGNED_IN] ?: DEFAULT_IS_SIGNED_IN }
 
     val userEmail: Flow<String?> = context.dataStore.data.map { it[Keys.USER_EMAIL] }
 
@@ -135,6 +150,32 @@ class UserPreferences @Inject constructor(
             } else {
                 prefs[Keys.USER_EMAIL] = email
             }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 🔔 Tank Alert States (using DataStore)
+    // -------------------------------------------------------------------------
+
+    fun getLastAlertLevel(address: String): Flow<Int> = context.dataStore.data.map { 
+        it[Keys.lastLevelKey(address)] ?: -1 
+    }
+
+    fun getLastAlertTime(address: String): Flow<Long> = context.dataStore.data.map { 
+        (it[Keys.lastTimeKey(address)] ?: 0).toLong()
+    }
+
+    suspend fun saveAlertState(address: String, level: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.lastLevelKey(address)] = level
+            prefs[Keys.lastTimeKey(address)] = System.currentTimeMillis().toInt() // DataStore int limit
+        }
+    }
+
+    suspend fun resetAlertState(address: String) {
+        context.dataStore.edit { prefs ->
+            prefs.remove(Keys.lastLevelKey(address))
+            prefs.remove(Keys.lastTimeKey(address))
         }
     }
 }

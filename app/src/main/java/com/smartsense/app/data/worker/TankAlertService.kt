@@ -13,12 +13,14 @@ import androidx.core.app.NotificationCompat
 import com.smartsense.app.R
 import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.domain.model.NotificationFrequency
 import com.smartsense.app.domain.model.TriggerAlarmUnit
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -27,6 +29,7 @@ import javax.inject.Inject
 class TankAlertService : Service() {
 
     @Inject lateinit var sensorDao: SensorDao
+    @Inject lateinit var userPreferences: UserPreferences
 
     private val alertChannelId = "tank_alerts_channel"
     private val serviceChannelId = "tank_service_channel"
@@ -72,13 +75,15 @@ class TankAlertService : Service() {
                 }
 
                 if (isTriggered) {
-                    if (shouldNotify(tank, currentLevel)) {
+                    // Do not show notification if the tank is empty (0%), even if it's below the threshold
+                    val shouldNotifyResult = shouldNotify(tank, currentLevel)
+                    if (currentLevel > 0 && shouldNotifyResult) {
                         sendAlertNotification(tank, currentLevel)
-                        saveAlertState(tank.sensorAddress, currentLevel)
+                        userPreferences.saveAlertState(tank.sensorAddress, currentLevel)
                     }
                 } else {
                     // Logic: 90 -> 59 -> 89. Reset if we exit the alert zone.
-                    resetAlertState(tank.sensorAddress)
+                    userPreferences.resetAlertState(tank.sensorAddress)
                 }
             } catch (e: Exception) {
                 Timber.e("Error processing scan: ${e.message}")
@@ -90,30 +95,15 @@ class TankAlertService : Service() {
         }
     }
 
-    private fun shouldNotify(tank: TankEntity, currentLevel: Int): Boolean {
-        val prefs = getSharedPreferences("tank_alerts", MODE_PRIVATE)
-        val lastLevel = prefs.getInt("last_level_${tank.sensorAddress}", -1)
-        val lastTime = prefs.getLong("last_time_${tank.sensorAddress}", 0L)
+    private suspend fun shouldNotify(tank: TankEntity, currentLevel: Int): Boolean {
+        val lastLevel = userPreferences.getLastAlertLevel(tank.sensorAddress).first()
+        val lastTime = userPreferences.getLastAlertTime(tank.sensorAddress).first()
 
         val cooldown = NotificationFrequency.fromString(tank.notificationFrequency).timeMillis
         val intervalExpired = (System.currentTimeMillis() - lastTime) >= cooldown
 
         // Rule: Trigger if First Time, Level Changed, or Interval Expired
         return (lastLevel == -1) || (currentLevel != lastLevel) || intervalExpired
-    }
-
-    private fun saveAlertState(address: String, level: Int) {
-        getSharedPreferences("tank_alerts", MODE_PRIVATE).edit()
-            .putInt("last_level_$address", level)
-            .putLong("last_time_$address", System.currentTimeMillis())
-            .apply()
-    }
-
-    private fun resetAlertState(address: String) {
-        getSharedPreferences("tank_alerts", MODE_PRIVATE).edit()
-            .putInt("last_level_$address", -1)
-            .putLong("last_time_$address", 0L)
-            .apply()
     }
 
     private fun sendAlertNotification(tank: TankEntity, level: Int) {
