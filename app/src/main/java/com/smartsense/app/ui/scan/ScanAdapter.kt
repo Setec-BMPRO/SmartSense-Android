@@ -1,7 +1,6 @@
 package com.smartsense.app.ui.scan
 
 import android.content.res.ColorStateList
-import android.graphics.Rect
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
@@ -99,13 +98,8 @@ class SensorItem(
         }
         binding.sensorLevel.setTextColor(tintColor)
 
-        binding.sensorTankFill.post {
-            val h = binding.sensorTankFill.height
-            if (h > 0) {
-                val clipTop = ((100f - levelPercent) / 100f * h).toInt()
-                binding.sensorTankFill.clipBounds = Rect(0, clipTop, binding.sensorTankFill.width, h)
-            }
-        }
+        val status = sensor.tankLevel?.status ?: LevelStatus.RED
+        binding.sensorTankMini.setLevel(levelPercent, status)
 
         // Battery
         val batteryPercent = sensor.batteryPercent

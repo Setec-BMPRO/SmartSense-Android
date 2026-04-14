@@ -33,29 +33,11 @@
                 app:strokeWidth="1.5dp"
                 app:strokeColor="?attr/colorOutlineVariant">
 
-                <FrameLayout
+                <com.smartsense.app.ui.views.TankLevelMiniView
+                    android:id="@+id/sensor_tank_mini"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="4dp">
-
-                    <!-- Tank outline (always full, dim) -->
-                    <ImageView
-                        android:id="@+id/sensor_tank_outline"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_tank_vertical"
-                        android:contentDescription="@string/device_mac"
-                        app:tint="?attr/colorOnSurfaceVariant"
-                        android:alpha="0.35"/>
-
-                    <!-- Tank fill (clipped from top based on level) -->
-                    <ImageView
-                        android:id="@+id/sensor_tank_fill"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_tank_vertical"
-                        android:importantForAccessibility="no"/>
-                </FrameLayout>
+                    android:padding="4dp" />
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.textview.MaterialTextView

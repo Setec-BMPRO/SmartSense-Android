@@ -78,6 +78,14 @@ class BleManager @Inject constructor(
 
             override fun onScanFailed(errorCode: Int) {
                 Timber.e("Nordic BLE scan failed: $errorCode")
+                val reason = when (errorCode) {
+                    1 -> "BLE scan already active"
+                    2 -> "App could not register for BLE scanning"
+                    3 -> "BLE scan internal error"
+                    4 -> "BLE feature not supported on this device"
+                    else -> "BLE scan error (code $errorCode)"
+                }
+                close(BleScanException(reason, errorCode))
             }
         }
 
@@ -180,3 +188,5 @@ data class ScannedSensor(
     val name: String?,
     val parsed: ParsedSensor?=null
 )
+
+class BleScanException(message: String, val errorCode: Int) : Exception(message)

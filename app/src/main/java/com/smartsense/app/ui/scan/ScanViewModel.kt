@@ -131,7 +131,15 @@ class ScanViewModel @Inject constructor(
             useCase.startScan(interval)
                 .catch { e ->
                     Timber.tag(TAG).e(e, "Scan failed")
-                    _uiState.update { it.copy(error = e.message, isScanning = false) }
+                    val btAction = android.provider.Settings.ACTION_BLUETOOTH_SETTINGS
+                    _uiState.update {
+                        it.copy(
+                            error = e.message ?: "BLE scan failed",
+                            errorTip = "Toggle Bluetooth off and on in Settings, then reopen the app.",
+                            settingsAction = btAction,
+                            isScanning = false
+                        )
+                    }
                 }
                 .collect { freshlyScannedSensors ->
                     handleAutoPairing(freshlyScannedSensors)
@@ -182,8 +190,14 @@ class ScanViewModel @Inject constructor(
         }
     }
 
+    fun setPermissionError(error: String, tip: String?, settingsAction: String) {
+        _uiState.update {
+            it.copy(error = error, errorTip = tip, settingsAction = settingsAction, isScanning = false)
+        }
+    }
+
     fun clearError() {
-        _uiState.update { it.copy(error = null) }
+        _uiState.update { it.copy(error = null, errorTip = null, settingsAction = null) }
     }
 
     override fun onCleared() {
@@ -204,5 +218,7 @@ data class SensorListUiState(
     val showDiscovery: Boolean = false,
     val isBluetoothEnabled: Boolean = true,
     val error: String? = null,
+    val errorTip: String? = null,
+    val settingsAction: String? = null,
     val sortByLevel: Boolean = false
 )
