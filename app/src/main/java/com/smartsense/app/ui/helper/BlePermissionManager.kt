@@ -1,6 +1,5 @@
 package com.smartsense.app.ui.helper
 
-
 import android.Manifest
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
@@ -18,6 +17,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
+import timber.log.Timber
 
 class BlePermissionManager(
     private val fragment: Fragment,
@@ -26,89 +26,103 @@ class BlePermissionManager(
 ) {
     private val context = fragment.requireContext()
 
-    // 1. Bluetooth Connect Launcher (Android 12+)
-    private val connectPermissionLauncher = fragment.registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) checkBluetoothState()
-        else onDenied("Bluetooth connect permission required")
+    // 1. Unified Permission Launcher (Modern approach)
+    private val permissionLauncher = fragment.registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.entries.all { it.value }
+        if (allGranted) {
+            checkHardwareState()
+        } else {
+            onDenied("Required permissions were not granted")
+        }
     }
 
     // 2. Bluetooth Radio Enable Launcher
     private val bluetoothEnableLauncher = fragment.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) requestScanPermission()
-        else onDenied("Bluetooth is required")
+        if (result.resultCode == Activity.RESULT_OK) checkHardwareState()
+        else onDenied("Bluetooth is required for this app")
     }
 
-    // 3. Scan/Location Permission Launcher
-    private val scanPermissionLauncher = fragment.registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) onPermissionGranted()
-        else onDenied("Scan permission required")
-    }
-
-    // 4. Location Services (GPS) Toggle Launcher
+    // 3. Location Services (GPS) Toggle Launcher
     private val locationToggleLauncher = fragment.registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) startFlow() // Retry flow
-        else onDenied("Location must be ON for older devices")
+        if (result.resultCode == Activity.RESULT_OK) checkHardwareState()
+        else onDenied("Location must be ON for scanning on this device")
     }
 
     /**
      * Entry point for the permission/hardware check flow.
      */
     fun startFlow() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Android 12+: Skip GPS toggle check, go to BT Connect Permission
-            checkConnectPermission()
+        val permissions = getRequiredPermissions()
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED
+        }
+
+        if (missingPermissions.isEmpty()) {
+            checkHardwareState()
         } else {
-            // Android 11-: Check if GPS toggle is ON first
-            if (isLocationHardwareEnabled()) {
-                checkBluetoothState()
-            } else {
-                requestEnableLocationHardware()
-            }
+            permissionLauncher.launch(missingPermissions.toTypedArray())
         }
     }
 
-    private fun checkConnectPermission() {
+    private fun getRequiredPermissions(): List<String> {
+        val permissions = mutableListOf<String>()
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val permission = Manifest.permission.BLUETOOTH_CONNECT
-            if (hasPermission(permission)) {
-                checkBluetoothState()
-            } else {
-                connectPermissionLauncher.launch(permission)
+            // Android 12+ (API 31+)
+            permissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13+ (API 33+)
+                permissions.add(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
-            checkBluetoothState()
+            // Android 11 and below (API 30-)
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
+        return permissions
     }
 
-    private fun checkBluetoothState() {
-        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val adapter = manager.adapter
-        if (adapter?.isEnabled == true) {
-            requestScanPermission()
-        } else {
+    private fun checkHardwareState() {
+        // First check Bluetooth
+        val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val adapter = bluetoothManager.adapter
+
+        if (adapter == null) {
+            onDenied("Device does not support Bluetooth")
+            return
+        }
+
+        if (!adapter.isEnabled) {
             bluetoothEnableLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+            return
         }
+
+        // Then check Location Toggle for Android 11 and below
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            if (!isLocationHardwareEnabled()) {
+                requestEnableLocationHardware()
+                return
+            }
+        }
+
+        // All good!
+        onPermissionGranted()
     }
 
-    private fun requestScanPermission() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Manifest.permission.BLUETOOTH_SCAN
-        } else {
-            Manifest.permission.ACCESS_FINE_LOCATION
-        }
-
-        if (hasPermission(permission)) {
-            onPermissionGranted()
-        } else {
-            scanPermissionLauncher.launch(permission)
+    private fun isLocationHardwareEnabled(): Boolean {
+        val lm = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
+        return try {
+            lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
+                    lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+        } catch (e: Exception) {
+            Timber.e(e, "Error checking location providers")
+            false
         }
     }
 
@@ -118,24 +132,19 @@ class BlePermissionManager(
         val client = LocationServices.getSettingsClient(fragment.requireActivity())
 
         client.checkLocationSettings(builder.build())
-            .addOnSuccessListener { checkBluetoothState() }
+            .addOnSuccessListener { checkHardwareState() }
             .addOnFailureListener { exception ->
                 if (exception is ResolvableApiException) {
-                    locationToggleLauncher.launch(
-                        IntentSenderRequest.Builder(exception.resolution).build()
-                    )
+                    try {
+                        locationToggleLauncher.launch(
+                            IntentSenderRequest.Builder(exception.resolution).build()
+                        )
+                    } catch (e: Exception) {
+                        onDenied("Could not request location services")
+                    }
                 } else {
-                    onDenied("Location required for scanning")
+                    onDenied("Location services required")
                 }
             }
     }
-
-    private fun isLocationHardwareEnabled(): Boolean {
-        val lm = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
-        return lm.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
-                lm.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
-    }
-
-    private fun hasPermission(permission: String) =
-        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 }
