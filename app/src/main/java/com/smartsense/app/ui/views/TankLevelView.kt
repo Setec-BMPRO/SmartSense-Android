@@ -72,6 +72,17 @@ class TankLevelView @JvmOverloads constructor(
     }
     var onMarkersChanged: ((topRatio: Float, bottomRatio: Float) -> Unit)? = null
 
+    private var aspectRatio: Float = 1.15f
+
+    fun setAspectRatio(ratio: Float) {
+        if (ratio != aspectRatio) {
+            aspectRatio = ratio
+            lastWidth = 0
+            requestLayout()
+            invalidate()
+        }
+    }
+
     companion object {
         private const val FILL_TOP_RATIO = 0.17f
         private const val FILL_BOTTOM_RATIO = 0.92f
@@ -367,8 +378,8 @@ class TankLevelView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val width = MeasureSpec.getSize(widthMeasureSpec)
-        val height = (width * 1.15f).toInt()
-        setMeasuredDimension(width, resolveSize(height, heightMeasureSpec))
+        val w = MeasureSpec.getSize(widthMeasureSpec)
+        val h = (w * aspectRatio).toInt()
+        setMeasuredDimension(w, resolveSize(h, heightMeasureSpec))
     }
 }

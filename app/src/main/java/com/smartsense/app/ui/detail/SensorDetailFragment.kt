@@ -80,8 +80,14 @@ class SensorDetailFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         viewModel.startObserveDetailSensor()
-        viewModel.loadTankConfig()
+        viewModel.loadTankConfig { tank ->
+            tank?.let {
+                binding.detailTank.setLevelUnit(it.levelUnit, viewModel.calculateTankHeightMm(it))
+                binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
+            }
+        }
     }
+
 
     override fun onStop() {
         viewModel.stopObserveDetailSensor()
@@ -114,11 +120,11 @@ class SensorDetailFragment : Fragment() {
             .launchIn(viewLifecycleOwner.lifecycleScope)
         viewModel.uiState
             .map { it.tank }
-            .distinctUntilChanged()
             .onEach { tank ->
                 tank?.let {
                     binding.detailTank.setLevelUnit(it.levelUnit,
                         viewModel.calculateTankHeightMm(it))
+                    binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
                 }
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)

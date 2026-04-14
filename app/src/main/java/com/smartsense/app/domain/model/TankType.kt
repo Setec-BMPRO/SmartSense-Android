@@ -80,13 +80,15 @@ enum class TankType(
     val displayName: String,
     val heightMeters: Double,
     val orientation: TankOrientation,
-    val region: String = ""
+    val region: String = "",
+    /** Height-to-width ratio for the tank silhouette view. */
+    val silhouetteAspect: Float = 1.15f
 ) {
 
     // North America vertical tanks
-    LB_20("20 lb, Vertical", 0.254, TankOrientation.VERTICAL),
-    LB_30("30 lb, Vertical", 0.381, TankOrientation.VERTICAL),
-    LB_40("40 lb, Vertical", 0.508, TankOrientation.VERTICAL),
+    LB_20("20 lb, Vertical", 0.254, TankOrientation.VERTICAL, silhouetteAspect = 0.95f),
+    LB_30("30 lb, Vertical", 0.381, TankOrientation.VERTICAL, silhouetteAspect = 1.15f),
+    LB_40("40 lb, Vertical", 0.508, TankOrientation.VERTICAL, silhouetteAspect = 1.40f),
 
 //    LB_100("100 lb", 0.8128, TankOrientation.VERTICAL),
 //    GAL_120_V("120 gal vertical", 1.2192 * 0.8, TankOrientation.VERTICAL),
@@ -99,11 +101,11 @@ enum class TankType(
 //    GAL_1000_H("1000 gal horizontal", 1.0414, TankOrientation.HORIZONTAL),
 
     // Australia/NZ tanks
-    KG_3_7("3.7 kg", 0.235, TankOrientation.VERTICAL, "au"),
-    KG_8_5("8.5 kg", 0.342, TankOrientation.VERTICAL, "au"),
+    KG_3_7("3.7 kg", 0.235, TankOrientation.VERTICAL, "au", silhouetteAspect = 0.90f),
+    KG_8_5("8.5 kg", 0.342, TankOrientation.VERTICAL, "au", silhouetteAspect = 1.15f),
 
     // Custom
-    ARBITRARY("Arbitrary", 0.0, TankOrientation.VERTICAL);
+    ARBITRARY("Arbitrary", 0.0, TankOrientation.VERTICAL, silhouetteAspect = 1.15f);
 
     companion object {
         fun forRegion(region: String): List<TankType> {
