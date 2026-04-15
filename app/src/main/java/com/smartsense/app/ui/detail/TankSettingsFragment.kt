@@ -87,6 +87,7 @@ class TankSettingsFragment : Fragment() {
         inflateMenu(R.menu.menu_save)
         setOnMenuItemClickListener {
             if (it.itemId == R.id.action_save) {
+                viewModel.updateCustomHeight(binding.etHeight.text.toString().trim())
                 viewModel.save()
                 true
             } else false

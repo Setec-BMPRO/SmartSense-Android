@@ -4,9 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -15,24 +17,24 @@ import com.smartsense.app.databinding.FragmentSensorDetailBinding
 import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.ReadQuality
-
+import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.Tank
+import com.smartsense.app.domain.model.TankLevelUnit
+import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import com.smartsense.app.util.TimeUtils
+import com.smartsense.app.util.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import kotlin.math.ceil
 import kotlin.text.ifEmpty
-import com.smartsense.app.util.showSnackbar
-import androidx.core.view.isVisible
-import androidx.lifecycle.flowWithLifecycle
-import com.smartsense.app.domain.model.Sensor
-import com.smartsense.app.domain.model.TankType
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 
 @AndroidEntryPoint
 class SensorDetailFragment : Fragment() {
@@ -94,11 +96,7 @@ class SensorDetailFragment : Fragment() {
         viewModel.startObserveDetailSensor()
         viewModel.loadTankConfig { tank ->
             tank?.let {
-                binding.detailTank.setLevelUnit(it.levelUnit, viewModel.calculateTankHeightMm(it))
-                binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
-                binding.detailTank.setTankTypeLabel(it.type.displayName)
-                binding.detailTank.isTallMode=it.type!=TankType.KG_3_7
-                binding.detailTank.isSmallMode=it.type==TankType.KG_3_7
+                binding.bindTank(it)
             }
         }
     }
@@ -137,9 +135,7 @@ class SensorDetailFragment : Fragment() {
             .map { it.tank }
             .onEach { tank ->
                 tank?.let {
-                    binding.detailTank.setLevelUnit(it.levelUnit,
-                        viewModel.calculateTankHeightMm(it))
-                    binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
+                    binding.bindTank(it)
                 }
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -205,6 +201,27 @@ class SensorDetailFragment : Fragment() {
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
+    private fun FragmentSensorDetailBinding.bindTank(tank: Tank) {
+        detailTank.setLevelUnit(tank.levelUnit, viewModel.calculateTankHeightMm(tank))
+        detailTank.setAspectRatio(tank.type.silhouetteAspect)
+
+        val tankTypeLabel = if (tank.type == TankType.ARBITRARY) {
+            val unit = if (tank.levelUnit == TankLevelUnit.INCHES) TankLevelUnit.INCHES else TankLevelUnit.CENTIMETERS
+            val height = if (unit == TankLevelUnit.INCHES) {
+                ceil(tank.customHeightMeters * 39.3701).toInt().toString()
+            } else {
+                "%.1f".format(tank.customHeightMeters * 100.0)
+            }
+            "${tank.type.displayName} ($height ${unit.shortName})"
+        } else {
+            tank.type.displayName
+        }
+        detailTank.setTankTypeLabel(tankTypeLabel)
+
+        detailTank.isTallMode = tank.type != TankType.KG_3_7
+        detailTank.isSmallMode = tank.type == TankType.KG_3_7
+    }
+
     private fun FragmentSensorDetailBinding.setupTankDisplay(sensor: Sensor) {
         val levelPercent = sensor.tankLevel?.percentage ?: 0f
 

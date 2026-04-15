@@ -149,10 +149,28 @@ class TankLevelView @JvmOverloads constructor(
         if (tankTypeLabel.isNotEmpty()) {
             val labelCx = w / 2f
             val labelCy = (fillTopY + fillBottomY) / 2f
-            tankLabelPaint.textSize = tankDrawWidth * 0.085f
+
+            val textToDraw = tankTypeLabel.uppercase()
+            val lines = if (textToDraw.contains(" (")) {
+                val index = textToDraw.indexOf(" (")
+                listOf(
+                    textToDraw.substring(0, index),
+                    textToDraw.substring(index + 1)
+                )
+            } else {
+                listOf(textToDraw)
+            }
+
+            tankLabelPaint.textSize = if (lines.size > 1) tankDrawWidth * 0.075f else tankDrawWidth * 0.085f
             tankLabelPaint.color = if (dark) 0x90FFFFFF.toInt() else 0x70000000.toInt()
-            val labelY = labelCy - (tankLabelPaint.descent() + tankLabelPaint.ascent()) / 2f
-            canvas.drawText(tankTypeLabel.uppercase(), labelCx, labelY, tankLabelPaint)
+
+            val fontSpacing = tankLabelPaint.fontSpacing
+            val totalTextHeight = (lines.size - 1) * fontSpacing
+            val startY = labelCy - (totalTextHeight / 2f) - ((tankLabelPaint.ascent() + tankLabelPaint.descent()) / 2f)
+
+            lines.forEachIndexed { index, line ->
+                canvas.drawText(line, labelCx, startY + (index * fontSpacing), tankLabelPaint)
+            }
         }
 
         val badgeRadius = tankDrawWidth * 0.13f
