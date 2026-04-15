@@ -100,7 +100,6 @@ class SensorItem(
 
         val status = sensor.tankLevel?.status ?: LevelStatus.RED
         binding.sensorTankMini.setLevel(levelPercent, status)
-        binding.sensorTankMini.setTankTypeLabel(sensor.tankType ?: "")
 
         // Battery
         val batteryPercent = sensor.batteryPercent

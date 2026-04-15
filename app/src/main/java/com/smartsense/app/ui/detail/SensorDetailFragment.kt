@@ -30,6 +30,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.TankType
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -85,6 +86,8 @@ class SensorDetailFragment : Fragment() {
                 binding.detailTank.setLevelUnit(it.levelUnit, viewModel.calculateTankHeightMm(it))
                 binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
                 binding.detailTank.setTankTypeLabel(it.type.displayName)
+                binding.detailTank.isTallMode=it.type!=TankType.KG_3_7
+                binding.detailTank.isSmallMode=it.type==TankType.KG_3_7
             }
         }
     }

@@ -101,11 +101,11 @@ enum class TankType(
 //    GAL_1000_H("1000 gal horizontal", 1.0414, TankOrientation.HORIZONTAL),
 
     // Australia/NZ tanks
-    KG_3_7("3.7 kg", 0.235, TankOrientation.VERTICAL, "au", silhouetteAspect = 0.90f),
-    KG_8_5("8.5 kg", 0.342, TankOrientation.VERTICAL, "au", silhouetteAspect = 1.15f),
+    KG_3_7("4 kg", 0.235, TankOrientation.VERTICAL, "au", silhouetteAspect = 0.90f),
+    KG_8_5("9 kg", 0.342, TankOrientation.VERTICAL, "au", silhouetteAspect = 1.15f),
 
     // Custom
-    ARBITRARY("Arbitrary", 0.0, TankOrientation.VERTICAL, silhouetteAspect = 1.15f);
+    ARBITRARY("Custom", 0.0, TankOrientation.VERTICAL, silhouetteAspect = 1.15f);
 
     companion object {
         fun forRegion(region: String): List<TankType> {

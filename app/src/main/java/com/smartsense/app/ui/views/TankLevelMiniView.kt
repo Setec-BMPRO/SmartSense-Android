@@ -25,7 +25,6 @@ class TankLevelMiniView @JvmOverloads constructor(
 
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
-    private var tankTypeLabel: String = ""
 
     private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -35,10 +34,6 @@ class TankLevelMiniView @JvmOverloads constructor(
     }
     private val outlineBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val hardwareTintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val tankLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
-    }
 
     private var tankBitmap: Bitmap? = null
     private var hardwareBitmap: Bitmap? = null
@@ -46,22 +41,15 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var lastDarkMode: Boolean? = null
 
     companion object {
-        private const val FILL_TOP_RATIO = 0.17f
-        private const val FILL_BOTTOM_RATIO = 0.92f
-        private const val SVG_TANK_LEFT_RATIO = 100f / 447f
-        private const val SVG_TANK_RIGHT_RATIO = 347f / 447f
+        private const val FILL_TOP_RATIO = 0.300f
+        private const val FILL_BOTTOM_RATIO = 0.778f
+        private const val SVG_TANK_LEFT_RATIO = 68f / 447f
+        private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
     }
 
     private fun isDarkMode(): Boolean {
         return (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
                 Configuration.UI_MODE_NIGHT_YES
-    }
-
-    fun setTankTypeLabel(label: String) {
-        if (label != tankTypeLabel) {
-            tankTypeLabel = label
-            invalidate()
-        }
     }
 
     fun setLevel(percentage: Float, status: LevelStatus) {
@@ -103,7 +91,7 @@ class TankLevelMiniView @JvmOverloads constructor(
             outlineBitmapPaint.colorFilter =
                 PorterDuffColorFilter(outlineColor, PorterDuff.Mode.SRC_IN)
             hardwareTintPaint.colorFilter = PorterDuffColorFilter(
-                if (dark) 0xFF2A2A2A.toInt() else 0xFFBBBBBB.toInt(),
+                if (dark) 0xFFBDBDBD.toInt() else 0xFF000000.toInt(),
                 PorterDuff.Mode.SRC_IN
             )
         }
@@ -163,10 +151,11 @@ class TankLevelMiniView @JvmOverloads constructor(
         // Liquid fill masked by silhouette
         if (percentage > 0f) {
             // Apply vertical gradient: Blue (Bottom) -> Red (Top)
+            val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt() // Softer red in dark mode
             fillPaint.shader = LinearGradient(
                 0f, fillBottomY, 0f, fillTopY,
                 0xFF1E88E5.toInt(), // Blue
-                0xFFD24520.toInt(), // Red
+                topColor, // Red
                 Shader.TileMode.CLAMP
             )
 
@@ -193,16 +182,6 @@ class TankLevelMiniView @JvmOverloads constructor(
 
             canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
             canvas.restoreToCount(save2)
-        }
-
-        // Tank type label (Drawn after fill to stay on top, and centered between lines)
-        if (tankTypeLabel.isNotEmpty()) {
-            val labelCx = s * (SVG_TANK_LEFT_RATIO + SVG_TANK_RIGHT_RATIO) / 2f
-            val labelCy = (fillTopY + fillBottomY) / 2f
-            tankLabelPaint.textSize = s * 0.16f
-            tankLabelPaint.color = if (dark) 0x90FFFFFF.toInt() else 0x80000000.toInt()
-            val labelY = labelCy - (tankLabelPaint.descent() + tankLabelPaint.ascent()) / 2f
-            canvas.drawText(tankTypeLabel.uppercase(), labelCx, labelY, tankLabelPaint)
         }
     }
 
