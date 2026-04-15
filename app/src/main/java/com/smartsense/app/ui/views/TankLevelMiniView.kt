@@ -26,6 +26,13 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
 
+    var isHorizontal: Boolean = false
+        set(value) {
+            field = value
+            lastWidth = 0
+            invalidate()
+        }
+
     private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -45,6 +52,11 @@ class TankLevelMiniView @JvmOverloads constructor(
         private const val FILL_BOTTOM_RATIO = 0.778f
         private const val SVG_TANK_LEFT_RATIO = 68f / 447f
         private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
+
+        private const val H_FILL_TOP_RATIO = 14f / 48f
+        private const val H_FILL_BOTTOM_RATIO = 34f / 48f
+        private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
+        private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
     }
 
     private fun isDarkMode(): Boolean {
@@ -63,16 +75,19 @@ class TankLevelMiniView @JvmOverloads constructor(
         tankBitmap?.recycle()
         hardwareBitmap?.recycle()
 
+        val silhouetteRes = if (isHorizontal) R.drawable.ic_tank_silhouette_horizontal else R.drawable.ic_tank_silhouette
+        val hardwareRes = if (isHorizontal) R.drawable.ic_tank_hardware_horizontal else R.drawable.ic_tank_hardware
+
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val c = Canvas(bitmap)
-        val drawable = ContextCompat.getDrawable(context, R.drawable.ic_tank_silhouette) ?: return
+        val drawable = ContextCompat.getDrawable(context, silhouetteRes) ?: return
         drawable.setBounds(0, 0, size, size)
         drawable.draw(c)
         tankBitmap = bitmap
 
         val hwBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val hwCanvas = Canvas(hwBitmap)
-        val hwDrawable = ContextCompat.getDrawable(context, R.drawable.ic_tank_hardware) ?: return
+        val hwDrawable = ContextCompat.getDrawable(context, hardwareRes) ?: return
         hwDrawable.setBounds(0, 0, size, size)
         hwDrawable.draw(hwCanvas)
         hardwareBitmap = hwBitmap
@@ -100,8 +115,11 @@ class TankLevelMiniView @JvmOverloads constructor(
             lastWidth = size
             buildBitmap(size)
 
-            val tankLeft = size * SVG_TANK_LEFT_RATIO
-            val tankRight = size * SVG_TANK_RIGHT_RATIO
+            val leftRatio = if (isHorizontal) H_SVG_TANK_LEFT_RATIO else SVG_TANK_LEFT_RATIO
+            val rightRatio = if (isHorizontal) H_SVG_TANK_RIGHT_RATIO else SVG_TANK_RIGHT_RATIO
+
+            val tankLeft = size * leftRatio
+            val tankRight = size * rightRatio
             tankGradientPaint.shader = if (dark) {
                 LinearGradient(
                     tankLeft, 0f, tankRight, 0f,
@@ -124,8 +142,11 @@ class TankLevelMiniView @JvmOverloads constructor(
         val s = size.toFloat()
         val bounds = RectF(0f, 0f, s, s)
 
-        val fillTopY = s * FILL_TOP_RATIO
-        val fillBottomY = s * FILL_BOTTOM_RATIO
+        val topRatio = if (isHorizontal) H_FILL_TOP_RATIO else FILL_TOP_RATIO
+        val bottomRatio = if (isHorizontal) H_FILL_BOTTOM_RATIO else FILL_BOTTOM_RATIO
+
+        val fillTopY = s * topRatio
+        val fillBottomY = s * bottomRatio
 
         // Outline
         val scale = s / 447f
@@ -162,8 +183,11 @@ class TankLevelMiniView @JvmOverloads constructor(
             val bandHeight = fillBottomY - fillTopY
             val liquidTopY = fillBottomY - (bandHeight * percentage / 100f)
 
-            val tankLeft = s * SVG_TANK_LEFT_RATIO
-            val tankRight = s * SVG_TANK_RIGHT_RATIO
+            val leftRatio = if (isHorizontal) H_SVG_TANK_LEFT_RATIO else SVG_TANK_LEFT_RATIO
+            val rightRatio = if (isHorizontal) H_SVG_TANK_RIGHT_RATIO else SVG_TANK_RIGHT_RATIO
+
+            val tankLeft = s * leftRatio
+            val tankRight = s * rightRatio
             val tankWidth = tankRight - tankLeft
 
             val save2 = canvas.saveLayer(bounds, null)

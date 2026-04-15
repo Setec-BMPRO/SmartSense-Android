@@ -13,6 +13,7 @@ data class Sensor(
     val tankLevel: TankLevel?=null,
     val readQuality: ReadQuality? =null,
     val tankType: String?=null,
+    val orientation: TankOrientation? = null,
     val syncStatus: SyncStatus?=null
 
     ){

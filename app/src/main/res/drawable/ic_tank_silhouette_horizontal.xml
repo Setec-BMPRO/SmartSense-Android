@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Horizontal Tank Silhouette -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M8,14 L40,14 Q46,14 46,24 Q46,34 40,34 L8,34 Q2,34 2,24 Q2,14 8,14 Z" />
+</vector>

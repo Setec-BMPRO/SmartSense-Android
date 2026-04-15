@@ -20,6 +20,7 @@ import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevelUnit
+import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 import com.smartsense.app.util.TimeUtils
@@ -212,14 +213,14 @@ class SensorDetailFragment : Fragment() {
             } else {
                 "%.1f".format(tank.customHeightMeters * 100.0)
             }
-            "${tank.type.displayName} ($height ${unit.shortName})"
+            "$height ${unit.shortName}"
         } else {
             tank.type.displayName
         }
         detailTank.setTankTypeLabel(tankTypeLabel)
 
         detailTank.isTallMode = tank.type != TankType.KG_3_7
-        detailTank.isSmallMode = tank.type == TankType.KG_3_7
+        detailTank.isHorizontal=tank.orientation== TankOrientation.HORIZONTAL
     }
 
     private fun FragmentSensorDetailBinding.setupTankDisplay(sensor: Sensor) {

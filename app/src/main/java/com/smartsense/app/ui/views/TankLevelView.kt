@@ -21,14 +21,24 @@ class TankLevelView @JvmOverloads constructor(
         private const val FILL_BOTTOM_RATIO = 0.778f
         private const val SVG_TANK_LEFT_RATIO = 68f / 447f
         private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
+
+        private const val H_FILL_TOP_RATIO = 14f / 48f
+        private const val H_FILL_BOTTOM_RATIO = 34f / 48f
+        private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
+        private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
     }
 
     // --- Configuration Flags ---
-    var isSmallMode: Boolean = true
-        set(value) { field = value; lastWidth = 0; requestLayout() }
-
     var isTallMode: Boolean = false
         set(value) { field = value; lastWidth = 0; requestLayout() }
+
+    var isHorizontal: Boolean = false
+        set(value) {
+            field = value
+            lastWidth = 0
+            if (value && aspectRatio == 1.32f) aspectRatio = 0.85f
+            requestLayout()
+        }
 
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
@@ -120,8 +130,11 @@ class TankLevelView @JvmOverloads constructor(
             buildBitmaps()
 
             val tankLeftBound = (w - tankDrawWidth) / 2f
-            val tankLeft = tankLeftBound + tankDrawWidth * SVG_TANK_LEFT_RATIO
-            val tankRight = tankLeftBound + tankDrawWidth * SVG_TANK_RIGHT_RATIO
+            val leftRatio = if (isHorizontal) H_SVG_TANK_LEFT_RATIO else SVG_TANK_LEFT_RATIO
+            val rightRatio = if (isHorizontal) H_SVG_TANK_RIGHT_RATIO else SVG_TANK_RIGHT_RATIO
+
+            val tankLeft = tankLeftBound + tankDrawWidth * leftRatio
+            val tankRight = tankLeftBound + tankDrawWidth * rightRatio
             val tankWidthActual = tankRight - tankLeft
 
             tankGradientPaint.shader = if (dark) {
@@ -148,12 +161,17 @@ class TankLevelView @JvmOverloads constructor(
         }
 
         val bounds = RectF(0f, 0f, w, height.toFloat())
-        val fillTopY = tankDrawTop + (tankDrawHeight * FILL_TOP_RATIO)
-        val fillBottomY = tankDrawTop + (tankDrawHeight * FILL_BOTTOM_RATIO)
+        val topRatio = if (isHorizontal) H_FILL_TOP_RATIO else FILL_TOP_RATIO
+        val bottomRatio = if (isHorizontal) H_FILL_BOTTOM_RATIO else FILL_BOTTOM_RATIO
+
+        val fillTopY = tankDrawTop + (tankDrawHeight * topRatio)
+        val fillBottomY = tankDrawTop + (tankDrawHeight * bottomRatio)
 
         val tankLeftBound = (w - tankDrawWidth) / 2f
-        val tankLeft = tankLeftBound + tankDrawWidth * SVG_TANK_LEFT_RATIO
-        val tankWidthActual = tankDrawWidth * (SVG_TANK_RIGHT_RATIO - SVG_TANK_LEFT_RATIO)
+        val leftRatio = if (isHorizontal) H_SVG_TANK_LEFT_RATIO else SVG_TANK_LEFT_RATIO
+        val rightRatio = if (isHorizontal) H_SVG_TANK_RIGHT_RATIO else SVG_TANK_RIGHT_RATIO
+        val tankLeft = tankLeftBound + tankDrawWidth * leftRatio
+        val tankWidthActual = tankDrawWidth * (rightRatio - leftRatio)
 
         // 1. Draw Tank metallic body
         val saveBody = canvas.saveLayer(bounds, null)
@@ -254,18 +272,22 @@ class TankLevelView @JvmOverloads constructor(
 
     private fun buildBitmaps() {
         val baseSize = minOf(width, height).toFloat()
-        val scale = if (isSmallMode) 0.8f else 1.0f
+        val scale = if (isTallMode) 1.0f else 0.8f
         tankDrawWidth = baseSize * scale
         tankDrawHeight = if (isTallMode) tankDrawWidth * 1.2f else tankDrawWidth
 
         val left = (width - tankDrawWidth) / 2f
-        val verticalOffset = tankDrawHeight * (26.5f / 447f)
+        val verticalOffsetRatio = if (isHorizontal) (8f / 48f) else (26.5f / 447f)
+        val verticalOffset = tankDrawHeight * verticalOffsetRatio
         tankDrawTop = ((height - tankDrawHeight) / 2f) - verticalOffset
+
+        val silhouetteRes = if (isHorizontal) R.drawable.ic_tank_silhouette_horizontal else R.drawable.ic_tank_silhouette
+        val hardwareRes = if (isHorizontal) R.drawable.ic_tank_hardware_horizontal else R.drawable.ic_tank_hardware
 
         tankBitmap?.recycle()
         tankBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
             val c = Canvas(this)
-            ContextCompat.getDrawable(context, R.drawable.ic_tank_silhouette)?.apply {
+            ContextCompat.getDrawable(context, silhouetteRes)?.apply {
                 setBounds(left.toInt(), tankDrawTop.toInt(), (left + tankDrawWidth).toInt(), (tankDrawTop + tankDrawHeight).toInt())
                 draw(c)
             }
@@ -274,7 +296,7 @@ class TankLevelView @JvmOverloads constructor(
         hardwareBitmap?.recycle()
         hardwareBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
             val c = Canvas(this)
-            ContextCompat.getDrawable(context, R.drawable.ic_tank_hardware)?.apply {
+            ContextCompat.getDrawable(context, hardwareRes)?.apply {
                 setBounds(left.toInt(), tankDrawTop.toInt(), (left + tankDrawWidth).toInt(), (tankDrawTop + tankDrawHeight).toInt())
                 draw(c)
             }
