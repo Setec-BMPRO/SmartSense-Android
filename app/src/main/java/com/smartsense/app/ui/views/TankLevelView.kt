@@ -330,7 +330,7 @@ class TankLevelView @JvmOverloads constructor(
             val unitText = levelUnit.shortName
 
             val valueSize = badgeRadius * 0.7f
-            val unitSize = badgeRadius * 0.4f
+            val unitSize = badgeRadius * 0.6f
 
             circleTextPaint.textSize = valueSize
             val valueWidth = circleTextPaint.measureText(valueText)

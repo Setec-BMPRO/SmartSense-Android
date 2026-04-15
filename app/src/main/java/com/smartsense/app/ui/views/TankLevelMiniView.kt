@@ -60,14 +60,14 @@ class TankLevelMiniView @JvmOverloads constructor(
 
     companion object {
         private const val FILL_TOP_RATIO = 62f / 320f
-        private const val FILL_BOTTOM_RATIO = 290f / 320f
+        private const val FILL_BOTTOM_RATIO = 288f / 320f
         private const val SVG_TANK_LEFT_RATIO = 25f / 240f
         private const val SVG_TANK_RIGHT_RATIO = 215f / 240f
 
-        private const val H_FILL_TOP_RATIO = 7f / 32f
-        private const val H_FILL_BOTTOM_RATIO = 27f / 32f
-        private const val H_SVG_TANK_LEFT_RATIO = 1f / 46f
-        private const val H_SVG_TANK_RIGHT_RATIO = 45f / 46f
+        private const val H_FILL_TOP_RATIO = 14f / 48f
+        private const val H_FILL_BOTTOM_RATIO = 34f / 48f
+        private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
+        private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
     }
 
     private fun isDarkMode(): Boolean {
@@ -89,7 +89,7 @@ class TankLevelMiniView @JvmOverloads constructor(
         val silhouetteRes = if (isHorizontal) R.drawable.ic_tank_silhouette_horizontal else R.drawable.ic_tank_silhouette
         val hardwareRes = if (isHorizontal) R.drawable.ic_tank_hardware_horizontal else R.drawable.ic_tank_hardware
 
-        val (viewW, viewH) = if (isHorizontal) 46 to 32 else 240 to 320
+        val (viewW, viewH) = if (isHorizontal) 48 to 48 else 240 to 320
         val aspect = viewH.toFloat() / viewW.toFloat()
 
         val (targetW, targetH) = if (isHorizontal) {
