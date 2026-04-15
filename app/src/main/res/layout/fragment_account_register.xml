@@ -51,6 +51,7 @@
                     android:padding="24dp">
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/email"
@@ -66,6 +67,7 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilConfirmEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
@@ -82,12 +84,14 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:hint="@string/password"
                         app:startIconDrawable="@drawable/ic_password"
-                        app:passwordToggleEnabled="true"
+                        app:endIconMode="password_toggle"
+                        app:errorIconDrawable="@null"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -99,12 +103,14 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilConfirmPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:hint="@string/confirm_password"
                         app:startIconDrawable="@drawable/ic_password"
-                        app:passwordToggleEnabled="true"
+                        app:endIconMode="password_toggle"
+                        app:errorIconDrawable="@null"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -112,12 +118,13 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPassword"
+                            android:imeOptions="actionGo"
                             android:maxLines="1" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_register"
-                        style="@style/Widget.SmartSense.Button.Large"
+                        style="@style/Widget.SmartSense.Button.Large.Filled"
                         android:layout_marginTop="32dp"
                         android:text="@string/register" />
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="447dp"
+    android:height="447dp"
+    android:viewportWidth="447"
+    android:viewportHeight="447">
+
+    <!-- The Fillable Area (Inside the border) -->
+    <!-- Matches Hardware: Top y=120, Bottom y=348 -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M 168,120
+                          L 280,120
+                          C 328,120 344,140 344,170
+                          L 344,310
+                          C 344,340 328,348 280,348
+                          L 168,348
+                          C 120,348 104,340 104,310
+                          L 104,170
+                          C 104,140 120,120 168,120 Z" />
+</vector>

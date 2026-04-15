@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -34,7 +35,9 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by viewModels()
+
     private var isUpdatingThemeToggle = false
+    private var scrollY = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,42 +50,92 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.focusThief.requestFocus()
+
+        // Sync initial state for theme toggle from AppCompatDelegate to prevent flicker
+        val currentMode = AppCompatDelegate.getDefaultNightMode()
+        val initialBtnId = when(currentMode) {
+            AppCompatDelegate.MODE_NIGHT_NO -> R.id.btn_theme_light
+            AppCompatDelegate.MODE_NIGHT_YES -> R.id.btn_theme_dark
+            else -> R.id.btn_theme_system
+        }
+        isUpdatingThemeToggle = true
+        binding.themeToggleGroup.check(initialBtnId)
+        isUpdatingThemeToggle = false
+
+        savedInstanceState?.let {
+            scrollY = it.getInt("SCROLL_Y", 0)
+            _binding?.settingsScrollView?.post {
+                _binding?.settingsScrollView?.scrollTo(0, scrollY)
+            }
+        }
         setupDropdowns()
         setupThemeToggle()
         setupSwitches()
         observeState()
         setupButtons()
+        setupAppVersion()
+    }
+
+    private fun setupAppVersion() {
+        binding.appVersion.text = getString(R.string.app_version, com.smartsense.app.BuildConfig.VERSION_NAME)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        _binding?.let {
+            outState.putInt("SCROLL_Y", it.settingsScrollView.scrollY)
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        with(binding.toolbar) {
-            navigationIcon = null
-            title = getString(R.string.settings_title)
-            subtitle = ""
+        _binding?.toolbar?.let { toolbar ->
+            toolbar.navigationIcon = null
+            toolbar.title = getString(R.string.settings_title)
+            toolbar.subtitle = ""
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Ensure dropdowns are dismissed and focus is cleared when leaving or recreating
+        _binding?.let {
+            it.unitSystemDropdown.dismissDropDown()
+            it.scanIntervalDropdown.dismissDropDown()
+            it.sortPreferencesDropdown.dismissDropDown()
+            it.focusThief.requestFocus()
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun setupDropdowns() {
         // --- Unit System ---
         val units = UnitSystem.entries
-        binding.unitSystemDropdown.setAdapter(SelectedAdapter(requireContext(), units.map { it.displayName }) {
+        val unitAdapter = SelectedAdapter(requireContext(), units.map { it.displayName }) {
             units.indexOf(viewModel.unitSystem.value)
-        })
+        }
+        binding.unitSystemDropdown.setAdapter(unitAdapter)
         binding.unitSystemDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setUnitSystem(units[pos]) }
 
         // --- Scan Interval ---
         val intervals = ScanIntervals.entries
-        binding.scanIntervalDropdown.setAdapter(SelectedAdapter(requireContext(), intervals.map { it.displayName }) {
+        val intervalAdapter = SelectedAdapter(requireContext(), intervals.map { it.displayName }) {
             intervals.indexOf(viewModel.scanInterval.value)
-        })
+        }
+        binding.scanIntervalDropdown.setAdapter(intervalAdapter)
         binding.scanIntervalDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setScanInterval(intervals[pos]) }
 
         // --- Sort Preference ---
         val sorts = SortPreference.entries
-        binding.sortPreferencesDropdown.setAdapter(SelectedAdapter(requireContext(), sorts.map { it.displayName }) {
+        val sortAdapter = SelectedAdapter(requireContext(), sorts.map { it.displayName }) {
             sorts.indexOf(viewModel.sortPreference.value)
-        })
+        }
+        binding.sortPreferencesDropdown.setAdapter(sortAdapter)
         binding.sortPreferencesDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setSortPreference(sorts[pos]) }
     }
 
@@ -108,13 +161,14 @@ class SettingsFragment : Fragment() {
                             positiveText = getString(R.string.sign_in),
                             negativeText = getString(R.string.ok),
                             neutralText = getString(R.string.cancel),
+                            isWarning = true,
                             onConfirm = {
                                 val bundle = bundleOf(KEY_ENABLE_UPLOAD_SENSOR_DATA to true)
                                 findNavController().navigate(R.id.accountSignInFragment, bundle)
                                 // Navigate to the correct tab
                                 (requireActivity() as? MainActivityListener)?.handleTabSelection(R.id.tab_account)
                             },
-                            onNeutral = {binding.switchUploadSensorData.isChecked = false}
+                            onNeutral = {_binding?.switchUploadSensorData?.isChecked = false}
                         )
                     }
                     else ->{}
@@ -133,13 +187,26 @@ class SettingsFragment : Fragment() {
     private fun setupThemeToggle() {
         binding.themeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked || isUpdatingThemeToggle) return@addOnButtonCheckedListener
+            
             val theme = when (checkedId) {
                 R.id.btn_theme_light -> AppTheme.LIGHT
                 R.id.btn_theme_dark -> AppTheme.DARK
                 else -> AppTheme.SYSTEM
             }
-            viewModel.setAppTheme(theme)
-            SmartSenseApplication.applyTheme(theme.displayName)
+            
+            // Only apply if different from current to avoid redundant recreations
+            if (viewModel.appTheme.value != theme) {
+                // Dismiss dropdowns before theme change to prevent them from auto-showing after recreation
+                binding.unitSystemDropdown.dismissDropDown()
+                binding.scanIntervalDropdown.dismissDropDown()
+                binding.sortPreferencesDropdown.dismissDropDown()
+                
+                // Clear focus to ensure no view auto-shows its popup on recreation
+                binding.focusThief.requestFocus()
+
+                viewModel.setAppTheme(theme)
+                SmartSenseApplication.applyTheme(theme.displayName)
+            }
         }
     }
     private fun observeState() {
@@ -148,17 +215,29 @@ class SettingsFragment : Fragment() {
 
         // --- Dropdowns ---
         viewModel.unitSystem
-            .onEach { binding.unitSystemDropdown.setText(it.displayName, false) }
+            .onEach { 
+                if (binding.unitSystemDropdown.text.toString() != it.displayName) {
+                    binding.unitSystemDropdown.setText(it.displayName, false)
+                }
+            }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
         viewModel.scanInterval
-            .onEach { binding.scanIntervalDropdown.setText(it.displayName, false) }
+            .onEach { 
+                if (binding.scanIntervalDropdown.text.toString() != it.displayName) {
+                    binding.scanIntervalDropdown.setText(it.displayName, false)
+                }
+            }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
         viewModel.sortPreference
-            .onEach { binding.sortPreferencesDropdown.setText(it.displayName, false) }
+            .onEach { 
+                if (binding.sortPreferencesDropdown.text.toString() != it.displayName) {
+                    binding.sortPreferencesDropdown.setText(it.displayName, false)
+                }
+            }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
@@ -198,9 +277,11 @@ class SettingsFragment : Fragment() {
                     AppTheme.DARK -> R.id.btn_theme_dark
                     AppTheme.SYSTEM -> R.id.btn_theme_system
                 }
-                isUpdatingThemeToggle = true
-                binding.themeToggleGroup.check(btnId)
-                isUpdatingThemeToggle = false
+                if (binding.themeToggleGroup.checkedButtonId != btnId) {
+                    isUpdatingThemeToggle = true
+                    binding.themeToggleGroup.check(btnId)
+                    isUpdatingThemeToggle = false
+                }
             }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)

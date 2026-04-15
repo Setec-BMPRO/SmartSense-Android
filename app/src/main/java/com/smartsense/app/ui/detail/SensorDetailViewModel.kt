@@ -106,12 +106,13 @@ class Sensor1DetailViewModel @Inject constructor(
     }
 
 
-    fun loadTankConfig() {
+    fun loadTankConfig(onLoaded: ((Tank?) -> Unit)? = null) {
         viewModelScope.launch {
             val tank = useCase.getTankConfig(sensorAddress)
             _uiState.update { state ->
                 state.copy(tank = tank)
             }
+            onLoaded?.invoke(tank)
         }
     }
 

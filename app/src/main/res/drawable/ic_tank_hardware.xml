@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="447dp"
+    android:height="447dp"
+    android:viewportWidth="447"
+    android:viewportHeight="447">
+
+    <!-- Handle Top Bar (Medium Thickness) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M155,58 L292,58 C305,58 305,72 292,72 L155,72 C142,72 142,58 155,58 Z" />
+
+    <!-- Handle Supports (Medium Thickness) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M165,72 L165,120 L180,120 L180,72 Z
+                          M267,72 L267,120 L282,120 L282,72 Z" />
+
+    <!-- Center Valve Assembly (Medium Thickness) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M215,102 L215,120 L232,120 L232,102 Z
+                          M198,96 L198,102 L249,102 L249,96 Z" />
+
+    <!-- Foot Ring Outline -->
+    <path
+        android:fillColor="#000000"
+        android:fillType="evenOdd"
+        android:pathData="M 140,344
+                          L 308,344
+                          L 308,370
+                          C 300,378 148,378 140,370
+                          Z
+                          M 154,354 L 184,354 L 184,364 L 154,364 Z
+                          M 204,354 L 244,354 L 244,364 L 204,364 Z
+                          M 264,354 L 294,354 L 294,364 L 264,364 Z" />
+
+    <!-- Tank Bulb Outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="4"
+        android:strokeLineJoin="round"
+        android:pathData="M 168,120
+                          L 280,120
+                          C 328,120 344,140 344,170
+                          L 344,310
+                          C 344,340 328,348 280,348
+                          L 168,348
+                          C 120,348 104,340 104,310
+                          L 104,170
+                          C 104,140 120,120 168,120 Z" />
+</vector>

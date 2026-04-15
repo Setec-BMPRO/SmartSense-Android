@@ -19,13 +19,6 @@
         android:paddingTop="@dimen/spacing_md"
         android:paddingBottom="@dimen/spacing_sm">
 
-        <View
-            android:id="@+id/status_led"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
-            android:background="@drawable/bg_status_led"
-            android:layout_marginEnd="@dimen/spacing_sm"/>
-
         <include
             android:id="@+id/smartsense_logo"
             layout="@layout/layout_smartsense_logo"
@@ -64,6 +57,14 @@
                 android:layout_height="match_parent"
                 android:visibility="invisible"/>
 
+            <View
+                android:id="@+id/scan_icon_circle"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_error"
+                android:visibility="gone" />
+
             <ImageView
                 android:id="@+id/scan_icon"
                 android:layout_width="80dp"
@@ -80,7 +81,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_md"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorOnSurface"
             android:gravity="center"
             tools:text="@string/scanning"/>
@@ -91,10 +92,22 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_sm"
-            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:gravity="center"
             android:text="@string/scan_auto_pair_hint"/>
+
+        <!-- Bluetooth Settings button (shown on BLE error) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_open_bluetooth"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:text="Open Bluetooth Settings"
+            android:visibility="gone"
+            app:icon="@drawable/ic_bluetooth_scan"
+            app:iconGravity="textStart" />
 
     </LinearLayout>
 

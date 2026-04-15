@@ -2,10 +2,13 @@ package com.smartsense.app.ui.views
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
+import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
@@ -23,100 +26,83 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
 
-    private val tankLeftRatio = 0.15f
-    private val tankRightRatio = 0.85f
-    private val tankTopRatio = 0.15f
-    private val tankBottomRatio = 0.85f
-
-    private val tankBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val valveBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val valveCapPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeCap = Paint.Cap.ROUND
+    private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
     }
-    private val rimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val rimStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
-    private val footPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val weldLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
+    private val outlineBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val hardwareTintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    private val tankPath = Path()
-    private var lastWidth = 0f
+    private var tankBitmap: Bitmap? = null
+    private var hardwareBitmap: Bitmap? = null
+    private var lastWidth = 0
     private var lastDarkMode: Boolean? = null
 
-    private fun isDarkMode(): Boolean {
-        return (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    companion object {
+        private const val FILL_TOP_RATIO = 0.300f
+        private const val FILL_BOTTOM_RATIO = 0.778f
+        private const val SVG_TANK_LEFT_RATIO = 68f / 447f
+        private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
     }
 
-    private fun applyThemeColors() {
-        val dark = isDarkMode()
-        if (dark) {
-            outlinePaint.color = 0xFFAAAAAA.toInt()
-            valveBodyPaint.color = 0xFF888888.toInt()
-            valveCapPaint.color = 0xFF999999.toInt()
-            handlePaint.color = 0xFF999999.toInt()
-            rimPaint.color = 0xFF666666.toInt()
-            rimStrokePaint.color = 0xFF999999.toInt()
-            footPaint.color = 0xFF888888.toInt()
-            weldLinePaint.color = 0x40FFFFFF
-        } else {
-            outlinePaint.color = 0xFF5A5A5A.toInt()
-            valveBodyPaint.color = 0xFF6D6D6D.toInt()
-            valveCapPaint.color = 0xFF4A4A4A.toInt()
-            handlePaint.color = 0xFF555555.toInt()
-            rimPaint.color = 0xFFBBBBBB.toInt()
-            rimStrokePaint.color = 0xFF888888.toInt()
-            footPaint.color = 0xFF777777.toInt()
-            weldLinePaint.color = 0x30000000
-        }
+    private fun isDarkMode(): Boolean {
+        return (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+                Configuration.UI_MODE_NIGHT_YES
     }
 
     fun setLevel(percentage: Float, status: LevelStatus) {
         this.percentage = percentage.coerceIn(0f, 100f)
         this.levelStatus = status
 
-        fillPaint.color = when (status) {
-            LevelStatus.GREEN -> ContextCompat.getColor(context, R.color.level_green)
-            LevelStatus.YELLOW -> ContextCompat.getColor(context, R.color.level_yellow)
-            LevelStatus.RED -> 0xFFD24520.toInt()
-        }
-
         invalidate()
+    }
+
+    private fun buildBitmap(size: Int) {
+        tankBitmap?.recycle()
+        hardwareBitmap?.recycle()
+
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val c = Canvas(bitmap)
+        val drawable = ContextCompat.getDrawable(context, R.drawable.ic_tank_silhouette) ?: return
+        drawable.setBounds(0, 0, size, size)
+        drawable.draw(c)
+        tankBitmap = bitmap
+
+        val hwBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val hwCanvas = Canvas(hwBitmap)
+        val hwDrawable = ContextCompat.getDrawable(context, R.drawable.ic_tank_hardware) ?: return
+        hwDrawable.setBounds(0, 0, size, size)
+        hwDrawable.draw(hwCanvas)
+        hardwareBitmap = hwBitmap
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val w = width.toFloat()
-        val h = height.toFloat()
-        val scale = w / 56f
+        val size = minOf(width, height)
         val dark = isDarkMode()
 
         if (lastDarkMode != dark) {
             lastDarkMode = dark
-            lastWidth = 0f
-            applyThemeColors()
+            lastWidth = 0
+            val outlineColor = if (dark) 0xFFAAAAAA.toInt() else 0xFF5A5A5A.toInt()
+            outlineBitmapPaint.colorFilter =
+                PorterDuffColorFilter(outlineColor, PorterDuff.Mode.SRC_IN)
+            hardwareTintPaint.colorFilter = PorterDuffColorFilter(
+                if (dark) 0xFFBDBDBD.toInt() else 0xFF000000.toInt(),
+                PorterDuff.Mode.SRC_IN
+            )
         }
 
-        val tankLeft = w * tankLeftRatio
-        val tankRight = w * tankRightRatio
-        val tankTop = h * tankTopRatio
-        val tankBottom = h * tankBottomRatio
-        val tankWidth = tankRight - tankLeft
-        val tankHeight = tankBottom - tankTop
-        val cr = 4f * scale
+        if (size != lastWidth) {
+            lastWidth = size
+            buildBitmap(size)
 
-        outlinePaint.strokeWidth = 1.5f * scale
-        handlePaint.strokeWidth = 2.5f * scale
-        rimStrokePaint.strokeWidth = 0.8f * scale
-        weldLinePaint.strokeWidth = 0.8f * scale
-
-        if (w != lastWidth) {
-            lastWidth = w
-            tankBodyPaint.shader = if (dark) {
+            val tankLeft = size * SVG_TANK_LEFT_RATIO
+            val tankRight = size * SVG_TANK_RIGHT_RATIO
+            tankGradientPaint.shader = if (dark) {
                 LinearGradient(
                     tankLeft, 0f, tankRight, 0f,
                     intArrayOf(0xFF3A3A3A.toInt(), 0xFF4A4A4A.toInt(), 0xFF333333.toInt()),
@@ -126,109 +112,77 @@ class TankLevelMiniView @JvmOverloads constructor(
             } else {
                 LinearGradient(
                     tankLeft, 0f, tankRight, 0f,
-                    intArrayOf(0xFFE8E8E8.toInt(), 0xFFF5F5F5.toInt(), 0xFFE0E0E0.toInt()),
+                    intArrayOf(0xFFD0D0D0.toInt(), 0xFFF2F2F2.toInt(), 0xFFC4C4C4.toInt()),
                     floatArrayOf(0f, 0.4f, 1f),
                     Shader.TileMode.CLAMP
                 )
             }
         }
 
-        val cx = (tankLeft + tankRight) / 2f
+        val bitmap = tankBitmap ?: return
+        val hwBitmap = hardwareBitmap
+        val s = size.toFloat()
+        val bounds = RectF(0f, 0f, s, s)
 
-        // --- Valve ---
-        val stemWidth = tankWidth * 0.14f
-        val stemTop = tankTop - h * 0.05f
-        val stemBottom = tankTop + cr * 0.5f
-        canvas.drawRoundRect(
-            cx - stemWidth / 2, stemTop, cx + stemWidth / 2, stemBottom,
-            1.5f * scale, 1.5f * scale, valveBodyPaint
-        )
+        val fillTopY = s * FILL_TOP_RATIO
+        val fillBottomY = s * FILL_BOTTOM_RATIO
 
-        val capWidth = tankWidth * 0.24f
-        val capHeight = h * 0.03f
-        val capTop = stemTop - capHeight * 0.3f
-        canvas.drawRoundRect(
-            cx - capWidth / 2, capTop, cx + capWidth / 2, capTop + capHeight,
-            capHeight / 2, capHeight / 2, valveCapPaint
-        )
+        // Outline
+        val scale = s / 447f
+        val outlineWidth = 3f * scale
+        val cx = s / 2f
+        val outlineScale = 1f + (outlineWidth * 2f / s)
+        canvas.save()
+        canvas.scale(outlineScale, outlineScale, cx, cx)
+        canvas.drawBitmap(bitmap, 0f, 0f, outlineBitmapPaint)
+        canvas.restore()
 
-        val handleRadius = tankWidth * 0.15f
-        val handleCy = capTop - 1f * scale
-        val handleRect = RectF(
-            cx - handleRadius, handleCy - handleRadius,
-            cx + handleRadius, handleCy + handleRadius
-        )
-        canvas.drawArc(handleRect, 200f, 140f, false, handlePaint)
+        // Hardware (Handle, Stand)
+        hwBitmap?.let {
+            canvas.drawBitmap(it, 0f, 0f, hardwareTintPaint)
+        }
 
-        // --- Tank body ---
-        tankPath.reset()
-        tankPath.addRoundRect(
-            RectF(tankLeft, tankTop, tankRight, tankBottom),
-            cr, cr, Path.Direction.CW
-        )
-        canvas.drawPath(tankPath, tankBodyPaint)
+        // Tank body: metallic gradient masked by silhouette, but only between the lines
+        val save1 = canvas.saveLayer(bounds, null)
+        canvas.drawRect(0f, fillTopY, s, fillBottomY, tankGradientPaint)
+        canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
+        canvas.restoreToCount(save1)
 
-        // --- Liquid fill ---
+        // Liquid fill masked by silhouette
         if (percentage > 0f) {
-            val fillTop = tankBottom - (tankHeight * percentage / 100f)
-            canvas.save()
-            canvas.clipPath(tankPath)
-            canvas.drawRect(tankLeft, fillTop, tankRight, tankBottom, fillPaint)
+            // Apply vertical gradient: Blue (Bottom) -> Red (Top)
+            val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt() // Softer red in dark mode
+            fillPaint.shader = LinearGradient(
+                0f, fillBottomY, 0f, fillTopY,
+                0xFF1E88E5.toInt(), // Blue
+                topColor, // Red
+                Shader.TileMode.CLAMP
+            )
+
+            val bandHeight = fillBottomY - fillTopY
+            val liquidTopY = fillBottomY - (bandHeight * percentage / 100f)
+
+            val tankLeft = s * SVG_TANK_LEFT_RATIO
+            val tankRight = s * SVG_TANK_RIGHT_RATIO
+            val tankWidth = tankRight - tankLeft
+
+            val save2 = canvas.saveLayer(bounds, null)
+            canvas.drawRect(0f, liquidTopY, s, fillBottomY, fillPaint)
 
             fillHighlightPaint.shader = LinearGradient(
-                tankLeft, 0f, tankLeft + tankWidth * 0.4f, 0f,
+                tankLeft, 0f, tankLeft + tankWidth * 0.35f, 0f,
                 0x30FFFFFF, 0x00FFFFFF,
                 Shader.TileMode.CLAMP
             )
-            canvas.drawRect(tankLeft, fillTop, tankLeft + tankWidth * 0.4f, tankBottom, fillHighlightPaint)
-            canvas.restore()
+            canvas.drawRect(
+                tankLeft, liquidTopY,
+                tankLeft + tankWidth * 0.35f, fillBottomY,
+                fillHighlightPaint
+            )
+
+            canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
+            canvas.restoreToCount(save2)
         }
-
-        // --- Weld lines ---
-        val seamY1 = tankTop + tankHeight * 0.15f
-        val seamY2 = tankBottom - tankHeight * 0.15f
-        canvas.drawLine(tankLeft + cr * 0.5f, seamY1, tankRight - cr * 0.5f, seamY1, weldLinePaint)
-        canvas.drawLine(tankLeft + cr * 0.5f, seamY2, tankRight - cr * 0.5f, seamY2, weldLinePaint)
-
-        // --- Rims ---
-        val rimHeight = 2.5f * scale
-        canvas.drawRoundRect(
-            RectF(tankLeft - 0.5f * scale, tankTop - rimHeight * 0.3f,
-                tankRight + 0.5f * scale, tankTop + rimHeight * 0.7f),
-            rimHeight / 2, rimHeight / 2, rimPaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankLeft - 0.5f * scale, tankTop - rimHeight * 0.3f,
-                tankRight + 0.5f * scale, tankTop + rimHeight * 0.7f),
-            rimHeight / 2, rimHeight / 2, rimStrokePaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankLeft - 0.5f * scale, tankBottom - rimHeight * 0.7f,
-                tankRight + 0.5f * scale, tankBottom + rimHeight * 0.3f),
-            rimHeight / 2, rimHeight / 2, rimPaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankLeft - 0.5f * scale, tankBottom - rimHeight * 0.7f,
-                tankRight + 0.5f * scale, tankBottom + rimHeight * 0.3f),
-            rimHeight / 2, rimHeight / 2, rimStrokePaint
-        )
-
-        canvas.drawPath(tankPath, outlinePaint)
-
-        // --- Feet ---
-        val footHeight = h * 0.025f
-        val footWidth = tankWidth * 0.2f
-        val footY = tankBottom + rimHeight * 0.3f
-        canvas.drawRoundRect(
-            RectF(tankLeft + tankWidth * 0.1f, footY,
-                tankLeft + tankWidth * 0.1f + footWidth, footY + footHeight),
-            1.5f * scale, 1.5f * scale, footPaint
-        )
-        canvas.drawRoundRect(
-            RectF(tankRight - tankWidth * 0.1f - footWidth, footY,
-                tankRight - tankWidth * 0.1f, footY + footHeight),
-            1.5f * scale, 1.5f * scale, footPaint
-        )
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {

@@ -13,6 +13,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentSensorDetailBinding
 import com.smartsense.app.domain.model.LevelStatus
+import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.ReadQuality
 
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
@@ -25,10 +26,11 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.text.ifEmpty
+import com.smartsense.app.util.showSnackbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.domain.model.Sensor
+import com.smartsense.app.domain.model.TankType
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -59,6 +61,17 @@ class SensorDetailFragment : Fragment() {
         setupToolbar()
         setupClickListeners()
         observeViewModel()
+        observeNavigationResult()
+    }
+
+    private fun observeNavigationResult() {
+        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(TankSettingsFragment.KEY_TANK_UPDATED)
+            ?.observe(viewLifecycleOwner) { updated ->
+                if (updated) {
+                    binding.root.showSnackbar(R.string.tank_settings_updated, iconRes = R.drawable.ic_check)
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<Boolean>(TankSettingsFragment.KEY_TANK_UPDATED)
+                }
+            }
     }
 
     private fun setupToolbar() = with(binding.toolbar) {
@@ -79,8 +92,17 @@ class SensorDetailFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         viewModel.startObserveDetailSensor()
-        viewModel.loadTankConfig()
+        viewModel.loadTankConfig { tank ->
+            tank?.let {
+                binding.detailTank.setLevelUnit(it.levelUnit, viewModel.calculateTankHeightMm(it))
+                binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
+                binding.detailTank.setTankTypeLabel(it.type.displayName)
+                binding.detailTank.isTallMode=it.type!=TankType.KG_3_7
+                binding.detailTank.isSmallMode=it.type==TankType.KG_3_7
+            }
+        }
     }
+
 
     override fun onStop() {
         viewModel.stopObserveDetailSensor()
@@ -113,11 +135,11 @@ class SensorDetailFragment : Fragment() {
             .launchIn(viewLifecycleOwner.lifecycleScope)
         viewModel.uiState
             .map { it.tank }
-            .distinctUntilChanged()
             .onEach { tank ->
                 tank?.let {
                     binding.detailTank.setLevelUnit(it.levelUnit,
                         viewModel.calculateTankHeightMm(it))
+                    binding.detailTank.setAspectRatio(it.type.silhouetteAspect)
                 }
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -148,7 +170,7 @@ class SensorDetailFragment : Fragment() {
         val bundle = Bundle().apply {
             putString(EXTRA_SENSOR_ADDRESS, viewModel.sensorAddress)
         }
-        findNavController().navigate(R.id.action_detail_to_setting, bundle)
+        findNavController().navigate(R.id.action_sensorDetail_to_tankSettings, bundle)
     }
 
     // --------------------------------------
@@ -177,7 +199,7 @@ class SensorDetailFragment : Fragment() {
             .onEach { state ->
                 // Error Handling
                 state.errorMessage?.let { msg ->
-                    Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                    binding.root.showSnackbar(msg)
                     viewModel.clearMessages()
                 }
             }
@@ -220,6 +242,9 @@ class SensorDetailFragment : Fragment() {
         detailDeviceAddress.text = formatShortAddress(sensor.address)
         detailTemperature.text = sensor.temperatureFormatted(viewModel.unitSystem)
         detailTankType.text = sensor.tankType
+        // Hide temperature for Setec gas sensors (no temperature in protocol)
+        detailTemperatureContainer.visibility =
+            if (sensor.sensorType == MopekaSensorType.SETEC_GAS) View.GONE else View.VISIBLE
     }
 
     private fun FragmentSensorDetailBinding.updateRefreshRate() {

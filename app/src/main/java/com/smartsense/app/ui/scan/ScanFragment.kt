@@ -1,6 +1,8 @@
 package com.smartsense.app.ui.scan
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -18,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScanBinding
 import com.smartsense.app.domain.model.Sensor
@@ -61,7 +62,22 @@ class ScanFragment : Fragment() {
                 viewModel.onPermissionsGranted()
             },
             onDenied = { message ->
-                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+                val btAction = Settings.ACTION_BLUETOOTH_SETTINGS
+                val (tip, action) = when {
+                    message.contains("connect permission", ignoreCase = true) ||
+                    message.contains("Scan permission", ignoreCase = true) ->
+                        "Grant permission in App Settings" to Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+
+                    message.contains("Bluetooth is required", ignoreCase = true) ->
+                        "Enable Bluetooth in Settings" to btAction
+
+                    message.contains("Location", ignoreCase = true) ->
+                        "Enable Location in Settings" to Settings.ACTION_LOCATION_SOURCE_SETTINGS
+
+                    else ->
+                        "Check Settings" to btAction
+                }
+                viewModel.setPermissionError(message, tip, action)
             }
         )
 
@@ -111,33 +127,78 @@ class ScanFragment : Fragment() {
         val lifecycle = viewLifecycleOwner.lifecycle
         val scope = viewLifecycleOwner.lifecycleScope
 
-        // 1. Observe Errors
+        // 1. Observe Errors + Scanning State together
         viewModel.uiState
-            .map { it.error }
-            .distinctUntilChanged()
-            .onEach { error ->
-                error?.let {
-                    Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
-                    viewModel.clearError()
-                }
-            }
-            .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-            .launchIn(scope)
+            .map { state -> state.error to state }
+            .distinctUntilChanged { old, new -> old.first == new.first && old.second.errorTip == new.second.errorTip && old.second.isScanning == new.second.isScanning && old.second.settingsAction == new.second.settingsAction }
+            .onEach { (error, state) ->
+                val tip = state.errorTip
+                val isScanning = state.isScanning
+                val settingsAction = state.settingsAction
+                val accentColor = ContextCompat.getColor(requireContext(), R.color.primary)
 
-        // 2. Observe Scanning State
-        viewModel.uiState
-            .map { it.isScanning }
-            .distinctUntilChanged()
-            .onEach { isScanning ->
                 binding.apply {
-                    if (isScanning) {
+                    if (error != null) {
+                        // Show error inline in the scanning state area
+                        pulseView.stopPulse()
+                        scanIcon.setImageResource(R.drawable.ic_bluetooth_disabled)
+                        scanIcon.imageTintList = android.content.res.ColorStateList.valueOf(accentColor)
+                        scanIconCircle.isVisible = true
+                        scanStatus.text = error
+                        scanStatus.setTextColor(accentColor)
+                        scanHint.isVisible = tip != null
+                        if (tip != null) {
+                            scanHint.text = tip
+                            scanHint.setTextColor(accentColor)
+                        }
+                        scanHint.setOnClickListener(null)
+                        btnOpenBluetooth.isVisible = true
+                        val buttonText = when (settingsAction) {
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS -> "Open App Settings"
+                            Settings.ACTION_LOCATION_SOURCE_SETTINGS -> "Open Location Settings"
+                            else -> "Open Bluetooth Settings"
+                        }
+                        btnOpenBluetooth.text = buttonText
+                        btnOpenBluetooth.setOnClickListener {
+                            val intent = if (settingsAction == Settings.ACTION_APPLICATION_DETAILS_SETTINGS) {
+                                Intent(settingsAction, android.net.Uri.parse("package:${requireContext().packageName}"))
+                            } else {
+                                Intent(settingsAction ?: Settings.ACTION_BLUETOOTH_SETTINGS)
+                            }
+                            startActivity(intent)
+                        }
+                    } else if (isScanning) {
                         pulseView.startPulse()
+                        scanIcon.setImageResource(R.drawable.ic_bluetooth_scan)
+                        scanIcon.imageTintList = android.content.res.ColorStateList.valueOf(accentColor)
+                        scanIconCircle.isVisible = false
                         scanStatus.text = getString(R.string.scanning)
+                        scanStatus.setTextColor(
+                            ContextCompat.getColor(requireContext(),
+                                com.google.android.material.R.color.material_on_surface_emphasis_medium)
+                        )
+                        scanHint.text = getString(R.string.scan_auto_pair_hint)
+                        scanHint.setTextColor(
+                            ContextCompat.getColor(requireContext(),
+                                com.google.android.material.R.color.material_on_surface_emphasis_medium)
+                        )
+                        scanHint.setOnClickListener(null)
+                        scanHint.isVisible = true
+                        btnOpenBluetooth.isVisible = false
                     } else {
                         pulseView.stopPulse()
+                        scanIcon.setImageResource(R.drawable.ic_bluetooth_scan)
+                        scanIcon.imageTintList = android.content.res.ColorStateList.valueOf(accentColor)
+                        scanIconCircle.isVisible = false
                         scanStatus.text = getString(R.string.scan_tap_to_start)
+                        scanStatus.setTextColor(
+                            ContextCompat.getColor(requireContext(),
+                                com.google.android.material.R.color.material_on_surface_emphasis_medium)
+                        )
+                        scanHint.isVisible = false
+                        scanHint.setOnClickListener(null)
+                        btnOpenBluetooth.isVisible = false
                     }
-                    scanHint.isVisible = isScanning
                 }
             }
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
@@ -177,7 +238,7 @@ class ScanFragment : Fragment() {
             val sensorItems = list.map { sensor ->
                 SensorItem(sensor, viewModel.unitSystem.value) { selected ->
                     val bundle = Bundle().apply { putString(EXTRA_SENSOR_ADDRESS, selected.address) }
-                    findNavController().navigate(R.id.action_scan_to_detail, bundle)
+                    findNavController().navigate(R.id.action_scan_to_sensorDetail, bundle)
                 }
             }
 

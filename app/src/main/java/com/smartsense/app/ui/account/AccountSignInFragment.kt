@@ -21,9 +21,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
+import com.smartsense.app.util.showSnackbar
+import com.smartsense.app.util.hideKeyboard
 import com.smartsense.app.databinding.FragmentAccountSigninBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
@@ -71,7 +72,7 @@ class AccountSignInFragment : Fragment() {
                         viewModel.setUserEmail(binding.etEmail.text.toString().trim())
                         findNavController().navigate(R.id.scanFragment)
                     } else {
-                        showSnackbar(getString(R.string.sign_in_failed))
+                        binding.root.showSnackbar(R.string.sign_in_failed)
                         viewModel.resetLoginState()
                     }
                 }
@@ -88,7 +89,7 @@ class AccountSignInFragment : Fragment() {
                         showResetPasswordDialog(binding.etEmail.text.toString().trim())
                         viewModel.resetPasswordResetState() // Clean up state after success
                     } else {
-                        showSnackbar(getString(R.string.failed_to_resend_email))
+                        binding.root.showSnackbar(R.string.failed_to_resend_email)
                         viewModel.resetPasswordResetState() // Clean up state after failure
                     }
                 }
@@ -98,7 +99,18 @@ class AccountSignInFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        binding.etPassword.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_GO) {
+                hideKeyboard()
+                binding.btnSignin.performClick()
+                true
+            } else {
+                false
+            }
+        }
+
         binding.btnSignin.setOnClickListener {
+            hideKeyboard()
             if (performFinalValidation()) {
                 val email = binding.etEmail.text.toString().trim()
                 val password = binding.etPassword.text.toString()
@@ -108,7 +120,7 @@ class AccountSignInFragment : Fragment() {
         }
 
         binding.tvRegister.setOnClickListener {
-            findNavController().navigate(R.id.action_to_register)
+            findNavController().navigate(R.id.action_signIn_to_register)
         }
 
         binding.tvForgotPassword.setOnClickListener {
@@ -117,7 +129,7 @@ class AccountSignInFragment : Fragment() {
                 (activity as MainActivityListener).showLoadingIndicator(true)
                 viewModel.forgotPassword(email)
             } else {
-                binding.etEmail.apply {
+                binding.tilEmail.apply {
                     error = getString(R.string.enter_a_valid_email_to_reset_password)
                     requestFocus()
                 }
@@ -126,14 +138,13 @@ class AccountSignInFragment : Fragment() {
 
         binding.toolbar.setNavigationIcon(R.drawable.ic_back)
         binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigate(R.id.action_to_register)
+            findNavController().navigate(R.id.action_signIn_to_register)
         }
     }
 
     private fun setupLiveValidation() {
-        listOf(binding.etEmail, binding.etPassword).forEach { editText ->
-            editText.doOnTextChanged { _, _, _, _ -> editText.error = null }
-        }
+        binding.etEmail.doOnTextChanged { _, _, _, _ -> binding.tilEmail.error = null }
+        binding.etPassword.doOnTextChanged { _, _, _, _ -> binding.tilPassword.error = null }
     }
 
     private fun isEmailValid(email: String): Boolean {
@@ -146,12 +157,12 @@ class AccountSignInFragment : Fragment() {
         var isValid = true
 
         if (!isEmailValid(email)) {
-            binding.etEmail.error = getString(R.string.enter_a_valid_email_address)
+            binding.tilEmail.error = getString(R.string.enter_a_valid_email_address)
             isValid = false
         }
 
         if (password.length < 8) {
-            binding.etPassword.error = getString(R.string.password_must_be_at_least_8_characters)
+            binding.tilPassword.error = getString(R.string.password_must_be_at_least_8_characters)
             isValid = false
         }
 
@@ -208,10 +219,6 @@ class AccountSignInFragment : Fragment() {
 //            }
 //            .show()
 //    }
-
-    private fun showSnackbar(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
-    }
 
     override fun onResume() {
         super.onResume()

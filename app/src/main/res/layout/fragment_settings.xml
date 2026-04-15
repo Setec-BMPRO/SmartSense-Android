@@ -9,6 +9,15 @@
     tools:context=".ui.settings.SettingsFragment"
     tools:theme="@style/Theme.SmartSense">
 
+    <View
+        android:id="@+id/focus_thief"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:background="@android:color/transparent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:importantForAccessibility="no" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,8 +33,10 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/settings_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingBottom="@dimen/spacing_lg"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -35,6 +46,78 @@
             android:paddingHorizontal="@dimen/spacing_md"
             android:paddingTop="@dimen/spacing_md"
             android:paddingBottom="@dimen/spacing_lg">
+
+            <!-- Appearance Group -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/setting_appearance"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textColor="?attr/colorPrimary"
+                android:textAllCaps="true"
+                android:paddingBottom="@dimen/spacing_sm"
+                android:paddingStart="@dimen/spacing_xs"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                style="@style/Widget.Material3.CardView.Elevated">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/spacing_lg">
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/theme_toggle_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:singleSelection="true"
+                        app:selectionRequired="true"
+                        android:saveEnabled="false">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_theme_light"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_light"
+                            app:icon="@drawable/ic_light_mode"
+                            app:iconGravity="top"
+                            android:textAppearance="?attr/textAppearanceLabelMedium"
+                            style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_theme_dark"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_dark"
+                            app:icon="@drawable/ic_dark_mode"
+                            app:iconGravity="top"
+                            android:textAppearance="?attr/textAppearanceLabelMedium"
+                            style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_theme_system"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/theme_system"
+                            app:icon="@drawable/ic_auto_mode"
+                            app:iconGravity="top"
+                            android:textAppearance="?attr/textAppearanceLabelMedium"
+                            style="@style/Widget.Material3.Button.OutlinedButton"/>
+
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Preferences Group -->
             <TextView
@@ -105,6 +188,7 @@
                                 android:textAlignment="viewEnd"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorPrimary"
+                                android:saveEnabled="false"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -158,6 +242,7 @@
                                 android:textAlignment="viewEnd"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorPrimary"
+                                android:saveEnabled="false"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -211,6 +296,7 @@
                                 android:textAlignment="viewEnd"
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorPrimary"
+                                android:saveEnabled="false"
                                 tools:ignore="LabelFor" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </LinearLayout>
@@ -377,78 +463,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Appearance Group -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/setting_appearance"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary"
-                android:textAllCaps="true"
-                android:paddingBottom="@dimen/spacing_sm"
-                android:paddingStart="@dimen/spacing_xs"/>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_lg"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="?attr/colorOutlineVariant"
-                style="@style/Widget.Material3.CardView.Elevated">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/spacing_lg">
-
-                    <com.google.android.material.button.MaterialButtonToggleGroup
-                        android:id="@+id/theme_toggle_group"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:checkedButton="@+id/btn_theme_system"
-                        app:singleSelection="true"
-                        app:selectionRequired="true">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_theme_light"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/theme_light"
-                            app:icon="@drawable/ic_light_mode"
-                            app:iconGravity="top"
-                            android:textAppearance="?attr/textAppearanceLabelMedium"
-                            style="@style/Widget.Material3.Button.OutlinedButton"/>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_theme_dark"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/theme_dark"
-                            app:icon="@drawable/ic_dark_mode"
-                            app:iconGravity="top"
-                            android:textAppearance="?attr/textAppearanceLabelMedium"
-                            style="@style/Widget.Material3.Button.OutlinedButton"/>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btn_theme_system"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/theme_system"
-                            app:icon="@drawable/ic_auto_mode"
-                            app:iconGravity="top"
-                            android:textAppearance="?attr/textAppearanceLabelMedium"
-                            style="@style/Widget.Material3.Button.OutlinedButton"/>
-
-                    </com.google.android.material.button.MaterialButtonToggleGroup>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- Dangerous Zone -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_forget_all_device"
@@ -460,11 +474,11 @@
                 android:id="@+id/app_version"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:layout_marginTop="@dimen/spacing_lg"
+                android:gravity="center"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="Version 1.0.0"/>
+                tools:text="Version 1.0.0" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

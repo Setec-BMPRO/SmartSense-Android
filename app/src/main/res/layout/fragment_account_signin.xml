@@ -51,6 +51,7 @@
                     android:padding="24dp">
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/email"
@@ -66,12 +67,14 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:hint="@string/password"
                         app:startIconDrawable="@drawable/ic_password"
-                        app:passwordToggleEnabled="true"
+                        app:endIconMode="password_toggle"
+                        app:errorIconDrawable="@null"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -79,6 +82,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textPassword"
+                            android:imeOptions="actionGo"
                             android:maxLines="1" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -94,7 +98,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btn_signin"
-                        style="@style/Widget.SmartSense.Button.Large"
+                        style="@style/Widget.SmartSense.Button.Large.Filled"
                         android:layout_marginTop="24dp"
                         android:text="@string/sign_in" />
 

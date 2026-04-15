@@ -1,5 +1,6 @@
 package com.smartsense.app.data.repository
 
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.smartsense.app.data.ble.BleManager
@@ -420,7 +421,7 @@ class SensorRepository @Inject constructor(
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                 tankType = calculateTankUseCase.calculateTankType(tank)
             )
-                //.apply { percentage = Random.nextFloat() * 100f }
+            //    .apply { percentage = Random.nextFloat() * 100f }
         } else null
 
         return Sensor(
@@ -432,9 +433,15 @@ class SensorRepository @Inject constructor(
             reading = reading,
             tankLevel = tankLevel,
             readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) reading?.quality?.toReadQuality() else null,
-            tankType = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL && tank != null) {
-                if (tank.type == TankType.ARBITRARY) "${tank.type.displayName} ${tank.type.orientation.name.uppercaseFirst()}"
-                else tank.type.displayName
+            tankType = if (tank != null) {
+                // Logging the string construction for the UI
+                val displayType = if (tank.type == TankType.ARBITRARY) {
+                    "${tank.type.displayName} ${tank.orientation.name.uppercaseFirst()}"
+                } else {
+                    tank.type.displayName
+                }
+                Timber.d("Final tankType string: ${tank.type}")
+                displayType
             } else null
         )
     }

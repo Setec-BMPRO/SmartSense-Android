@@ -52,6 +52,20 @@ class BleManager @Inject constructor(
 
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
+                val record = result.scanRecord
+                // DEBUG: Log all devices with any manufacturer data to find the Setec prototype
+                val mfgSparse = record?.manufacturerSpecificData
+                if (mfgSparse != null && mfgSparse.size() > 0) {
+                    val known = setOf(0x000D, 0x0059) // Skip known Mopeka IDs to reduce noise
+                    for (i in 0 until mfgSparse.size()) {
+                        val companyId = mfgSparse.keyAt(i)
+                        if (companyId !in known) {
+                            val data = mfgSparse.valueAt(i)
+                            val hex = data?.joinToString(",") { "%02X".format(it) } ?: "null"
+                            Timber.d("BLE UNKNOWN mfg 0x${"%04X".format(companyId)} from ${result.device.address} name=${result.device.name ?: record?.deviceName ?: "?"} rssi=${result.rssi} data=[$hex]")
+                        }
+                    }
+                }
                 // Nordic's ScanResult is passed here
                 parseScanResult(result)?.let { trySend(it) }
             }
@@ -64,6 +78,14 @@ class BleManager @Inject constructor(
 
             override fun onScanFailed(errorCode: Int) {
                 Timber.e("Nordic BLE scan failed: $errorCode")
+                val reason = when (errorCode) {
+                    1 -> "BLE scan already active"
+                    2 -> "App could not register for BLE scanning"
+                    3 -> "BLE scan internal error"
+                    4 -> "BLE feature not supported on this device"
+                    else -> "BLE scan error (code $errorCode)"
+                }
+                close(BleScanException(reason, errorCode))
             }
         }
 
@@ -166,3 +188,5 @@ data class ScannedSensor(
     val name: String?,
     val parsed: ParsedSensor?=null
 )
+
+class BleScanException(message: String, val errorCode: Int) : Exception(message)

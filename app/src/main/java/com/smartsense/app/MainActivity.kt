@@ -3,6 +3,7 @@ package com.smartsense.app
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -12,6 +13,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkInfo
+import com.google.android.material.snackbar.Snackbar
+import com.smartsense.app.util.showSnackbar
+import com.smartsense.app.data.worker.SyncWorker
 import com.smartsense.app.databinding.ActivityMainBinding
 import com.smartsense.app.ui.settings.SettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,8 +30,11 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
     private lateinit var navController: NavController
     private val viewModel: MainViewModel by viewModels()
 
-    // 🛡️ Flag to allow only one toast per trigger session
+    // 🛡️ Flag to allow only one message per trigger session
     private var isSyncMessagePending = false
+
+    private var backPressedTime: Long = 0
+    private lateinit var backToast: Toast
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +44,42 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
         setupNavigation()
         setupClickListeners()
         observeSyncWork()
+        setupBackPressHandler()
+    }
+
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val currentDestId = navController.currentDestination?.id
+                val uiState = viewModel.uiState.value
+
+                val isRootDestination = currentDestId == R.id.scanFragment ||
+                        currentDestId == R.id.settingsFragment ||
+                        (uiState is MainUiState.Authenticated && currentDestId == R.id.accountSensorsFragment) ||
+                        (uiState is MainUiState.Unauthenticated && currentDestId == R.id.accountRegisterFragment)
+
+                // If we can go back in the nav graph and NOT on a root destination, do it
+                if (navController.previousBackStackEntry != null && !isRootDestination) {
+                    navController.popBackStack()
+                } else {
+                    // We are at a root-level destination, handle double-tap to exit
+                    if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                        if (::backToast.isInitialized) {
+                            backToast.cancel()
+                        }
+                        finish()
+                    } else {
+                        backToast = Toast.makeText(
+                            baseContext,
+                            getString(R.string.press_back_again_to_exit),
+                            Toast.LENGTH_SHORT
+                        )
+                        backToast.show()
+                    }
+                    backPressedTime = System.currentTimeMillis()
+                }
+            }
+        })
     }
 
     // -------------------------------------------------------------------------
@@ -53,8 +96,8 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
                     isSyncMessagePending = true
                 }
                 WorkInfo.State.SUCCEEDED -> {
-                    val up = workInfo.outputData.getInt("KEY_UPLOADED_COUNT", 0)
-                    val down = workInfo.outputData.getInt("KEY_DOWNLOADED_COUNT", 0)
+                    val up = workInfo.outputData.getInt(SyncWorker.KEY_UPLOADED_COUNT, 0)
+                    val down = workInfo.outputData.getInt(SyncWorker.KEY_DOWNLOADED_COUNT, 0)
 
                     // 1. Create an empty list to hold active parts
                     val parts = mutableListOf<String>()
@@ -86,7 +129,9 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
     private fun handleSyncResult(message: String) {
         if (isSyncMessagePending) {
             if (message.isNotBlank()) {
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                if (BuildConfig.DEBUG) {
+                    binding.root.showSnackbar(message, Snackbar.LENGTH_SHORT)
+                }
             }
             isSyncMessagePending = false
         }
@@ -106,7 +151,7 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
 
             // 1. Toggle visibility based on destination
             val isFullScreen = destId == R.id.sensorDetailFragment ||
-                    destId == R.id.tankSettingFragment
+                    destId == R.id.tankSettingsFragment
             updateSystemBarsVisibility(!isFullScreen)
 
             // 2. Update Tab selection state

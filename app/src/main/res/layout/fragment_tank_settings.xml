@@ -161,7 +161,7 @@
                             tools:text="Standard Size" />
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <!-- Arbitrary -->
+                    <!-- Custom -->
                     <LinearLayout
                         android:id="@+id/layout_tank_size_custom"
                         android:layout_width="match_parent"
@@ -171,7 +171,7 @@
 
                         <TextView
                             style="@style/Widget.SmartSense.Label"
-                            android:text="Arbitrary" />
+                            android:text="Custom" />
 
                         <com.google.android.material.button.MaterialButtonToggleGroup
                             android:id="@+id/toggle_orientation"

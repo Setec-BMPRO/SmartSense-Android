@@ -18,6 +18,11 @@ class SyncWorker @AssistedInject constructor(
     private val repository: SensorRepository
 ) : CoroutineWorker(context, workerParams){
 
+    companion object {
+        const val KEY_UPLOADED_COUNT = "KEY_UPLOADED_COUNT"
+        const val KEY_DOWNLOADED_COUNT = "KEY_DOWNLOADED_COUNT"
+    }
+
     override suspend fun doWork(): Result {
         // Unique ID for this specific execution to track in logs
         val workId = id.toString().take(8)
@@ -34,8 +39,8 @@ class SyncWorker @AssistedInject constructor(
 
             // 3. Success & Data Packaging
             val outputData = workDataOf(
-                "KEY_UPLOADED_COUNT" to upCount,
-                "KEY_DOWNLOADED_COUNT" to downCount
+                KEY_UPLOADED_COUNT to upCount,
+                KEY_DOWNLOADED_COUNT to downCount
             )
 
             Timber.i("✅ [SyncWorker-$workId] Success! (⬆️ Up: $upCount, ⬇️ Down: $downCount)")

@@ -26,6 +26,48 @@
         <item name="android:windowBackground">@android:color/white</item>
         <item name="elevationOverlayEnabled">false</item>
         <item name="colorSurfaceInverse">@color/on_surface</item>
+
+        <!-- Material 3 Dialog Styling -->
+        <item name="alertDialogTheme">@style/ThemeOverlay.SmartSense.MaterialAlertDialog</item>
+    </style>
+
+    <!-- Base Material 3 Alert Dialog Theme -->
+    <style name="ThemeOverlay.SmartSense.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="materialAlertDialogTitleTextStyle">@style/SmartSense.AlertDialog.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/SmartSense.AlertDialog.Body</item>
+        <item name="buttonBarPositiveButtonStyle">@style/SmartSense.AlertDialog.Button.Positive</item>
+        <item name="buttonBarNegativeButtonStyle">@style/SmartSense.AlertDialog.Button.Negative</item>
+    </style>
+
+    <!-- Warning/Error Variant -->
+    <style name="ThemeOverlay.SmartSense.MaterialAlertDialog.Warning" parent="ThemeOverlay.SmartSense.MaterialAlertDialog">
+        <item name="materialAlertDialogTitleTextStyle">@style/SmartSense.AlertDialog.Title.Warning</item>
+        <item name="buttonBarPositiveButtonStyle">@style/SmartSense.AlertDialog.Button.Positive.Warning</item>
+    </style>
+
+    <style name="SmartSense.AlertDialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="SmartSense.AlertDialog.Title.Warning" parent="SmartSense.AlertDialog.Title">
+        <item name="android:textColor">?attr/colorError</item>
+    </style>
+
+    <style name="SmartSense.AlertDialog.Body" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="SmartSense.AlertDialog.Button.Positive" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
+    <style name="SmartSense.AlertDialog.Button.Positive.Warning" parent="SmartSense.AlertDialog.Button.Positive">
+        <item name="android:textColor">?attr/colorError</item>
+    </style>
+
+    <style name="SmartSense.AlertDialog.Button.Negative" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">?attr/colorSecondary</item>
     </style>
 
     <style name="Widget.SmartSense.Toolbar" parent="">
@@ -89,7 +131,16 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
-    <style name="Widget.SmartSense.Button.Large" parent="Widget.Material3.Button">
+    <style name="Widget.SmartSense.Button.Large" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="strokeColor">?attr/colorPrimary</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+
+    <style name="Widget.SmartSense.Button.Large.Filled" parent="Widget.Material3.Button">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">60dp</item>
         <item name="cornerRadius">16dp</item>
