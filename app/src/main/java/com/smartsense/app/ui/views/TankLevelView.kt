@@ -36,7 +36,7 @@ class TankLevelView @JvmOverloads constructor(
     private var aspectRatio: Float = 1.33f
     private var tankTypeLabel: String = ""
 
-    var isTallMode: Boolean = false
+    var isBiggerMode: Boolean = false
         set(value) {
             field = value
             lastWidth = 0
@@ -58,7 +58,7 @@ class TankLevelView @JvmOverloads constructor(
             val a = context.obtainStyledAttributes(attrs, R.styleable.TankLevelView, 0, 0)
             try {
                 isHorizontal = a.getBoolean(R.styleable.TankLevelView_isHorizontal, false)
-                isTallMode = a.getBoolean(R.styleable.TankLevelView_isTallMode, false)
+                isBiggerMode = a.getBoolean(R.styleable.TankLevelView_isBiggerMode, false)
             } finally {
                 a.recycle()
             }
@@ -138,7 +138,7 @@ class TankLevelView @JvmOverloads constructor(
             else -> 400
         }
         
-        val dynamicRatio = if (isTallMode) aspectRatio * 1.3f else aspectRatio
+        val dynamicRatio = if (isBiggerMode) aspectRatio * 1.3f else aspectRatio
         val desiredHeight = (width * dynamicRatio).toInt()
         
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
@@ -169,7 +169,7 @@ class TankLevelView @JvmOverloads constructor(
             if (tankTypeLabel.isEmpty() || tankTypeLabel == "Vertical Tank" || tankTypeLabel == "Horizontal Tank" || tankTypeLabel == "Tall Vertical Tank") {
                 tankTypeLabel = if (isHorizontal) {
                     "Horizontal Tank"
-                } else if (isTallMode) {
+                } else if (isBiggerMode) {
                     "Tall Vertical Tank"
                 } else {
                     "Vertical Tank"
@@ -362,7 +362,7 @@ class TankLevelView @JvmOverloads constructor(
         val h = height.toFloat()
         if (w <= 0 || h <= 0) return
 
-        val scale = if (isHorizontal) 0.84f else if (isTallMode) 0.95f else 0.9f
+        val scale = if (isHorizontal) 0.84f else if (isBiggerMode) 0.95f else 0.9f
 
         if (isHorizontal) {
             tankDrawWidth = w * scale
@@ -376,7 +376,7 @@ class TankLevelView @JvmOverloads constructor(
         } else {
             val baseSize = minOf(w, h)
             tankDrawWidth = baseSize * scale
-            tankDrawHeight = if (isTallMode) tankDrawWidth * 1.3f else tankDrawWidth
+            tankDrawHeight = if (isBiggerMode) tankDrawWidth * 1.3f else tankDrawWidth
         }
 
         val left = (width - tankDrawWidth) / 2f

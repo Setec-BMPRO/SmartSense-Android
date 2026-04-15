@@ -230,7 +230,7 @@ class SensorDetailFragment : Fragment() {
         }
         detailTank.setTankTypeLabel(tankTypeLabel)
 
-        detailTank.isTallMode = tank.type != TankType.KG_3_7
+        detailTank.isBiggerMode = tank.type != TankType.KG_3_7
         detailTank.isHorizontal=isHorizontal
     }
 

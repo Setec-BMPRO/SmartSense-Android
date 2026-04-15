@@ -26,6 +26,13 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
 
+    var isBiggerMode: Boolean = false
+        set(value) {
+            field = value
+            lastWidth = 0
+            invalidate()
+        }
+
     var isHorizontal: Boolean = false
         set(value) {
             field = value
@@ -38,6 +45,7 @@ class TankLevelMiniView @JvmOverloads constructor(
             val a = context.obtainStyledAttributes(attrs, R.styleable.TankLevelMiniView, 0, 0)
             try {
                 isHorizontal = a.getBoolean(R.styleable.TankLevelMiniView_isHorizontal, false)
+                isBiggerMode = a.getBoolean(R.styleable.TankLevelMiniView_isBiggerMode, false)
             } finally {
                 a.recycle()
             }

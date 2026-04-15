@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="isHorizontal" format="boolean" />
+    <attr name="isBiggerMode" format="boolean" />
 
     <declare-styleable name="TankGaugeView">
         <attr name="gaugeStrokeWidth" format="dimension" />
@@ -10,10 +11,11 @@
 
     <declare-styleable name="TankLevelView">
         <attr name="isHorizontal" />
-        <attr name="isTallMode" format="boolean" />
+        <attr name="isBiggerMode" />
     </declare-styleable>
 
     <declare-styleable name="TankLevelMiniView">
         <attr name="isHorizontal" />
+        <attr name="isBiggerMode" />
     </declare-styleable>
 </resources>
