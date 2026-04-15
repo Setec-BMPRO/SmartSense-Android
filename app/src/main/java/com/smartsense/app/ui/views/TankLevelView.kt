@@ -19,6 +19,8 @@ class TankLevelView @JvmOverloads constructor(
     companion object {
         private const val FILL_TOP_RATIO = 0.268f
         private const val FILL_BOTTOM_RATIO = 0.778f
+        private const val SVG_TANK_LEFT_RATIO = 68f / 447f
+        private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
     }
 
     // --- Configuration Flags ---
@@ -36,7 +38,9 @@ class TankLevelView @JvmOverloads constructor(
     private var tankTypeLabel: String = ""
 
     // --- Paints ---
+    private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val fillHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
     }
@@ -107,21 +111,58 @@ class TankLevelView @JvmOverloads constructor(
         val dark = isDarkMode()
         if (width == 0 || height == 0) return
 
+        val w = width.toFloat()
+
         // Rebuild if width changed OR if the theme (day/night) toggled
         if (width != lastWidth || tankBitmap == null || lastDarkMode != dark) {
             lastWidth = width
             applyThemeColors()
             buildBitmaps()
+
+            val tankLeftBound = (w - tankDrawWidth) / 2f
+            val tankLeft = tankLeftBound + tankDrawWidth * SVG_TANK_LEFT_RATIO
+            val tankRight = tankLeftBound + tankDrawWidth * SVG_TANK_RIGHT_RATIO
+            val tankWidthActual = tankRight - tankLeft
+
+            tankGradientPaint.shader = if (dark) {
+                LinearGradient(
+                    tankLeft, 0f, tankRight, 0f,
+                    intArrayOf(0xFF3A3A3A.toInt(), 0xFF4A4A4A.toInt(), 0xFF333333.toInt()),
+                    floatArrayOf(0f, 0.4f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+            } else {
+                LinearGradient(
+                    tankLeft, 0f, tankRight, 0f,
+                    intArrayOf(0xFFD0D0D0.toInt(), 0xFFF2F2F2.toInt(), 0xFFC4C4C4.toInt()),
+                    floatArrayOf(0f, 0.4f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+            }
+
+            fillHighlightPaint.shader = LinearGradient(
+                tankLeft, 0f, tankLeft + tankWidthActual * 0.35f, 0f,
+                0x30FFFFFF, 0x00FFFFFF,
+                Shader.TileMode.CLAMP
+            )
         }
 
-        val w = width.toFloat()
         val bounds = RectF(0f, 0f, w, height.toFloat())
-
         val fillTopY = tankDrawTop + (tankDrawHeight * FILL_TOP_RATIO)
         val fillBottomY = tankDrawTop + (tankDrawHeight * FILL_BOTTOM_RATIO)
 
-        // 1. Draw Liquid Fill
-        if (percentage >= 0f) {
+        val tankLeftBound = (w - tankDrawWidth) / 2f
+        val tankLeft = tankLeftBound + tankDrawWidth * SVG_TANK_LEFT_RATIO
+        val tankWidthActual = tankDrawWidth * (SVG_TANK_RIGHT_RATIO - SVG_TANK_LEFT_RATIO)
+
+        // 1. Draw Tank metallic body
+        val saveBody = canvas.saveLayer(bounds, null)
+        canvas.drawRect(0f, fillTopY, w, fillBottomY, tankGradientPaint)
+        tankBitmap?.let { canvas.drawBitmap(it, 0f, 0f, maskPaint) }
+        canvas.restoreToCount(saveBody)
+
+        // 2. Draw Liquid Fill
+        if (percentage > 0f) {
             val totalHeight = fillBottomY - fillTopY
             val liquidTopY = fillBottomY - (totalHeight * (percentage / 100f))
 
@@ -132,16 +173,24 @@ class TankLevelView @JvmOverloads constructor(
             fillPaint.shader = LinearGradient(0f, fillBottomY, 0f, fillTopY,
                 bottomColor, topColor, Shader.TileMode.CLAMP)
 
-            val save = canvas.saveLayer(bounds, null)
+            val saveFill = canvas.saveLayer(bounds, null)
             canvas.drawRect(0f, liquidTopY, w, fillBottomY, fillPaint)
+
+            // Liquid Highlight
+            canvas.drawRect(
+                tankLeft, liquidTopY,
+                tankLeft + tankWidthActual * 0.35f, fillBottomY,
+                fillHighlightPaint
+            )
+
             tankBitmap?.let { canvas.drawBitmap(it, 0f, 0f, maskPaint) }
-            canvas.restoreToCount(save)
+            canvas.restoreToCount(saveFill)
         }
 
-        // 2. Draw Hardware
+        // 3. Draw Hardware
         hardwareBitmap?.let { canvas.drawBitmap(it, 0f, 0f, hardwarePaint) }
 
-        // 3. Labels and Badge
+        // 4. Labels and Badge
         drawLabelsAndBadge(canvas, w, fillTopY, fillBottomY, dark)
     }
 

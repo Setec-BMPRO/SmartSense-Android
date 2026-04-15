@@ -1,29 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="447"
-    android:viewportHeight="447">
-  <group android:scaleX="0.41"
-      android:scaleY="0.41"
-      android:translateX="131.865"
-      android:translateY="131.865">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
 
-    <!-- Collar and Valve - Gold/Amber -->
-    <path
-        android:pathData="M138.4,1.9c-6.3,3.8 -7,12.8 -1.3,17.5 2.5,2.1 4.1,2.6 8.5,2.6l5.4,-0 0,25.9 0,25.8 -7.1,1.2c-11.2,1.8 -20.8,6.8 -28.7,14.8 -12.5,12.7 -15.2,20.7 -15.2,45.5l0,16.8 123.5,-0 123.5,-0 0,-16.8c0,-19.6 -1.2,-25.4 -7,-35.3 -7.7,-13 -21.7,-22.5 -36.9,-25l-7.1,-1.2 0,-25.8 0,-25.9 5.4,-0c4.4,-0 6,-0.5 8.5,-2.6 5.7,-4.7 5,-13.7 -1.3,-17.5 -2.7,-1.6 -5.2,-1.9 -18.8,-1.9l-15.8,-0 0,6 0,6 -50.5,-0 -50.5,-0 0,-6 0,-6 -15.7,-0c-13.7,-0 -16.2,0.3 -18.9,1.9zM274,51l0,23 -21,-0 -21,-0 0,-9.5 0,-9.5 4.5,-0 4.5,-0 0,-6 0,-6 -17.5,-0 -17.5,-0 0,6 0,6 4.5,-0 4.5,-0 0,9.5 0,9.5 -21,-0 -21,-0 0,-23 0,-23 50.5,-0 50.5,-0 0,23z"
-        android:fillColor="@color/tertiary"
-        android:strokeColor="#00000000"/>
+    <group
+        android:scaleX="0.16"
+        android:scaleY="0.16"
+        android:translateX="18.24"
+        android:translateY="18.24">
 
-    <!-- Main Tank Body - Vibrant Orange -->
-    <path
-        android:pathData="M100,244.5l0,74.5 123.5,-0 123.5,-0 0,-74.5 0,-74.5 -123.5,-0 -123.5,-0 0,74.5z"
-        android:fillColor="@color/primary"
-        android:strokeColor="#00000000"/>
+        <!-- Tank Body Glass Shadow -->
+        <path
+            android:pathData="M 168,120 L 280,120 C 328,120 344,140 344,170 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 L 104,170 C 104,140 120,120 168,120 Z"
+            android:fillColor="#26000000" />
 
-    <!-- Tank Base - Gold/Amber -->
-    <path
-        android:pathData="M100,351.8c0,17.4 1.3,23.7 7,33.2 6.6,11.1 18.2,20.3 29.1,23.1 2.7,0.7 4.9,1.6 4.9,1.9 0,0.3 -1.3,1.9 -3,3.5 -9.4,9 -7.2,25.9 4.2,31.4 4.4,2.1 5,2.1 81.3,2.1 76.3,-0 76.9,-0 81.3,-2.1 11.4,-5.5 13.6,-22.4 4.2,-31.4 -1.7,-1.6 -3,-3.2 -3,-3.5 0,-0.3 2.2,-1.2 4.9,-1.9 10.9,-2.8 22.5,-12 29.1,-23.1 5.7,-9.5 7,-15.8 7,-33.2l0,-14.8 -123.5,-0 -123.5,-0 0,14.8z"
-        android:fillColor="@color/tertiary"
-        android:strokeColor="#00000000"/>
-  </group>
+        <!-- Tank Body / Glass Surface -->
+        <path
+            android:pathData="M 168,120 L 280,120 C 328,120 344,140 344,170 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 L 104,170 C 104,140 120,120 168,120 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="104"
+                    android:startY="120"
+                    android:endX="344"
+                    android:endY="348"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#66FFFFFF" />
+                    <item android:offset="1" android:color="#22FFFFFF" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Liquid Fill (50%) - Vibrant Gradient -->
+        <path
+            android:pathData="M 104,234 L 344,234 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="224"
+                    android:startY="348"
+                    android:endX="224"
+                    android:endY="234"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#00BCD4" /> <!-- Cyan/Blue -->
+                    <item android:offset="0.5" android:color="#FFEB3B" /> <!-- Yellow Center -->
+                    <item android:offset="1" android:color="#F44336" /> <!-- Red Top -->
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Gloss Highlight -->
+        <path
+            android:pathData="M 130,170 C 130,150 140,140 168,140 L 220,140"
+            android:strokeColor="#B3FFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round" />
+
+        <!-- Hardware Details (Polished White) -->
+        <!-- Handle -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M155,58 L292,58 C305,58 305,72 292,72 L155,72 C142,72 142,58 155,58 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M165,72 L165,120 L180,120 L180,72 Z M267,72 L267,120 L282,120 L282,72 Z" />
+
+        <!-- Valve -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M215,102 L215,120 L232,120 L232,102 Z M198,96 L198,102 L249,102 L249,96 Z" />
+
+        <!-- Foot Ring -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 140,344 L 308,344 L 308,370 C 300,378 148,378 140,370 Z" />
+
+        <!-- Main Outline (White glow effect) -->
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="4"
+            android:strokeLineJoin="round"
+            android:pathData="M 168,120 L 280,120 C 328,120 344,140 344,170 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 L 104,170 C 104,140 120,120 168,120 Z" />
+    </group>
 </vector>

@@ -1,46 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
 
-    <!-- Handle top bar -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M8,0h8c0.55,0 1,0.45 1,1s-0.45,1 -1,1H8C7.45,2 7,1.55 7,1s0.45,-1 1,-1z"/>
+    <group
+        android:scaleX="0.08"
+        android:scaleY="0.08"
+        android:translateX="-5.92"
+        android:translateY="-5.12">
 
-    <!-- Handle posts -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M8.5,2h1.5v3h-1.5z M14,2h1.5v3h-1.5z"/>
+        <!-- 1. Tank Background (Subtle Dark Base) -->
+        <path
+            android:fillColor="#1A000000"
+            android:pathData="M 168,120 L 280,120 C 328,120 344,140 344,170 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 L 104,170 C 104,140 120,120 168,120 Z" />
 
-    <!-- Valve handle -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M10.5,2.5h3v1h-3z"/>
-    <!-- Valve stem -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M11.6,3.5h0.8v1.5h-0.8z"/>
 
-    <!-- Tank Body - Top dome -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M12,5c-3.3,0 -6.5,1.8 -6.5,4h13c0,-2.2 -3.2,-4 -6.5,-4z"/>
 
-    <!-- Tank Body - Middle section -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M5.5,10h13v7h-13z"/>
+        <!-- 3. Glass Surface / Shine Overlay -->
+        <path android:pathData="M 168,120 L 280,120 C 328,120 344,140 344,170 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 L 104,170 C 104,140 120,120 168,120 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="104"
+                    android:startY="120"
+                    android:endX="344"
+                    android:endY="348"
+                    android:type="linear">
+                    <item android:offset="0" android:color="#33FFFFFF" />
+                    <item android:offset="1" android:color="#0DFFFFFF" />
+                </gradient>
+            </aapt:attr>
+        </path>
 
-    <!-- Tank Body - Bottom section -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M12,22c3.3,0 6.5,-1.8 6.5,-4h-13c0,2.2 3.2,4 6.5,4z"/>
 
-    <!-- Foot ring -->
-    <path
-        android:fillColor="@android:color/white"
-        android:pathData="M9,22.5h6c0,0.8 -1.3,1.5 -3,1.5s-3,-0.7 -3,-1.5z"/>
+        <!-- 5. Hardware Details (White) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M155,58 L292,58 C305,58 305,72 292,72 L155,72 C142,72 142,58 155,58 Z M165,72 L165,120 L180,120 L180,72 Z M267,72 L267,120 L282,120 L282,72 Z M215,102 L215,120 L232,120 L232,102 Z M198,96 L198,102 L249,102 L249,96 Z M 140,344 L 308,344 L 308,370 C 300,378 148,378 140,370 Z" />
 
+        <!-- 6. Main Tank Outline (Polished White) -->
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="8"
+            android:strokeLineJoin="round"
+            android:pathData="M 168,120 L 280,120 C 328,120 344,140 344,170 L 344,310 C 344,340 328,348 280,348 L 168,348 C 120,348 104,340 104,310 L 104,170 C 104,140 120,120 168,120 Z" />
+    </group>
 </vector>

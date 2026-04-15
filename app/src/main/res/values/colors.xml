@@ -61,5 +61,7 @@
     <color name="tab_color_selected">#000000</color>
     <color name="tab_color_unselected">#80000000</color>
 
+    <color name="ic_launcher_foreground_hardware">#FFFFFF</color>
+
 
 </resources>
