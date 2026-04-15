@@ -22,7 +22,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.internal.ViewUtils.hideKeyboard
+import com.smartsense.app.util.hideKeyboard
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentTankSettingsBinding
 import com.smartsense.app.domain.model.NotificationFrequency
@@ -130,7 +130,7 @@ class TankSettingsFragment : Fragment() {
                 val value = v.text.toString()
                 viewModel.updateCustomHeight(value)
                 v.clearFocus()
-                hideKeyboard(v)
+                requireContext().hideKeyboard(v)
                 true
             } else false
         }
@@ -218,8 +218,10 @@ class TankSettingsFragment : Fragment() {
 
     private fun setupTankSizeDropdown() {
         val state = viewModel.uiState.value
-        val tankTypes = state.availableTankTypes.map { 
-            it.displayName + ", " + it.orientation.name.uppercaseFirst() 
+        val tankTypes = state.availableTankTypes.map {
+            if(it!= TankType.ARBITRARY)
+                it.displayName + ", " + it.orientation.name.uppercaseFirst()
+            else it.displayName
         }
         val adapter = SelectedAdapter(
             requireContext(),
@@ -296,6 +298,7 @@ class TankSettingsFragment : Fragment() {
                 if (state.isSaved) {
                     // Important: Reset this state in ViewModel after popping
                     // if you don't want it to trigger again on backstack return.
+                    findNavController().previousBackStackEntry?.savedStateHandle?.set(KEY_TANK_UPDATED, true)
                     findNavController().popBackStack()
                 }
             }
@@ -380,6 +383,7 @@ class TankSettingsFragment : Fragment() {
 
     companion object {
         const val EXTRA_SENSOR_ADDRESS = "sensorAddress"
+        const val KEY_TANK_UPDATED = "tank_updated"
     }
 }
 

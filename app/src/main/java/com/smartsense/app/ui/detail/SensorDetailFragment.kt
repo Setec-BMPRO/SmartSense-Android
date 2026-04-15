@@ -26,9 +26,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.text.ifEmpty
+import com.smartsense.app.util.showSnackbar
 import androidx.core.view.isVisible
 import androidx.lifecycle.flowWithLifecycle
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.TankType
 import kotlinx.coroutines.flow.launchIn
@@ -61,6 +61,17 @@ class SensorDetailFragment : Fragment() {
         setupToolbar()
         setupClickListeners()
         observeViewModel()
+        observeNavigationResult()
+    }
+
+    private fun observeNavigationResult() {
+        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>(TankSettingsFragment.KEY_TANK_UPDATED)
+            ?.observe(viewLifecycleOwner) { updated ->
+                if (updated) {
+                    binding.root.showSnackbar(R.string.tank_settings_updated, iconRes = R.drawable.ic_check)
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<Boolean>(TankSettingsFragment.KEY_TANK_UPDATED)
+                }
+            }
     }
 
     private fun setupToolbar() = with(binding.toolbar) {
@@ -188,7 +199,7 @@ class SensorDetailFragment : Fragment() {
             .onEach { state ->
                 // Error Handling
                 state.errorMessage?.let { msg ->
-                    Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                    binding.root.showSnackbar(msg)
                     viewModel.clearMessages()
                 }
             }

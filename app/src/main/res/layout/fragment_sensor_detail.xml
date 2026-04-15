@@ -44,7 +44,6 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_lg"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"
@@ -153,9 +152,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center_horizontal"
-                android:paddingVertical="@dimen/spacing_lg"
-                android:layout_marginBottom="@dimen/spacing_lg">
+                android:layout_marginTop="@dimen/spacing_lg"
+                android:gravity="center_horizontal">
 
                 <com.smartsense.app.ui.views.TankLevelView
                     android:id="@+id/detail_tank"
@@ -166,7 +164,7 @@
                     android:id="@+id/last_updated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/spacing_md"
+                    android:layout_marginTop="-55dp"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="Updated just now"/>
@@ -177,6 +175,7 @@
                 android:id="@+id/quality_warning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
                 android:layout_marginBottom="@dimen/spacing_lg"
                 android:padding="@dimen/spacing_md"
                 android:background="@drawable/bg_quality_warning"
@@ -274,6 +273,7 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:visibility="gone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
@@ -314,6 +314,7 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:visibility="gone"
                             android:id="@+id/detail_temperature_container"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -361,7 +362,7 @@
             <!-- Action Buttons -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_unpair"
-                style="@style/Widget.SmartSense.Button.Large.Filled"
+                style="@style/Widget.SmartSense.Button.Large"
                 android:layout_marginBottom="16dp"
                 android:text="@string/remove_sensor" />
 

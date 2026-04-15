@@ -153,8 +153,7 @@ class SensorItem(
         binding.sensorSignal.setTextColor(signalColor)
 
         binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
-        binding.sensorType.text = if (sensor.sensorType?.displayName.equals(MopekaSensorType.CC2540_STD.displayName, true))
-            "STANDARD" else sensor.sensorType?.displayName
+        binding.sensorType.text = sensor.tankType
 
         binding.root.setOnClickListener { onClick(sensor) }
 

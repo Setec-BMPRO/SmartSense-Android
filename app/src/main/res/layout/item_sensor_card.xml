@@ -107,6 +107,7 @@
                     android:id="@+id/sensor_temp_icon"
                     android:layout_width="14dp"
                     android:layout_height="14dp"
+                    android:visibility="gone"
                     android:src="@drawable/ic_temp_warm"
                     app:tint="?attr/colorOnSurfaceVariant"
                     android:contentDescription="@string/temperature"/>
@@ -115,6 +116,7 @@
                     android:id="@+id/sensor_temperature"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:visibility="gone"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:layout_marginStart="2dp"
@@ -124,7 +126,7 @@
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" · "
+                    android:text=" · " android:visibility="gone"
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="?attr/colorOnSurfaceVariant"/>
 

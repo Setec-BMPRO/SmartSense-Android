@@ -21,9 +21,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
+import com.smartsense.app.util.showSnackbar
 import com.smartsense.app.util.hideKeyboard
 import com.smartsense.app.databinding.FragmentAccountSigninBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,7 +72,7 @@ class AccountSignInFragment : Fragment() {
                         viewModel.setUserEmail(binding.etEmail.text.toString().trim())
                         findNavController().navigate(R.id.scanFragment)
                     } else {
-                        showSnackbar(getString(R.string.sign_in_failed))
+                        binding.root.showSnackbar(R.string.sign_in_failed)
                         viewModel.resetLoginState()
                     }
                 }
@@ -89,7 +89,7 @@ class AccountSignInFragment : Fragment() {
                         showResetPasswordDialog(binding.etEmail.text.toString().trim())
                         viewModel.resetPasswordResetState() // Clean up state after success
                     } else {
-                        showSnackbar(getString(R.string.failed_to_resend_email))
+                        binding.root.showSnackbar(R.string.failed_to_resend_email)
                         viewModel.resetPasswordResetState() // Clean up state after failure
                     }
                 }
@@ -219,10 +219,6 @@ class AccountSignInFragment : Fragment() {
 //            }
 //            .show()
 //    }
-
-    private fun showSnackbar(message: String) {
-        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
-    }
 
     override fun onResume() {
         super.onResume()

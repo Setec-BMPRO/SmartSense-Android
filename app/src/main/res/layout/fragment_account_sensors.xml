@@ -136,7 +136,7 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeleteAccount"
-            style="@style/Widget.SmartSense.Button.Large.Filled"
+            style="@style/Widget.SmartSense.Button.Large"
             android:layout_marginHorizontal="@dimen/spacing_md"
             android:layout_marginBottom="16dp"
             android:text="@string/delete_account"

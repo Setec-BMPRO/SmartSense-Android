@@ -19,9 +19,9 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
-import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
+import com.smartsense.app.util.showSnackbar
 import com.smartsense.app.util.hideKeyboard
 import com.smartsense.app.databinding.FragmentAccountRegisterBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,8 +62,7 @@ class AccountRegisterFragment : Fragment() {
                     if (it.isSuccess) {
                         findNavController().navigate(R.id.action_register_to_signIn)
                     } else {
-                        Snackbar.make(binding.root,
-                            getString(R.string.signup_failed), Snackbar.LENGTH_LONG).show()
+                        binding.root.showSnackbar(R.string.signup_failed)
                     }
                     viewModel.resetSignUpState()
                 }

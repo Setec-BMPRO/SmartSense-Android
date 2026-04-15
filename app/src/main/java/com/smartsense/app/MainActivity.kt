@@ -14,6 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkInfo
 import com.google.android.material.snackbar.Snackbar
+import com.smartsense.app.util.showSnackbar
 import com.smartsense.app.data.worker.SyncWorker
 import com.smartsense.app.databinding.ActivityMainBinding
 import com.smartsense.app.ui.settings.SettingsFragment
@@ -128,7 +129,9 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
     private fun handleSyncResult(message: String) {
         if (isSyncMessagePending) {
             if (message.isNotBlank()) {
-                Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+                if (BuildConfig.DEBUG) {
+                    binding.root.showSnackbar(message, Snackbar.LENGTH_SHORT)
+                }
             }
             isSyncMessagePending = false
         }

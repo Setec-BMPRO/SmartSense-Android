@@ -466,7 +466,7 @@
             <!-- Dangerous Zone -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_forget_all_device"
-                style="@style/Widget.SmartSense.Button.Large.Filled"
+                style="@style/Widget.SmartSense.Button.Large"
                 android:text="@string/forget_all_devices" />
 
             <!-- App Info -->

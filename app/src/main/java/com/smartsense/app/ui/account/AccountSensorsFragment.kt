@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
+import com.smartsense.app.util.showSnackbar
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.smartsense.app.MainActivityListener
@@ -126,7 +126,7 @@ class AccountSensorsFragment : Fragment() {
                         viewModel.resetDeleteAccountState()
                         if(exception is FirebaseAuthRecentLoginRequiredException)
                             showM3ReAuthDialog()
-                        else Snackbar.make(requireView(), errorMessage, Snackbar.LENGTH_LONG).show()
+                        else requireView().showSnackbar(errorMessage)
 
 
 
@@ -143,7 +143,7 @@ class AccountSensorsFragment : Fragment() {
                 binding.swipeRefresh.isRefreshing=false
                 // Error Handling
                 state.errorMessage?.let { msg ->
-                    Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                    binding.root.showSnackbar(msg)
                     viewModel.clearMessages()
                 }
             }
