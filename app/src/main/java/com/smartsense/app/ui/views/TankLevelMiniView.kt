@@ -33,6 +33,17 @@ class TankLevelMiniView @JvmOverloads constructor(
             invalidate()
         }
 
+    init {
+        if (attrs != null) {
+            val a = context.obtainStyledAttributes(attrs, R.styleable.TankLevelMiniView, 0, 0)
+            try {
+                isHorizontal = a.getBoolean(R.styleable.TankLevelMiniView_isHorizontal, false)
+            } finally {
+                a.recycle()
+            }
+        }
+    }
+
     private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val fillHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -95,6 +106,11 @@ class TankLevelMiniView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        if (isInEditMode) {
+            percentage = 65f
+            levelStatus = LevelStatus.GREEN
+        }
 
         val size = minOf(width, height)
         val dark = isDarkMode()

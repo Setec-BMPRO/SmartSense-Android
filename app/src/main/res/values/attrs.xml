@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <attr name="isHorizontal" format="boolean" />
+
     <declare-styleable name="TankGaugeView">
         <attr name="gaugeStrokeWidth" format="dimension" />
         <attr name="gaugeTrackColor" format="color" />
         <attr name="gaugeShowPercentage" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="TankLevelView">
+        <attr name="isHorizontal" />
+        <attr name="isTallMode" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="TankLevelMiniView">
+        <attr name="isHorizontal" />
     </declare-styleable>
 </resources>

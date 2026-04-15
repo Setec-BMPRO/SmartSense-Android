@@ -28,24 +28,42 @@ class TankLevelView @JvmOverloads constructor(
         private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
     }
 
-    // --- Configuration Flags ---
-    var isTallMode: Boolean = false
-        set(value) { field = value; lastWidth = 0; requestLayout() }
-
-    var isHorizontal: Boolean = false
-        set(value) {
-            field = value
-            lastWidth = 0
-            if (value && aspectRatio == 1.32f) aspectRatio = 0.85f
-            requestLayout()
-        }
-
+    // --- State & Config ---
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
     private var levelUnit: TankLevelUnit = TankLevelUnit.PERCENT
     private var tankHeightMm: Float = 0f
     private var aspectRatio: Float = 1.32f
     private var tankTypeLabel: String = ""
+
+    var isTallMode: Boolean = false
+        set(value) {
+            field = value
+            lastWidth = 0
+            requestLayout()
+            invalidate()
+        }
+
+    var isHorizontal: Boolean = false
+        set(value) {
+            field = value
+            lastWidth = 0
+            aspectRatio = if (value) 0.65f else 1.32f
+            requestLayout()
+            invalidate()
+        }
+
+    init {
+        if (attrs != null) {
+            val a = context.obtainStyledAttributes(attrs, R.styleable.TankLevelView, 0, 0)
+            try {
+                isHorizontal = a.getBoolean(R.styleable.TankLevelView_isHorizontal, false)
+                isTallMode = a.getBoolean(R.styleable.TankLevelView_isTallMode, false)
+            } finally {
+                a.recycle()
+            }
+        }
+    }
 
     // --- Paints ---
     private val tankGradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -69,6 +87,7 @@ class TankLevelView @JvmOverloads constructor(
     private var tankDrawWidth = 0f
     private var tankDrawHeight = 0f
     private var lastWidth = 0
+    private var lastHeight = 0
     private var lastDarkMode: Boolean? = null
 
     private fun isDarkMode(): Boolean {
@@ -78,17 +97,11 @@ class TankLevelView @JvmOverloads constructor(
 
     private fun applyThemeColors() {
         val dark = isDarkMode()
-
-        // Background of the percentage badge
         circleFillPaint.color = if (dark) 0xFF1E1E1E.toInt() else 0xFFFFFFFF.toInt()
-
-        // Hardware tinting (Handle/Feet)
-        // In dark mode, we make them a slightly lighter gray so they don't disappear into true black
         hardwarePaint.colorFilter = PorterDuffColorFilter(
             if (dark) 0xFFBDBDBD.toInt() else 0xFF000000.toInt(),
             PorterDuff.Mode.SRC_IN
         )
-
         lastDarkMode = dark
     }
 
@@ -115,20 +128,65 @@ class TankLevelView @JvmOverloads constructor(
         invalidate()
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val widthMode = MeasureSpec.getMode(widthMeasureSpec)
+        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
+        
+        val width = when (widthMode) {
+            MeasureSpec.EXACTLY -> widthSize
+            MeasureSpec.AT_MOST -> widthSize
+            else -> 400
+        }
+        
+        val dynamicRatio = if (isTallMode) aspectRatio * 1.2f else aspectRatio
+        val desiredHeight = (width * dynamicRatio).toInt()
+        
+        val heightMode = MeasureSpec.getMode(heightMeasureSpec)
+        val heightSize = MeasureSpec.getSize(heightMeasureSpec)
+        
+        val height = when (heightMode) {
+            MeasureSpec.EXACTLY -> heightSize
+            MeasureSpec.AT_MOST -> minOf(desiredHeight, heightSize)
+            else -> desiredHeight
+        }
+        
+        setMeasuredDimension(width, height)
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (w > 0 && h > 0) {
+            buildBitmaps()
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        if (isInEditMode) {
+            percentage = 65f
+            levelStatus = LevelStatus.GREEN
+            if (tankTypeLabel.isEmpty() || tankTypeLabel == "Vertical Tank" || tankTypeLabel == "Horizontal Tank" || tankTypeLabel == "Tall Vertical Tank") {
+                tankTypeLabel = if (isHorizontal) {
+                    "Horizontal Tank"
+                } else if (isTallMode) {
+                    "Tall Vertical Tank"
+                } else {
+                    "Vertical Tank"
+                }
+            }
+        }
+
         val dark = isDarkMode()
-        if (width == 0 || height == 0) return
+        if (width <= 0 || height <= 0) return
 
-        val w = width.toFloat()
-
-        // Rebuild if width changed OR if the theme (day/night) toggled
-        if (width != lastWidth || tankBitmap == null || lastDarkMode != dark) {
+        if (width != lastWidth || height != lastHeight || tankBitmap == null || lastDarkMode != dark) {
             lastWidth = width
+            lastHeight = height
             applyThemeColors()
             buildBitmaps()
 
+            val w = width.toFloat()
             val tankLeftBound = (w - tankDrawWidth) / 2f
             val leftRatio = if (isHorizontal) H_SVG_TANK_LEFT_RATIO else SVG_TANK_LEFT_RATIO
             val rightRatio = if (isHorizontal) H_SVG_TANK_RIGHT_RATIO else SVG_TANK_RIGHT_RATIO
@@ -160,6 +218,7 @@ class TankLevelView @JvmOverloads constructor(
             )
         }
 
+        val w = width.toFloat()
         val bounds = RectF(0f, 0f, w, height.toFloat())
         val topRatio = if (isHorizontal) H_FILL_TOP_RATIO else FILL_TOP_RATIO
         val bottomRatio = if (isHorizontal) H_FILL_BOTTOM_RATIO else FILL_BOTTOM_RATIO
@@ -173,20 +232,19 @@ class TankLevelView @JvmOverloads constructor(
         val tankLeft = tankLeftBound + tankDrawWidth * leftRatio
         val tankWidthActual = tankDrawWidth * (rightRatio - leftRatio)
 
-        // 1. Draw Tank metallic body
+        // 1. Draw Tank body
         val saveBody = canvas.saveLayer(bounds, null)
         canvas.drawRect(0f, fillTopY, w, fillBottomY, tankGradientPaint)
         tankBitmap?.let { canvas.drawBitmap(it, 0f, 0f, maskPaint) }
         canvas.restoreToCount(saveBody)
 
-        // 2. Draw Liquid Fill
+        // 2. Draw Liquid
         if (percentage > 0f) {
             val totalHeight = fillBottomY - fillTopY
             val liquidTopY = fillBottomY - (totalHeight * (percentage / 100f))
 
-            // Adjust liquid gradient colors slightly for dark mode for better contrast
-            val bottomColor = 0xFF1E88E5.toInt() // Blue
-            val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt() // Softer red in dark mode
+            val bottomColor = 0xFF1E88E5.toInt()
+            val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt()
 
             fillPaint.shader = LinearGradient(0f, fillBottomY, 0f, fillTopY,
                 bottomColor, topColor, Shader.TileMode.CLAMP)
@@ -194,7 +252,6 @@ class TankLevelView @JvmOverloads constructor(
             val saveFill = canvas.saveLayer(bounds, null)
             canvas.drawRect(0f, liquidTopY, w, fillBottomY, fillPaint)
 
-            // Liquid Highlight
             canvas.drawRect(
                 tankLeft, liquidTopY,
                 tankLeft + tankWidthActual * 0.35f, fillBottomY,
@@ -205,10 +262,10 @@ class TankLevelView @JvmOverloads constructor(
             canvas.restoreToCount(saveFill)
         }
 
-        // 3. Draw Hardware
+        // 3. Hardware
         hardwareBitmap?.let { canvas.drawBitmap(it, 0f, 0f, hardwarePaint) }
 
-        // 4. Labels and Badge
+        // 4. Labels & Badge
         drawLabelsAndBadge(canvas, w, fillTopY, fillBottomY, dark)
     }
 
@@ -220,10 +277,7 @@ class TankLevelView @JvmOverloads constructor(
             val textToDraw = tankTypeLabel.uppercase()
             val lines = if (textToDraw.contains(" (")) {
                 val index = textToDraw.indexOf(" (")
-                listOf(
-                    textToDraw.substring(0, index),
-                    textToDraw.substring(index + 1)
-                )
+                listOf(textToDraw.substring(0, index), textToDraw.substring(index + 1))
             } else {
                 listOf(textToDraw)
             }
@@ -240,10 +294,10 @@ class TankLevelView @JvmOverloads constructor(
             }
         }
 
-        val badgeRadius = tankDrawWidth * 0.13f
+        val badgeRadius = tankDrawWidth * 0.14f
         val left = (w - tankDrawWidth) / 2f
-        val badgeCx = left + tankDrawWidth * 0.85f
-        val badgeCy = tankDrawTop + tankDrawHeight * 0.35f
+        val badgeCx = if (isHorizontal) left + tankDrawWidth * 0.88f else left + tankDrawWidth * 0.85f
+        val badgeCy = if (isHorizontal) tankDrawTop + tankDrawHeight * 0.32f else tankDrawTop + tankDrawHeight * 0.35f
 
         circleBorderPaint.color = when (levelStatus) {
             LevelStatus.GREEN -> ContextCompat.getColor(context, R.color.level_green)
@@ -256,28 +310,77 @@ class TankLevelView @JvmOverloads constructor(
         canvas.drawCircle(badgeCx, badgeCy, badgeRadius, circleBorderPaint)
 
         circleTextPaint.color = circleBorderPaint.color
-        circleTextPaint.textSize = badgeRadius * 0.6f
         circleTextPaint.isFakeBoldText = true
-        val textY = badgeCy - (circleTextPaint.descent() + circleTextPaint.ascent()) / 2f
 
-        val levelText = if (percentage <= 0f) "Empty" else {
-            when (levelUnit) {
-                TankLevelUnit.INCHES -> "${((tankHeightMm * 0.0393701f) * (percentage / 100f)).toInt()} ${levelUnit.shortName}"
-                TankLevelUnit.PERCENT -> "${percentage.toInt()} ${levelUnit.shortName}"
-                else -> "${((tankHeightMm / 10f) * (percentage / 100f)).toInt()} ${levelUnit.shortName}"
+        if (percentage <= 0f) {
+            circleTextPaint.textSize = badgeRadius * 0.5f
+            circleTextPaint.textAlign = Paint.Align.CENTER
+            val text = "Empty"
+            val textY = badgeCy - (circleTextPaint.descent() + circleTextPaint.ascent()) / 2f
+            canvas.drawText(text, badgeCx, textY, circleTextPaint)
+        } else {
+            val valueText = when (levelUnit) {
+                TankLevelUnit.INCHES -> "${((tankHeightMm * 0.0393701f) * (percentage / 100f)).toInt()}"
+                TankLevelUnit.PERCENT -> {
+                    val rounded = Math.round(percentage.toDouble()).toInt()
+                    if (rounded == 0 && percentage > 0) "1" else rounded.toString()
+                }
+                else -> "${((tankHeightMm / 10f) * (percentage / 100f)).toInt()}"
             }
+            val unitText = levelUnit.shortName
+
+            val valueSize = badgeRadius * 0.7f
+            val unitSize = badgeRadius * 0.4f
+
+            circleTextPaint.textSize = valueSize
+            val valueWidth = circleTextPaint.measureText(valueText)
+
+            circleTextPaint.textSize = unitSize
+            val unitWidth = circleTextPaint.measureText(unitText)
+
+            val spacing = badgeRadius * 0.1f
+            val totalWidth = valueWidth + (if (unitText.isNotEmpty()) spacing + unitWidth else 0f)
+
+            val startX = badgeCx - totalWidth / 2f
+
+            circleTextPaint.textAlign = Paint.Align.LEFT
+            circleTextPaint.textSize = valueSize
+            val valueY = badgeCy - (circleTextPaint.descent() + circleTextPaint.ascent()) / 2f
+            canvas.drawText(valueText, startX, valueY, circleTextPaint)
+
+            if (unitText.isNotEmpty()) {
+                circleTextPaint.textSize = unitSize
+                val unitY = badgeCy - (circleTextPaint.descent() + circleTextPaint.ascent()) / 2f
+                canvas.drawText(unitText, startX + valueWidth + spacing, unitY, circleTextPaint)
+            }
+            circleTextPaint.textAlign = Paint.Align.CENTER
         }
-        canvas.drawText(levelText, badgeCx, textY, circleTextPaint)
     }
 
     private fun buildBitmaps() {
-        val baseSize = minOf(width, height).toFloat()
-        val scale = if (isTallMode) 1.0f else 0.8f
-        tankDrawWidth = baseSize * scale
-        tankDrawHeight = if (isTallMode) tankDrawWidth * 1.2f else tankDrawWidth
+        val w = width.toFloat()
+        val h = height.toFloat()
+        if (w <= 0 || h <= 0) return
+
+        val scale = if (isHorizontal) 0.84f else if (isTallMode) 0.95f else 0.9f
+
+        if (isHorizontal) {
+            tankDrawWidth = w * scale
+            tankDrawHeight = tankDrawWidth
+            val actualContentHeight = tankDrawHeight * (31f / 48f)
+            if (actualContentHeight > h) {
+                val adjust = h / actualContentHeight
+                tankDrawWidth *= adjust
+                tankDrawHeight *= adjust
+            }
+        } else {
+            val baseSize = minOf(w, h)
+            tankDrawWidth = baseSize * scale
+            tankDrawHeight = if (isTallMode) tankDrawWidth * 1.2f else tankDrawWidth
+        }
 
         val left = (width - tankDrawWidth) / 2f
-        val verticalOffsetRatio = if (isHorizontal) (8f / 48f) else (26.5f / 447f)
+        val verticalOffsetRatio = if (isHorizontal) (4f / 48f) else (26.5f / 447f)
         val verticalOffset = tankDrawHeight * verticalOffsetRatio
         tankDrawTop = ((height - tankDrawHeight) / 2f) - verticalOffset
 
@@ -285,27 +388,29 @@ class TankLevelView @JvmOverloads constructor(
         val hardwareRes = if (isHorizontal) R.drawable.ic_tank_hardware_horizontal else R.drawable.ic_tank_hardware
 
         tankBitmap?.recycle()
-        tankBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
-            val c = Canvas(this)
-            ContextCompat.getDrawable(context, silhouetteRes)?.apply {
-                setBounds(left.toInt(), tankDrawTop.toInt(), (left + tankDrawWidth).toInt(), (tankDrawTop + tankDrawHeight).toInt())
-                draw(c)
+        tankBitmap = try {
+            Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+                val c = Canvas(this)
+                ContextCompat.getDrawable(context, silhouetteRes)?.apply {
+                    setBounds(left.toInt(), tankDrawTop.toInt(), (left + tankDrawWidth).toInt(), (tankDrawTop + tankDrawHeight).toInt())
+                    draw(c)
+                }
             }
+        } catch (e: Exception) {
+            null
         }
 
         hardwareBitmap?.recycle()
-        hardwareBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
-            val c = Canvas(this)
-            ContextCompat.getDrawable(context, hardwareRes)?.apply {
-                setBounds(left.toInt(), tankDrawTop.toInt(), (left + tankDrawWidth).toInt(), (tankDrawTop + tankDrawHeight).toInt())
-                draw(c)
+        hardwareBitmap = try {
+            Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+                val c = Canvas(this)
+                ContextCompat.getDrawable(context, hardwareRes)?.apply {
+                    setBounds(left.toInt(), tankDrawTop.toInt(), (left + tankDrawWidth).toInt(), (tankDrawTop + tankDrawHeight).toInt())
+                    draw(c)
+                }
             }
+        } catch (e: Exception) {
+            null
         }
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val w = MeasureSpec.getSize(widthMeasureSpec)
-        val dynamicRatio = if (isTallMode) aspectRatio * 1.2f else aspectRatio
-        setMeasuredDimension(w, (w * dynamicRatio).toInt())
     }
 }

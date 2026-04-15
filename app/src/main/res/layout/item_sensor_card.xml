@@ -25,7 +25,7 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/sensor_tank_container"
-                android:layout_width="56dp"
+                android:layout_width="66dp"
                 android:layout_height="56dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
@@ -35,9 +35,11 @@
 
                 <com.smartsense.app.ui.views.TankLevelMiniView
                     android:id="@+id/sensor_tank_mini"
+                    android:layout_gravity="center_horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:padding="4dp" />
+                    android:padding="4dp"
+                    app:isHorizontal="false"/>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.textview.MaterialTextView
