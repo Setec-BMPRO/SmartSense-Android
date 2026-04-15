@@ -59,15 +59,15 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var lastDarkMode: Boolean? = null
 
     companion object {
-        private const val FILL_TOP_RATIO = 0.300f
-        private const val FILL_BOTTOM_RATIO = 0.778f
-        private const val SVG_TANK_LEFT_RATIO = 68f / 447f
-        private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
+        private const val FILL_TOP_RATIO = 62f / 320f
+        private const val FILL_BOTTOM_RATIO = 290f / 320f
+        private const val SVG_TANK_LEFT_RATIO = 25f / 240f
+        private const val SVG_TANK_RIGHT_RATIO = 215f / 240f
 
-        private const val H_FILL_TOP_RATIO = 14f / 48f
-        private const val H_FILL_BOTTOM_RATIO = 34f / 48f
-        private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
-        private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
+        private const val H_FILL_TOP_RATIO = 7f / 32f
+        private const val H_FILL_BOTTOM_RATIO = 27f / 32f
+        private const val H_SVG_TANK_LEFT_RATIO = 1f / 46f
+        private const val H_SVG_TANK_RIGHT_RATIO = 45f / 46f
     }
 
     private fun isDarkMode(): Boolean {
@@ -89,17 +89,28 @@ class TankLevelMiniView @JvmOverloads constructor(
         val silhouetteRes = if (isHorizontal) R.drawable.ic_tank_silhouette_horizontal else R.drawable.ic_tank_silhouette
         val hardwareRes = if (isHorizontal) R.drawable.ic_tank_hardware_horizontal else R.drawable.ic_tank_hardware
 
+        val (viewW, viewH) = if (isHorizontal) 46 to 32 else 240 to 320
+        val aspect = viewH.toFloat() / viewW.toFloat()
+
+        val (targetW, targetH) = if (isHorizontal) {
+            size to (size * aspect).toInt()
+        } else {
+            (size / aspect).toInt() to size
+        }
+
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val c = Canvas(bitmap)
         val drawable = ContextCompat.getDrawable(context, silhouetteRes) ?: return
-        drawable.setBounds(0, 0, size, size)
+        val left = (size - targetW) / 2
+        val top = (size - targetH) / 2
+        drawable.setBounds(left, top, left + targetW, top + targetH)
         drawable.draw(c)
         tankBitmap = bitmap
 
         val hwBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val hwCanvas = Canvas(hwBitmap)
         val hwDrawable = ContextCompat.getDrawable(context, hardwareRes) ?: return
-        hwDrawable.setBounds(0, 0, size, size)
+        hwDrawable.setBounds(left, top, left + targetW, top + targetH)
         hwDrawable.draw(hwCanvas)
         hardwareBitmap = hwBitmap
     }

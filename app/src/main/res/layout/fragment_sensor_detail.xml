@@ -157,16 +157,16 @@
 
                 <com.smartsense.app.ui.views.TankLevelView
                     android:id="@+id/detail_tank"
-                    android:layout_width="280dp"
+                    android:layout_width="200dp"
                     android:layout_height="wrap_content"
                     app:isHorizontal="false"
-                    app:isTallMode="true"/>
+                    app:isTallMode="false"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/last_updated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="-40dp"
+
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="Updated just now"/>

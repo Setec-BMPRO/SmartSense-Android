@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="447dp"
-    android:height="447dp"
-    android:viewportWidth="447"
-    android:viewportHeight="447">
+    android:width="320dp"
+    android:height="320dp"
+    android:viewportWidth="320"
+    android:viewportHeight="320">
 
     <!-- Handle Top Bar (Medium Thickness) -->
     <path
         android:fillColor="#000000"
-        android:pathData="M155,58 L292,58 C305,58 305,72 292,72 L155,72 C142,72 142,58 155,58 Z" />
+        android:pathData="M91,0 L228,0 C241,0 241,14 228,14 L91,14 C78,14 78,0 91,0 Z" />
 
     <!-- Handle Supports (Medium Thickness) -->
     <path
         android:fillColor="#000000"
-        android:pathData="M165,72 L165,120 L180,120 L180,72 Z
-                          M267,72 L267,120 L282,120 L282,72 Z" />
+        android:pathData="M101,14 L101,62 L116,62 L116,14 Z
+                          M203,14 L203,62 L218,62 L218,14 Z" />
 
     <!-- Center Valve Assembly (Medium Thickness) -->
     <path
         android:fillColor="#000000"
-        android:pathData="M215,102 L215,120 L232,120 L232,102 Z
-                          M198,96 L198,102 L249,102 L249,96 Z" />
+        android:pathData="M151,44 L151,62 L168,62 L168,44 Z
+                          M134,38 L134,44 L185,44 L185,38 Z" />
 
     <!-- Foot Ring Outline -->
     <path
         android:fillColor="#000000"
         android:fillType="evenOdd"
-        android:pathData="M 140,344
-                          L 308,344
-                          L 308,370
-                          C 300,378 148,378 140,370
+        android:pathData="M 76,286
+                          L 244,286
+                          L 244,312
+                          C 236,320 84,320 76,312
                           Z
-                          M 154,354 L 184,354 L 184,364 L 154,364 Z
-                          M 204,354 L 244,354 L 244,364 L 204,364 Z
-                          M 264,354 L 294,354 L 294,364 L 264,364 Z" />
+                          M 90,296 L 120,296 L 120,306 L 90,306 Z
+                          M 140,296 L 180,296 L 180,306 L 140,306 Z
+                          M 200,296 L 230,296 L 230,306 L 200,306 Z" />
 
     <!-- Tank Bulb Outline -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#000000"
-        android:strokeWidth="4"
+        android:strokeWidth="3"
         android:strokeLineJoin="round"
-        android:pathData="M 168,120
-                          L 280,120
-                          C 328,120 344,140 344,170
-                          L 344,310
-                          C 344,340 328,348 280,348
-                          L 168,348
-                          C 120,348 104,340 104,310
-                          L 104,170
-                          C 104,140 120,120 168,120 Z" />
+        android:pathData="M 104,62
+                          L 216,62
+                          C 264,62 280,82 280,112
+                          L 280,252
+                          C 280,282 264,290 216,290
+                          L 104,290
+                          C 56,290 40,282 40,252
+                          L 40,112
+                          C 40,82 56,62 104,62 Z" />
 </vector>

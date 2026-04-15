@@ -17,10 +17,10 @@ class TankLevelView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val FILL_TOP_RATIO = 0.268f
-        private const val FILL_BOTTOM_RATIO = 0.778f
-        private const val SVG_TANK_LEFT_RATIO = 68f / 447f
-        private const val SVG_TANK_RIGHT_RATIO = 379f / 447f
+        private const val FILL_TOP_RATIO = 62f / 320f
+        private const val FILL_BOTTOM_RATIO = 290f / 320f
+        private const val SVG_TANK_LEFT_RATIO = 25f / 240f
+        private const val SVG_TANK_RIGHT_RATIO = 215f / 240f
 
         private const val H_FILL_TOP_RATIO = 14f / 48f
         private const val H_FILL_BOTTOM_RATIO = 34f / 48f
@@ -33,7 +33,7 @@ class TankLevelView @JvmOverloads constructor(
     private var levelStatus: LevelStatus = LevelStatus.RED
     private var levelUnit: TankLevelUnit = TankLevelUnit.PERCENT
     private var tankHeightMm: Float = 0f
-    private var aspectRatio: Float = 1.32f
+    private var aspectRatio: Float = 1.33f
     private var tankTypeLabel: String = ""
 
     var isTallMode: Boolean = false
@@ -48,7 +48,7 @@ class TankLevelView @JvmOverloads constructor(
         set(value) {
             field = value
             lastWidth = 0
-            aspectRatio = if (value) 0.65f else 1.32f
+            aspectRatio = if (value) 0.695f else 1.0f
             requestLayout()
             invalidate()
         }
@@ -138,7 +138,7 @@ class TankLevelView @JvmOverloads constructor(
             else -> 400
         }
         
-        val dynamicRatio = if (isTallMode) aspectRatio * 1.2f else aspectRatio
+        val dynamicRatio = if (isTallMode) aspectRatio * 1.3f else aspectRatio
         val desiredHeight = (width * dynamicRatio).toInt()
         
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
@@ -296,15 +296,15 @@ class TankLevelView @JvmOverloads constructor(
 
         val badgeRadius = tankDrawWidth * 0.14f
         val left = (w - tankDrawWidth) / 2f
-        val badgeCx = if (isHorizontal) left + tankDrawWidth * 0.88f else left + tankDrawWidth * 0.85f
-        val badgeCy = if (isHorizontal) tankDrawTop + tankDrawHeight * 0.32f else tankDrawTop + tankDrawHeight * 0.35f
+        val badgeCx = if (isHorizontal) left + tankDrawWidth * 0.90f else left + tankDrawWidth * 0.85f
+        val badgeCy = if (isHorizontal) tankDrawTop + tankDrawHeight * 0.35f else tankDrawTop + tankDrawHeight * 0.35f
 
         circleBorderPaint.color = when (levelStatus) {
             LevelStatus.GREEN -> ContextCompat.getColor(context, R.color.level_green)
             LevelStatus.YELLOW -> ContextCompat.getColor(context, R.color.level_yellow)
             LevelStatus.RED -> ContextCompat.getColor(context, R.color.level_red)
         }
-        circleBorderPaint.strokeWidth = 4f * (tankDrawWidth / 447f)
+        circleBorderPaint.strokeWidth = 4f * (tankDrawWidth / 320f)
 
         canvas.drawCircle(badgeCx, badgeCy, badgeRadius, circleFillPaint)
         canvas.drawCircle(badgeCx, badgeCy, badgeRadius, circleBorderPaint)
@@ -376,13 +376,11 @@ class TankLevelView @JvmOverloads constructor(
         } else {
             val baseSize = minOf(w, h)
             tankDrawWidth = baseSize * scale
-            tankDrawHeight = if (isTallMode) tankDrawWidth * 1.2f else tankDrawWidth
+            tankDrawHeight = if (isTallMode) tankDrawWidth * 1.3f else tankDrawWidth
         }
 
         val left = (width - tankDrawWidth) / 2f
-        val verticalOffsetRatio = if (isHorizontal) (4f / 48f) else (26.5f / 447f)
-        val verticalOffset = tankDrawHeight * verticalOffsetRatio
-        tankDrawTop = ((height - tankDrawHeight) / 2f) - verticalOffset
+        tankDrawTop = (height - tankDrawHeight) / 2f
 
         val silhouetteRes = if (isHorizontal) R.drawable.ic_tank_silhouette_horizontal else R.drawable.ic_tank_silhouette
         val hardwareRes = if (isHorizontal) R.drawable.ic_tank_hardware_horizontal else R.drawable.ic_tank_hardware

@@ -203,6 +203,17 @@ class SensorDetailFragment : Fragment() {
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
     private fun FragmentSensorDetailBinding.bindTank(tank: Tank) {
+        val isHorizontal = tank.orientation == TankOrientation.HORIZONTAL
+        
+        // Update width based on orientation
+        val layoutParams = detailTank.layoutParams
+        layoutParams.width = if (isHorizontal) {
+            (280 * resources.displayMetrics.density).toInt()
+        } else {
+            (200 * resources.displayMetrics.density).toInt()
+        }
+        detailTank.layoutParams = layoutParams
+
         detailTank.setLevelUnit(tank.levelUnit, viewModel.calculateTankHeightMm(tank))
         detailTank.setAspectRatio(tank.type.silhouetteAspect)
 
@@ -220,7 +231,7 @@ class SensorDetailFragment : Fragment() {
         detailTank.setTankTypeLabel(tankTypeLabel)
 
         detailTank.isTallMode = tank.type != TankType.KG_3_7
-        detailTank.isHorizontal=tank.orientation== TankOrientation.HORIZONTAL
+        detailTank.isHorizontal=isHorizontal
     }
 
     private fun FragmentSensorDetailBinding.setupTankDisplay(sensor: Sensor) {
