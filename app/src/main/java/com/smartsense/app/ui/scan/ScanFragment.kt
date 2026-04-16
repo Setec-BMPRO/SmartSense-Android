@@ -121,6 +121,7 @@ class ScanFragment : Fragment() {
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
             viewModel.setFilterQuery(text.toString())
         }
+
     }
 
     private fun observeViewModel() {

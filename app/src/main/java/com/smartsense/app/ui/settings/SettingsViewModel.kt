@@ -35,6 +35,7 @@ class SettingsViewModel @Inject constructor(
 
     val sortPreference: StateFlow<SortPreference> = userPreferences.sortPreference
         .stateIn(viewModelScope, SharingStarted.Eagerly, SortPreference.NAME)
+
     val isSignedIn: StateFlow<Boolean> = userPreferences.isSignedIn
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = false)
 

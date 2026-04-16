@@ -137,6 +137,7 @@ class SettingsFragment : Fragment() {
         }
         binding.sortPreferencesDropdown.setAdapter(sortAdapter)
         binding.sortPreferencesDropdown.setOnItemClickListener { _, _, pos, _ -> viewModel.setSortPreference(sorts[pos]) }
+
     }
 
     private fun setupSwitches() {
@@ -233,7 +234,7 @@ class SettingsFragment : Fragment() {
             .launchIn(scope)
 
         viewModel.sortPreference
-            .onEach { 
+            .onEach {
                 if (binding.sortPreferencesDropdown.text.toString() != it.displayName) {
                     binding.sortPreferencesDropdown.setText(it.displayName, false)
                 }

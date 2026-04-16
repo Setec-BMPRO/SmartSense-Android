@@ -17,10 +17,10 @@ object BleConstants {
     const val MANUFACTURER_ID_SETEC = 0x051F
 
     /** Default RSSI threshold — reject signals weaker than this */
-    const val DEFAULT_RSSI_THRESHOLD = -60
+    const val DEFAULT_RSSI_THRESHOLD = -95
 
     /** Relaxed RSSI threshold for sync-pressed (pairing) devices */
-    const val SYNC_RSSI_THRESHOLD = -90
+    const val SYNC_RSSI_THRESHOLD = -100
 
     /** Service UUID indicating CC2540 hardware */
     val SERVICE_UUID_CC2540: UUID = shortUuid("ADA0")
@@ -48,8 +48,8 @@ object BleConstants {
     /** Setec payload size after manufacturer ID is stripped (bytes 14-30 = 17 bytes) */
     const val SETEC_PAYLOAD_SIZE = 17
 
-    /** BMPRO brand filter: device byte (masked 0xCF) must be one of these */
-    val BMPRO_ACCEPTED_DEVICE_BYTES = setOf(0x46, 0x48)
+    /** Accepted CC2540 device bytes (masked 0xCF): BMPRO (0x46, 0x48) + standard Mopeka (0x02 Std, 0x03 XL) */
+    val BMPRO_ACCEPTED_DEVICE_BYTES = setOf(0x02, 0x03, 0x46, 0x48)
 
     const val CC2540_DATA_SIZE_SHORT = 22
     const val CC2540_DATA_SIZE_LONG = 25
@@ -65,4 +65,33 @@ object BleConstants {
      * depth_mm = raw_us * (coeff[0] + coeff[1]*temp + coeff[2]*temp^2)
      */
     val PROPANE_COEFFICIENTS = doubleArrayOf(0.573045, -0.002822, -0.00000535)
+
+    // --- BMPRO Hub Constants ---
+
+    /** BMPRO Hub advertised service UUID */
+    val HUB_SERVICE_UUID: UUID = shortUuid("FE0E")
+
+    /** Hub sensor data characteristic (notifications) */
+    val HUB_SENSOR_CHARACTERISTIC: UUID = UUID.fromString("5e132001-73a9-4a6a-ae5f-c7bff0bd075e")
+
+    /** Hub authentication characteristic */
+    val HUB_AUTH_CHARACTERISTIC: UUID = UUID.fromString("aaf94c01-906b-49e8-8b5b-b5f412986d26")
+
+    /** Client Characteristic Configuration Descriptor for enabling notifications */
+    val CCCD_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
+    /** Hub device name prefix for discovery */
+    const val HUB_DEVICE_NAME_PREFIX = "RVMN101C"
+
+    /** Hub authentication AES key (128-bit, hex-encoded) */
+    const val HUB_AUTH_KEY = "73251E071383F24F18103D347C83ADE3"
+
+    /** Hub requested MTU */
+    const val HUB_MTU = 182
+
+    /** Propane sensor type ID in hub payload */
+    const val HUB_SENSOR_TYPE_PROPANE = 3
+
+    /** Propane sensor slot range in hub (17-19) */
+    val HUB_PROPANE_SLOTS = 17..19
 }

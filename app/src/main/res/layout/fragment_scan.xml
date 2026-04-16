@@ -33,6 +33,7 @@
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorPrimary"
             tools:text="5 sensors"/>
+
     </LinearLayout>
 
     <!-- Scanning state (shown when no sensors connected) -->

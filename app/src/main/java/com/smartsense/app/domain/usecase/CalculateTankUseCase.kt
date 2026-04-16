@@ -15,8 +15,6 @@ class CalculateTankUseCase @Inject constructor() {
 
     companion object {
         private const val TAG = "CalculateTankUseCase"
-        private const val MIN_OFFSET_METERS = 0.0381
-        private const val SCALE_FACTOR = 0.78
     }
 
     fun calculateTankLevel(
@@ -35,26 +33,24 @@ class CalculateTankUseCase @Inject constructor() {
             return TankLevel(0f, 0f)
         }
 
-        val effectiveHeight = tankHeightMeters * SCALE_FACTOR
-        Timber.tag(TAG).d("effectiveHeight = $effectiveHeight")
-
         val heightMm = (rawHeightMeters * 1000.0).toFloat()
 
-        if (rawHeightMeters < MIN_OFFSET_METERS) {
-            Timber.tag(TAG).d("Below MIN_OFFSET_METERS ($MIN_OFFSET_METERS) → 0% but heightMm=$heightMm")
+        if (rawHeightMeters <= 0) {
+            Timber.tag(TAG).d("rawHeight <= 0 → 0%")
             return TankLevel(0f, heightMm)
         }
 
+        // SRS 9.1.3.2: level% = level_mm / tank_height_mm * 100
         val percent = when (tankType) {
             TankType.PROPANE_VERTICAL,
             TankType.CUSTOM -> calculateVerticalPercent(
                 rawHeightMeters,
-                effectiveHeight
+                tankHeightMeters
             )
 
             TankType.PROPANE_HORIZONTAL -> calculateHorizontalPercent(
                 rawHeightMeters,
-                effectiveHeight
+                tankHeightMeters
             )
         }
 
@@ -73,54 +69,31 @@ class CalculateTankUseCase @Inject constructor() {
 
     private fun calculateVerticalPercent(
         rawHeightMeters: Double,
-        effectiveHeight: Double
+        tankHeightMeters: Double
     ): Double {
         Timber.tag(TAG).d("Mode = VERTICAL/CUSTOM")
-
-        return if (MIN_OFFSET_METERS >= effectiveHeight) {
-            Timber.tag(TAG).d("MIN_OFFSET >= effectiveHeight → 100%")
-            100.0
-        } else {
-            val value = 100.0 * (rawHeightMeters - MIN_OFFSET_METERS) /
-                    (effectiveHeight - MIN_OFFSET_METERS)
-
-            Timber.tag(TAG).d("Vertical formula result = $value")
-            value
-        }
+        // SRS 9.1.3.2: level% = level_mm / tank_height_mm * 100
+        val value = 100.0 * rawHeightMeters / tankHeightMeters
+        Timber.tag(TAG).d("Vertical formula result = $value")
+        return value
     }
 
     private fun calculateHorizontalPercent(
         rawHeightMeters: Double,
-        effectiveHeight: Double
+        tankHeightMeters: Double
     ): Double {
-        Timber.tag(TAG).d("Mode = HORIZONTAL")
-        Timber.tag(TAG).d("diameter = $effectiveHeight")
+        Timber.tag(TAG).d("Mode = HORIZONTAL, diameter = $tankHeightMeters")
 
         return when {
-            rawHeightMeters >= effectiveHeight -> {
-                Timber.tag(TAG).d("rawHeight >= diameter → 100%")
-                100.0
-            }
-
-            rawHeightMeters <= 0 -> {
-                Timber.tag(TAG).d("rawHeight <= 0 → 0%")
-                0.0
-            }
-
+            rawHeightMeters >= tankHeightMeters -> 100.0
+            rawHeightMeters <= 0 -> 0.0
             else -> {
-                val norm = rawHeightMeters / effectiveHeight
-                Timber.tag(TAG).d("normalized height = $norm")
-
+                val norm = rawHeightMeters / tankHeightMeters
                 val p = -1.16533 * norm.pow(3) +
                         1.7615 * norm.pow(2) +
                         0.40923 * norm
-
-                Timber.tag(TAG).d("polynomial p = $p")
-
-                val result = 100.0 * p
-                Timber.tag(TAG).d("Horizontal result = $result")
-
-                result
+                Timber.tag(TAG).d("Horizontal: norm=$norm, p=$p")
+                100.0 * p
             }
         }
     }

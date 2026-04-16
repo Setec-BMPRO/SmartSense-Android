@@ -79,15 +79,16 @@ object SensorAdvertParser {
             val byte3raw = data[3].toInt() and 0xFF
             val syncPressed = (byte3raw and 0x80) != 0
             val tempRaw = byte3raw and 0x3F
-            val temperatureCelsius = if (tempRaw == 0) -40.0f
+            // SRS 9.1.3.1: raw temp 0 is invalid (NaN); default to 25°C
+            val temperatureCelsius = if (tempRaw == 0) 25.0f
             else (1.776964f * (tempRaw - 25))
 
             val heightMeters = extractHeightFromSamples(data, 4, temperatureCelsius)
 
-
             Log.d(TAG, "CC2540 VALID $bleAddress: battery=${"%.2f".format(batteryVoltage)}V, " +
                     "temp=${"%.1f".format(temperatureCelsius)}°C, quality=$quality, " +
-                    "height=${"%.4f".format(heightMeters)}m")
+                    "height=${"%.4f".format(heightMeters)}m, syncPressed=$syncPressed, rssi=$rssi, " +
+                    "byte3raw=0x${"%02X".format(byte3raw)}")
 
             ParsedSensor(
                 reading = SensorReading(
@@ -158,7 +159,7 @@ object SensorAdvertParser {
 
             Log.d(TAG, "NRF52 OK $bleAddress: type=${mopekaSensorType.displayName}, " +
                     "battery=${"%.2f".format(batteryVoltage)}V, temp=${temperatureCelsius}°C, " +
-                    "rawLevel=$rawLevel, quality=$quality, height=${"%.4f".format(heightMeters)}m")
+                    "rawLevel=$rawLevel, quality=$quality, height=${"%.4f".format(heightMeters)}m, syncPressed=$syncPressed")
 
             ParsedSensor(
                 reading = SensorReading(
@@ -254,13 +255,18 @@ object SensorAdvertParser {
                 "best=(amp=${best.amplitude}, dist=$rawLevel), " +
                 "all=${adv.joinToString { "(a=${it.amplitude},d=${it.distance})" }}")
 
-        // CC2540 distance units represent 6µs of round-trip time-of-flight each
-        // (firmware timer resolution = 12µs per sample index, distance = index * 2)
-        val timeUs = rawLevel * CC2540_TIME_BASE_US
-        val coeffs = BleConstants.PROPANE_COEFFICIENTS
+        // SRS 9.1.3.1: Ultrasound speed through LPG (71.74% propane)
+        // u (m/s) = 0.0004*T³ − 0.0224*T² − 6.1989*T + 940.04
         val temp = temperatureCelsius.toDouble()
-        val depthMm = timeUs * (coeffs[0] + coeffs[1] * temp + coeffs[2] * temp * temp)
-        return depthMm / 1000.0
+        val speedOfSound = 0.0004 * temp * temp * temp -
+                0.0224 * temp * temp -
+                6.1989 * temp + 940.04
+
+        // SRS 9.1.3.2: distance_mm = ToF_us / 1e6 * speed * 1000
+        // liquid level = distance / 2 (round trip)
+        val tofUs = rawLevel * CC2540_TIME_BASE_US
+        val heightMeters = tofUs * 1e-6 * speedOfSound / 2.0
+        return heightMeters
     }
 
     /**
