@@ -148,20 +148,15 @@ class BleManager @Inject constructor(
 
         // Log 1: Raw Data (Hex format is best for BLE)
         val rawHex = mfgData.joinToString("") { "%02X ".format(it) }
-        //Log.v("SensorParser", "[$address] Raw MfgData ($hwType): $rawHex")
+        Timber.v("[$address] Raw MfgData ($hwType): $rawHex")
 
-        //val levelPercentage=MopekaSensorCalculator.calculatePercentageFromPayload(mfgData,500)
         val parsed = parseAdvertData(hwType, mfgData, result) ?: run {
-            Log.e("SensorParser", "[$address] Parsing failed for raw: $rawHex")
+            Timber.e("[$address] Parsing failed for raw: $rawHex")
             return null
         }
 
-        // Log 2: Parsed Data (Assuming 'parsed' is a data class)
-        //Log.d("SensorParser", "[$address] Parsed: $parsed")
+//        if (!parsed.sensorType.isLpg) return null
 
-        if (!parsed.sensorType.isLpg) return null
-
-        //parsed.reading.tankLevelPercentage=levelPercentage
         return ScannedSensor(
             address = address,
             name = result.device.name ?: record.deviceName,

@@ -12,12 +12,14 @@ import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.TankOrientation
+import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.UnitSystem
 
 import com.smartsense.app.util.TimeUtils
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.ExpandableItem
 import com.xwray.groupie.viewbinding.BindableItem
+import timber.log.Timber
 
 
 class HeaderItem(
@@ -100,7 +102,8 @@ class SensorItem(
         binding.sensorLevel.setTextColor(tintColor)
 
         val status = sensor.tankLevel?.status ?: LevelStatus.RED
-        binding.sensorTankMini.isHorizontal = sensor.orientation == TankOrientation.HORIZONTAL
+
+        binding.sensorTankMini.isHorizontal = sensor.tankType?.contains(TankOrientation.HORIZONTAL.name,true)==true
         binding.sensorTankMini.setLevel(levelPercent, status)
 
         // Battery
@@ -158,9 +161,6 @@ class SensorItem(
         binding.sensorType.text = sensor.tankType
 
         binding.root.setOnClickListener { onClick(sensor) }
-
-        binding.sensorTankMini.isHorizontal=sensor.orientation== TankOrientation.HORIZONTAL
-
     }
 
 

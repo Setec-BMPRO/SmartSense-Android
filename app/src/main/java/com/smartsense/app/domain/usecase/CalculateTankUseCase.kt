@@ -21,7 +21,8 @@ class CalculateTankUseCase @Inject constructor() {
         rawHeightMeters: Double,
         tankHeightMm: Float,
         tankType: TankType,
-        rawData: ByteArray? = null
+        rawData: ByteArray? = null,
+        isHorizontal: Boolean = false
     ): TankLevel {
 
         logStart(rawHeightMeters, tankHeightMm, tankType)
@@ -38,20 +39,10 @@ class CalculateTankUseCase @Inject constructor() {
 
         // 1. Try modern Mopeka firmware logic if raw data is available
         if (rawData != null && rawData.size >= 23) {
-            val percentage = com.smartsense.app.data.ble.MopekaSensorCalculator
-                .calculatePercentageFromPayload(rawData, tankHeightMm.toInt())
-            
+            val percentage = MopekaSensorCalculator
+                .decodePayloadToPercent(rawData, tankHeightMm.toInt(),isHorizontal)
             Timber.tag(TAG).d("MopekaSensorCalculator percentage = $percentage, heightMm = $heightMm")
-            
-            // For horizontal tanks, apply the volume correction to the calculated linear percentage
-            val finalPercent = if (tankType == TankType.PROPANE_HORIZONTAL) {
-                val norm = (percentage / 100.0).coerceIn(0.0, 1.0)
-                (100.0 * (-1.16533 * norm.pow(3) + 1.7615 * norm.pow(2) + 0.40923 * norm)).toFloat()
-            } else {
-                percentage.toFloat()
-            }
-
-            return TankLevel(finalPercent.coerceIn(0f, 100f), heightMm)
+            return TankLevel(percentage.toFloat(), heightMm)
         }
 
         // 2. Fallback to classic ratio-based calculation

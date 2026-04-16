@@ -1,6 +1,5 @@
 package com.smartsense.app.data.repository
 
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.smartsense.app.data.ble.BleManager
@@ -45,7 +44,6 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.random.Random
 
 @Singleton
 class SensorRepository @Inject constructor(
@@ -58,7 +56,6 @@ class SensorRepository @Inject constructor(
 ) {
     companion object {
         private const val TAG = "SensorRepository"
-        private const val SYNC_WORK_NAME = "SensorSyncWork"
     }
 
     private val appCoroutineScope: CoroutineScope = appScope.scope
@@ -494,7 +491,8 @@ class SensorRepository @Inject constructor(
             calculateTankUseCase.calculateTankLevel(
                 rawHeightMeters = entity.lastRawHeightMeters,
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
-                tankType = calculateTankUseCase.calculateTankType(tank)
+                tankType = calculateTankUseCase.calculateTankType(tank),
+                isHorizontal = tank?.orientation == TankOrientation.HORIZONTAL
             )
         } else null
 
@@ -531,7 +529,8 @@ class SensorRepository @Inject constructor(
                 rawHeightMeters = reading?.rawHeightMeters ?: 0.0,
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
                 tankType = calculateTankUseCase.calculateTankType(tank),
-                rawData = scanned.parsed?.rawData
+                rawData = scanned.parsed?.rawData,
+                isHorizontal = tank?.orientation == TankOrientation.HORIZONTAL
             )
             //    .apply { percentage = Random.nextFloat() * 100f }
         } else null
