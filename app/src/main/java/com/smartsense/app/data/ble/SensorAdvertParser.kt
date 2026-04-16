@@ -79,6 +79,11 @@ object SensorAdvertParser {
             val byte3raw = data[3].toInt() and 0xFF
             val syncPressed = (byte3raw and 0x80) != 0
             val tempRaw = byte3raw and 0x3F
+            // tempRaw == 0 is treated as a "no reading" sentinel → fallback to 25°C.
+            // For tempRaw > 0: formula maps [1..63] → [-42.6°C .. 67.5°C].
+            // Note: tempRaw=0 defaults to 25°C while tempRaw=1 gives -42.6°C — a large
+            // discontinuity. This is intentional per firmware spec but verify if unexpected
+            // cold readings appear (check whether sensor is reporting tempRaw=1 erroneously).
             val temperatureCelsius = if (tempRaw == 0) 25.0f
             else (1.776964f * (tempRaw - 25))
 
@@ -148,12 +153,15 @@ object SensorAdvertParser {
 
             val quality = (byte4 shr 6) and 0x03
 
-            // Convert raw level to depth in mm per SRS 9.1.3.2 (M1001 sensor)
+            // Convert raw level to depth in mm using Mopeka's empirical polynomial.
+            // The 14-bit rawLevel in the NRF52 BLE advertisement is NOT a raw time-of-flight
+            // counter in 20µs units (that encoding belongs to the RVMN hardware protocol).
+            // These coefficients encode the full (time_resolution × u₇₁.₇₄(T) / 2) relationship
+            // in a single temperature-dependent fit, calibrated for the BLE advertisement rawLevel.
+            // Source: Mopeka BLE protocol (phurth/ha-mopeka, Bluetooth-Devices/mopeka-iot-ble)
             val t = temperatureCelsius.toDouble()
-            val speed = 0.0004 * t * t * t - 0.0224 * t * t - 6.1989 * t + 940.04
-            // Distance travelled (mm) = (rawLevel units * 20us / 1000) * (speed * 0.7174)
-            // LPG liquid level (mm) = Distance travelled (mm) / 2
-            val depthMm = (rawLevel * 20.0 / 1000.0) * (speed * 0.7174) / 2.0
+            val coeff = 0.573045 + (-0.002822) * t + (-0.00000535) * t * t
+            val depthMm = rawLevel * coeff
             val heightMeters = depthMm / 1000.0
 
             val mopekaSensorType = MopekaSensorType.fromNrf52TypeByte(sensorType)
@@ -199,13 +207,18 @@ object SensorAdvertParser {
         val endIdx = data.size - 3 // Last 3 bytes are MAC
         if (startIdx >= endIdx) return 0.0
 
-        val hwVersion = data[1].toInt() and 0xFF
-        val isXl = (hwVersion and 0x01) == 1
+        // data[1] is the device/brand flags byte — NOT a dedicated hw-version field.
+        // BMPRO-validated devices always have byte1 ∈ {0x46, 0x48} (both > 1),
+        // so they always use the 10-bit packed encoding branch below.
+        // The legacy branches (deviceByte == 0 or 1) are retained for potential
+        // non-BMPRO firmware variants but are unreachable for current supported hardware.
+        val deviceByte = data[1].toInt() and 0xFF
+        val isXl = (deviceByte and 0x01) == 1
 
         data class AdvEntry(val amplitude: Int, val distance: Int)
         val adv = mutableListOf<AdvEntry>()
 
-        if (hwVersion == 0 || hwVersion == 1) {
+        if (deviceByte == 0 || deviceByte == 1) {
             // Simple encoding: 8 entries of 2-byte pairs
             for (n in 0 until 8) {
                 val idx = startIdx + 2 * n
@@ -248,11 +261,15 @@ object SensorAdvertParser {
 
         if (adv.isEmpty()) return 0.0
 
-        // Use the entry with the highest amplitude as the best reading
+        // Use the entry with the highest amplitude as the best reading.
+        // NOTE: This heuristic assumes the strongest echo comes from the liquid surface.
+        // In practice, reflections from the tank wall or internal structures may produce
+        // a higher amplitude than the actual liquid surface, leading to an incorrect reading.
+        // If systematic error is observed, consider also filtering by expected distance range.
         val best = adv.maxByOrNull { it.amplitude } ?: return 0.0
         val rawLevel = best.distance
 
-        Log.d(TAG, "CC2540 samples: hwVer=$hwVersion, entries=${adv.size}, " +
+        Log.d(TAG, "CC2540 samples: deviceByte=$deviceByte, entries=${adv.size}, " +
                 "best=(amp=${best.amplitude}, dist=$rawLevel), " +
                 "all=${adv.joinToString { "(a=${it.amplitude},d=${it.distance})" }}")
 
@@ -260,10 +277,11 @@ object SensorAdvertParser {
         // (firmware timer resolution = 12µs per sample index, distance = index * 2)
         val timeUs = rawLevel.toDouble() * CC2540_TIME_BASE_US
         val t = temperatureCelsius.toDouble()
-        // Speed formula per point 1
+        // u₇₁.₇₄(T): speed of sound in LPG (71.74% propane) per Petrauskas 2008.
+        // The subscript 71.74 identifies the propane mixture — it is NOT an additional
+        // multiplier. The previous code incorrectly applied × 0.7174 on top of this formula.
         val speed = 0.0004 * t * t * t - 0.0224 * t * t - 6.1989 * t + 940.04
-        // Apply factor 0.7174 from SRS 9.1.3.2 (u71.74)
-        val depthMeters = (timeUs / 1_000_000.0) * (speed * 0.7174) / 2.0
+        val depthMeters = (timeUs / 1_000_000.0) * speed / 2.0
         return depthMeters
     }
 
