@@ -149,14 +149,10 @@ class BleManager @Inject constructor(
         val parsed = parseAdvertData(hwType, mfgData, result) ?: return null
         if (!parsed.sensorType.isLpg) return null
 
-        // Relax RSSI threshold for sync-pressed devices to improve pairing reliability
-        val rssiThreshold = if (parsed.syncPressed) BleConstants.SYNC_RSSI_THRESHOLD
-                            else BleConstants.DEFAULT_RSSI_THRESHOLD
-        if (result.rssi < rssiThreshold) return null
-
         return ScannedSensor(
             address = result.device.address,
             name = result.device.name ?: record.deviceName,
+            rssi = result.rssi,
             parsed = parsed
         )
     }
@@ -186,6 +182,7 @@ class BleManager @Inject constructor(
 data class ScannedSensor(
     val address: String,
     val name: String?,
+    val rssi: Int = 0,
     val parsed: ParsedSensor?=null
 )
 

@@ -259,9 +259,6 @@ class SensorDetailFragment : Fragment() {
             ReadQuality.POOR -> View.VISIBLE.also {
                 qualityWarning.text = getString(R.string.quality_warning_poor)
             }
-            ReadQuality.FAIR -> View.VISIBLE.also {
-                qualityWarning.text = getString(R.string.quality_warning_fair)
-            }
             else -> View.GONE
         }
     }

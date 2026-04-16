@@ -87,7 +87,15 @@ class SensorRepository @Inject constructor(
             .sample(scanIntervalMillis)
             .map {
                 Timber.tag(TAG).i("discoverSensors triggered")
-                mapToSensorList(liveReadings.value)
+                // Apply RSSI filtering only for discovery (not registered sensors)
+                val filtered = liveReadings.value.filter { (_, scanned) ->
+                    val threshold = if (scanned.parsed?.syncPressed == true)
+                        com.smartsense.app.data.ble.BleConstants.SYNC_RSSI_THRESHOLD
+                    else
+                        com.smartsense.app.data.ble.BleConstants.DEFAULT_RSSI_THRESHOLD
+                    scanned.rssi >= threshold
+                }
+                mapToSensorList(filtered)
             }
             .distinctUntilChanged()
 

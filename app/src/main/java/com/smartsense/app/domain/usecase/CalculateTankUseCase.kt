@@ -38,9 +38,11 @@ class CalculateTankUseCase @Inject constructor() {
         val effectiveHeight = tankHeightMeters * SCALE_FACTOR
         Timber.tag(TAG).d("effectiveHeight = $effectiveHeight")
 
+        val heightMm = (rawHeightMeters * 1000.0).toFloat()
+
         if (rawHeightMeters < MIN_OFFSET_METERS) {
-            Timber.tag(TAG).d("Below MIN_OFFSET_METERS ($MIN_OFFSET_METERS) → return 0")
-            return TankLevel(0f, 0f)
+            Timber.tag(TAG).d("Below MIN_OFFSET_METERS ($MIN_OFFSET_METERS) → 0% but heightMm=$heightMm")
+            return TankLevel(0f, heightMm)
         }
 
         val percent = when (tankType) {
@@ -59,10 +61,7 @@ class CalculateTankUseCase @Inject constructor() {
         Timber.tag(TAG).d("percent (raw) = $percent")
 
         val clampedPercent = percent.toFloat().coerceIn(0f, 100f)
-        Timber.tag(TAG).d("clampedPercent = $clampedPercent")
-
-        val heightMm = (rawHeightMeters * 1000.0).toFloat()
-        Timber.tag(TAG).d("heightMm = $heightMm")
+        Timber.tag(TAG).d("clampedPercent = $clampedPercent, heightMm = $heightMm")
         Timber.tag(TAG).d("---- END ----")
 
         return TankLevel(clampedPercent, heightMm)

@@ -43,6 +43,9 @@ object SensorAdvertParser {
     private const val CC2540_PAYLOAD_LONG = 23
     private const val NRF52_PAYLOAD = 10
 
+    /** CC2540 firmware samples at 12µs intervals; distance = index * 2, so each unit = 6µs */
+    private const val CC2540_TIME_BASE_US = 6
+
     fun parse(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
         return parseCC2540(data, rssi, bleAddress) ?: parseNRF52(data, rssi, bleAddress)
     }
@@ -119,9 +122,7 @@ object SensorAdvertParser {
             val deviceMac = byteArrayOf(macBytes[3], macBytes[4], macBytes[5])
             if (!payloadMac.contentEquals(deviceMac)) return null
 
-            val byte0raw = data[0].toInt() and 0xFF
-            val sensorType = byte0raw and 0x7F
-            val extendedRange = (byte0raw and 0x80) != 0
+            val sensorType = data[0].toInt() and 0x7F
 
             val validTypes = setOf(
                 BleConstants.SensorType.STANDARD_BOTTOM_UP,
@@ -143,21 +144,15 @@ object SensorAdvertParser {
 
             val byte3 = data[3].toInt() and 0xFF
             val byte4 = data[4].toInt() and 0xFF
-            var rawLevel = byte3 or ((byte4 and 0x3F) shl 8)
-
-            // Extended range: bit 7 of hw byte scales up the raw level
-            if (extendedRange) {
-                rawLevel = 16384 + (rawLevel shl 2)
-            }
+            val rawLevel = byte3 or ((byte4 and 0x3F) shl 8)
 
             val quality = (byte4 shr 6) and 0x03
 
-            // Match decompiled: level = 1e-6 * rawLevel (time-of-flight in µs)
-            // Then apply temperature-compensated propane speed of sound / 2
-            val levelSeconds = rawLevel * 1e-6
+            // Convert raw level to depth in mm using temperature coefficients
+            // depth_mm = rawLevel * (coeff[0] + coeff[1]*temp + coeff[2]*temp²)
             val coeffs = BleConstants.PROPANE_COEFFICIENTS
-            val speedOfSound = (coeffs[0] + coeffs[1] * temperatureCelsius + coeffs[2] * temperatureCelsius * temperatureCelsius) * 2000.0
-            val heightMeters = levelSeconds * speedOfSound / 2.0
+            val depthMm = rawLevel * (coeffs[0] + coeffs[1] * temperatureCelsius + coeffs[2] * temperatureCelsius * temperatureCelsius)
+            val heightMeters = depthMm / 1000.0
 
             val mopekaSensorType = MopekaSensorType.fromNrf52TypeByte(sensorType)
 
@@ -255,12 +250,17 @@ object SensorAdvertParser {
         val best = adv.maxByOrNull { it.amplitude } ?: return 0.0
         val rawLevel = best.distance
 
-        // Convert using propane speed of sound (same as NRF52)
-        val levelSeconds = rawLevel * 1e-6
+        Log.d(TAG, "CC2540 samples: hwVer=$hwVersion, entries=${adv.size}, " +
+                "best=(amp=${best.amplitude}, dist=$rawLevel), " +
+                "all=${adv.joinToString { "(a=${it.amplitude},d=${it.distance})" }}")
+
+        // CC2540 distance units represent 6µs of round-trip time-of-flight each
+        // (firmware timer resolution = 12µs per sample index, distance = index * 2)
+        val timeUs = rawLevel * CC2540_TIME_BASE_US
         val coeffs = BleConstants.PROPANE_COEFFICIENTS
         val temp = temperatureCelsius.toDouble()
-        val speedOfSound = (coeffs[0] + coeffs[1] * temp + coeffs[2] * temp * temp) * 2000.0
-        return levelSeconds * speedOfSound / 2.0
+        val depthMm = timeUs * (coeffs[0] + coeffs[1] * temp + coeffs[2] * temp * temp)
+        return depthMm / 1000.0
     }
 
     /**

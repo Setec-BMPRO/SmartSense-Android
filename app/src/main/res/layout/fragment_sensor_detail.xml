@@ -238,6 +238,7 @@
                             android:id="@+id/additional_info_arrow"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
+                            android:rotation="180"
                             android:src="@drawable/ic_expand_less"
                             app:tint="?attr/colorOnSurfaceVariant"
                             android:contentDescription="Toggle"/>
@@ -250,7 +251,7 @@
                         android:orientation="vertical"
                         android:paddingHorizontal="24dp"
                         android:paddingBottom="24dp"
-                        android:visibility="visible"
+                        android:visibility="gone"
                         tools:visibility="visible">
 
                         <!-- Technical Detail Rows -->
