@@ -45,6 +45,32 @@ interface SensorDao {
     @Query("SELECT address FROM sensors WHERE registered = 1 AND sync_status != 'DELETED'")
     fun observeRegisteredAddresses(): Flow<List<String>>
 
+    @Query("""
+        UPDATE sensors SET
+            last_battery_voltage = :batteryVoltage,
+            last_rssi = :rssi,
+            last_quality = :quality,
+            last_temperature_celsius = :temperatureCelsius,
+            last_raw_height_meters = :rawHeightMeters,
+            last_reading_timestamp = :timestamp,
+            last_sensor_type = :sensorType,
+            lastSeenMillis = :timestamp
+        WHERE address = :address
+    """)
+    suspend fun updateLastReading(
+        address: String,
+        batteryVoltage: Float,
+        rssi: Int,
+        quality: Int,
+        temperatureCelsius: Float,
+        rawHeightMeters: Double,
+        timestamp: Long,
+        sensorType: String
+    )
+
+    @Query("SELECT * FROM sensors WHERE registered = 1 AND sync_status != 'DELETED'")
+    fun observeRegisteredSensors(): Flow<List<SensorEntity>>
+
     @Query("SELECT * FROM sensors WHERE address = :address LIMIT 1")
     suspend fun getSensor(address: String): SensorEntity?
 

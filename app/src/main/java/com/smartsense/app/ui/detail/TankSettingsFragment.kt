@@ -11,6 +11,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
@@ -66,6 +67,7 @@ class TankSettingsFragment : Fragment() {
         setupToolbar()
         setupListeners()
         observeState()
+        setupBackPressHandler()
 
         viewModel.loadTankConfig()
     }
@@ -82,7 +84,7 @@ class TankSettingsFragment : Fragment() {
     private fun setupToolbar() = with(binding.toolbar) {
         setNavigationIcon(R.drawable.ic_back)
         setNavigationOnClickListener {
-            findNavController().popBackStack()
+            handleBackNavigation()
         }
         inflateMenu(R.menu.menu_save)
         setOnMenuItemClickListener {
@@ -368,6 +370,44 @@ class TankSettingsFragment : Fragment() {
         tvThreshold.text = "${state.alarmThresholdPercent}%"
 
         frequencyDropdown.setText(state.notificationFrequency.displayName, false)
+    }
+
+    // --------------------------------------
+    // 🔙 BACK NAVIGATION
+    // --------------------------------------
+
+    private fun setupBackPressHandler() {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    handleBackNavigation()
+                }
+            }
+        )
+    }
+
+    private fun handleBackNavigation() {
+        if (viewModel.hasUnsavedChanges()) {
+            showUnsavedChangesDialog()
+        } else {
+            findNavController().popBackStack()
+        }
+    }
+
+    private fun showUnsavedChangesDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.unsaved_changes_title)
+            .setMessage(R.string.unsaved_changes_message)
+            .setPositiveButton(R.string.save) { _, _ ->
+                viewModel.updateCustomHeight(binding.etHeight.text.toString().trim())
+                viewModel.save()
+            }
+            .setNegativeButton(R.string.discard) { _, _ ->
+                findNavController().popBackStack()
+            }
+            .setNeutralButton(R.string.cancel, null)
+            .show()
     }
 
     // --------------------------------------

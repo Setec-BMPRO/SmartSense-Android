@@ -22,7 +22,27 @@ data class SensorEntity(
     @ColumnInfo(name = "last_modified_locally")
     val lastModifiedLocally: Long = System.currentTimeMillis(),
 
+    // --- Last Known Reading (persisted for offline display) ---
+    @ColumnInfo(name = "last_battery_voltage", defaultValue = "0")
+    val lastBatteryVoltage: Float = 0f,
 
+    @ColumnInfo(name = "last_rssi", defaultValue = "0")
+    val lastRssi: Int = 0,
+
+    @ColumnInfo(name = "last_quality", defaultValue = "0")
+    val lastQuality: Int = 0,
+
+    @ColumnInfo(name = "last_temperature_celsius", defaultValue = "0")
+    val lastTemperatureCelsius: Float = 0f,
+
+    @ColumnInfo(name = "last_raw_height_meters", defaultValue = "0")
+    val lastRawHeightMeters: Double = 0.0,
+
+    @ColumnInfo(name = "last_reading_timestamp", defaultValue = "0")
+    val lastReadingTimestamp: Long = 0,
+
+    @ColumnInfo(name = "last_sensor_type", defaultValue = "")
+    val lastSensorType: String = "",
 )
 
 fun SensorEntity.toSensor(): Sensor = Sensor(

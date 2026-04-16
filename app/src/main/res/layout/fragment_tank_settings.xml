@@ -285,6 +285,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
                             android:text="@string/percent" />
 
                         <com.google.android.material.button.MaterialButton
@@ -293,6 +295,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
                             android:text="@string/centimeter" />
 
                         <com.google.android.material.button.MaterialButton
@@ -301,6 +305,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:paddingStart="4dp"
+                            android:paddingEnd="4dp"
                             android:text="@string/inches" />
 
                     </com.google.android.material.button.MaterialButtonToggleGroup>

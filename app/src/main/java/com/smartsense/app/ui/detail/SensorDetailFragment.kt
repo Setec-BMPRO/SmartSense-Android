@@ -126,8 +126,10 @@ class SensorDetailFragment : Fragment() {
             .onEach { sensor ->
                 sensor?.let {
                     bindSensor(it)
-                    // Start/Restart the timer only when the sensor data changes
-                    startLastUpdatedTimer(it.reading?.timestampMillis)
+                    // Start/Restart the timer only when live sensor data is available
+                    if (it.reading != null) {
+                        startLastUpdatedTimer(it.reading.timestampMillis)
+                    }
                 }
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
@@ -178,7 +180,11 @@ class SensorDetailFragment : Fragment() {
         toolbar.title = getString(R.string.tank_info)
         toolbar.subtitle = sensor.name
         // Set text IMMEDIATELY so it's "Just now" without waiting for the timer
-        lastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+        lastUpdated.text = if (sensor.reading != null) {
+            TimeUtils.getLastUpdatedText(sensor.reading.timestampMillis)
+        } else {
+            getString(R.string.waiting_for_signal)
+        }
         setupObserve()
 
         setupTankDisplay(sensor)
@@ -244,13 +250,14 @@ class SensorDetailFragment : Fragment() {
     }
 
     private fun FragmentSensorDetailBinding.setupStatusRow(sensor: Sensor) {
-        detailBattery.text = getString(R.string.format_battery, sensor.batteryPercent)
-        detailSignal.text = getString(R.string.format_rssi, sensor.reading?.rssi)
+        val hasReading = sensor.reading != null
+        detailBattery.text = if (hasReading) getString(R.string.format_battery, sensor.batteryPercent) else "--"
+        detailSignal.text = if (hasReading) getString(R.string.format_rssi, sensor.reading?.rssi) else "--"
         detailQuality.text = when (sensor.readQuality) {
             ReadQuality.GOOD -> getString(R.string.quality_good)
             ReadQuality.FAIR -> getString(R.string.quality_fair)
             ReadQuality.POOR -> getString(R.string.quality_poor)
-            else -> ""
+            else -> if (hasReading) "" else "--"
         }
     }
 

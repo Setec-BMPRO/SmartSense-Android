@@ -91,11 +91,13 @@ class Sensor1DetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(sensor = sensor, isLoading = false)
                     }
-                    val level = sensor?.tankLevel?.percentage?.toInt() ?: -1
-                    alertTrigger.checkAndTrigger(
-                        address = sensor!!.address,
-                        currentLevel = level
-                    )
+                    sensor?.let {
+                        val level = it.tankLevel?.percentage?.toInt() ?: -1
+                        alertTrigger.checkAndTrigger(
+                            address = it.address,
+                            currentLevel = level
+                        )
+                    }
                 }
         }
     }

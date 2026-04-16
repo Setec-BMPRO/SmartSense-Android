@@ -42,6 +42,8 @@ class DetailTankSettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TankSettingsUiState())
     val uiState: StateFlow<TankSettingsUiState> = _uiState.asStateFlow()
 
+    private var initialState: TankSettingsUiState? = null
+
 
 
     // --------------------------------------
@@ -53,7 +55,7 @@ class DetailTankSettingsViewModel @Inject constructor(
             val tank = useCase.getTankConfig(sensorAddress)
 
             _uiState.update { state ->
-                tank?.let {
+                val loaded = tank?.let {
                     state.copy(
                         sensorAddress = sensorAddress,
                         name = it.name,
@@ -73,6 +75,8 @@ class DetailTankSettingsViewModel @Inject constructor(
                     sensorAddress = sensorAddress,
                     isLoading = false
                 )
+                initialState = loaded
+                loaded
             }
         }
     }
@@ -186,6 +190,26 @@ class DetailTankSettingsViewModel @Inject constructor(
     }
 
 
+
+    // --------------------------------------
+    // 🔍 CHANGE DETECTION
+    // --------------------------------------
+
+    fun hasUnsavedChanges(): Boolean {
+        val initial = initialState ?: return false
+        val current = _uiState.value
+        return initial.name != current.name ||
+                initial.region != current.region ||
+                initial.tankType != current.tankType ||
+                initial.customHeightMeters != current.customHeightMeters ||
+                initial.orientation != current.orientation ||
+                initial.qualityThreshold != current.qualityThreshold ||
+                initial.levelUnit != current.levelUnit ||
+                initial.alarmThresholdPercent != current.alarmThresholdPercent ||
+                initial.notificationsEnabled != current.notificationsEnabled ||
+                initial.notificationFrequency != current.notificationFrequency ||
+                initial.triggerAlarmUnit != current.triggerAlarmUnit
+    }
 
     // --------------------------------------
     // 🧩 INTERNAL HELPER

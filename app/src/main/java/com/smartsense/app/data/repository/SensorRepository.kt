@@ -22,11 +22,14 @@ import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
+import com.smartsense.app.domain.model.SensorReading
 import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import com.smartsense.app.util.uppercaseFirst
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -57,6 +60,8 @@ class SensorRepository @Inject constructor(
         private const val TAG = "SensorRepository"
         private const val SYNC_WORK_NAME = "SensorSyncWork"
     }
+
+    private val appCoroutineScope: CoroutineScope = appScope.scope
 
     // --- State Management ---
     private val _rawReadings = kotlinx.coroutines.flow.MutableSharedFlow<ScannedSensor>(extraBufferCapacity = 1)
@@ -117,23 +122,30 @@ class SensorRepository @Inject constructor(
         val ticker = createTicker(scanIntervalMillis)
 
         return combine(
-            sensorDao.observeRegisteredAddresses(),
+            sensorDao.observeRegisteredSensors(),
             ticker
-        ) { addresses, _ ->
-            Timber.d("⏱ tick (list) with ${addresses.size} addresses")
+        ) { sensorEntities, _ ->
+            Timber.d("⏱ tick (list) with ${sensorEntities.size} sensors")
 
             val currentReadings = sharedReadings.value
             val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
 
-            addresses.mapNotNull { address ->
-                val scanned = currentReadings[address] ?: return@mapNotNull null
-                scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+            sensorEntities.map { entity ->
+                val address = entity.address
+                val scanned = currentReadings[address]
+                val tank = tankMap[address]?.toDomain()
 
-                mapToSensor(
-                    scanned = scanned,
-                    tank = tankMap[address]?.toDomain(),
-                    mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
-                )
+                if (scanned != null) {
+                    scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                    persistReading(scanned, address)
+                    mapToSensor(
+                        scanned = scanned,
+                        tank = tank,
+                        mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
+                    )
+                } else {
+                    mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
+                }
             }.also { Timber.d("🚀 emit list size=${it.size}") }
         }.distinctUntilChanged()
     }
@@ -141,16 +153,24 @@ class SensorRepository @Inject constructor(
     fun observeSensorForDetail(address: String, scanIntervalMillis: Long): Flow<Sensor?> =
         createTicker(scanIntervalMillis).map {
             Timber.d("⏱ tick (detail)")
-            val scanned = sharedReadings.value[address] ?: return@map null
+            val scanned = sharedReadings.value[address]
             val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
+            val tank = tankMap[address]?.toDomain()
 
-            scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-
-            mapToSensor(
-                scanned = scanned,
-                tank = tankMap[address]?.toDomain(),
-                mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
-            ).also { Timber.d("🚀 emit detail: $it") }
+            if (scanned != null) {
+                scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                persistReading(scanned, address)
+                mapToSensor(
+                    scanned = scanned,
+                    tank = tank,
+                    mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
+                )
+            } else {
+                val entity = sensorDao.getSensor(address)
+                if (entity != null) {
+                    mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_DETAIL)
+                } else null
+            }.also { Timber.d("🚀 emit detail: $it") }
         }
 
     private fun createTicker(interval: Long): Flow<Unit> = flow {
@@ -186,13 +206,23 @@ class SensorRepository @Inject constructor(
         }
 
         val now = System.currentTimeMillis()
+        val scanned = liveReadings.value[address]
+        val reading = scanned?.parsed?.reading
+
         val sensor = SensorEntity(
             address = address,
             name = name.ifBlank { address },
             lastSeenMillis = now,
             registered = true,
             syncStatus = SyncStatus.PENDING,
-            lastModifiedLocally = now
+            lastModifiedLocally = now,
+            lastBatteryVoltage = reading?.batteryVoltage ?: 0f,
+            lastRssi = reading?.rssi ?: 0,
+            lastQuality = reading?.quality ?: 0,
+            lastTemperatureCelsius = reading?.temperatureCelsius ?: 0f,
+            lastRawHeightMeters = reading?.rawHeightMeters ?: 0.0,
+            lastReadingTimestamp = if (reading != null) now else 0,
+            lastSensorType = scanned?.parsed?.sensorType?.name ?: ""
         )
         val tank = TankEntity(
             name=name,
@@ -412,6 +442,76 @@ class SensorRepository @Inject constructor(
     }
 
     suspend fun resetLocalDataForNewAccount()=sensorDao.resetLocalDataForNewAccount()
+
+    // --------------------------------------
+    // 💾 READING PERSISTENCE
+    // --------------------------------------
+
+    private fun persistReading(scanned: ScannedSensor, address: String) {
+        val reading = scanned.parsed?.reading ?: return
+        appCoroutineScope.launch {
+            try {
+                sensorDao.updateLastReading(
+                    address = address,
+                    batteryVoltage = reading.batteryVoltage,
+                    rssi = reading.rssi,
+                    quality = reading.quality,
+                    temperatureCelsius = reading.temperatureCelsius,
+                    rawHeightMeters = reading.rawHeightMeters,
+                    timestamp = System.currentTimeMillis(),
+                    sensorType = scanned.parsed.sensorType.name
+                )
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to persist reading for $address")
+            }
+        }
+    }
+
+    private fun mapFromPersistedReading(
+        entity: SensorEntity,
+        tank: Tank?,
+        mapToSensorEnum: MapToSensorEnum
+    ): Sensor {
+        val hasReading = entity.lastReadingTimestamp > 0
+        val sensorType = if (entity.lastSensorType.isNotEmpty()) {
+            try { MopekaSensorType.valueOf(entity.lastSensorType) } catch (_: Exception) { null }
+        } else null
+
+        val reading = if (hasReading) SensorReading(
+            rawHeightMeters = entity.lastRawHeightMeters,
+            batteryVoltage = entity.lastBatteryVoltage,
+            rssi = entity.lastRssi,
+            quality = entity.lastQuality,
+            temperatureCelsius = entity.lastTemperatureCelsius,
+            firmwareVersion = "",
+            timestampMillis = entity.lastReadingTimestamp
+        ) else null
+
+        val tankLevel = if (hasReading && mapToSensorEnum != MapToSensorEnum.DISCOVER) {
+            calculateTankUseCase.calculateTankLevel(
+                rawHeightMeters = entity.lastRawHeightMeters,
+                tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
+                tankType = calculateTankUseCase.calculateTankType(tank)
+            )
+        } else null
+
+        val tankTypeDisplay = tank?.let {
+            if (it.type == TankType.ARBITRARY)
+                "${it.type.displayName} ${it.orientation.name.lowercase().replaceFirstChar { c -> c.uppercase() }}"
+            else it.type.displayName
+        }
+
+        return Sensor(
+            address = entity.address,
+            name = calculateTankUseCase.calculateName(sensorType, tank?.name),
+            sensorType = sensorType,
+            reading = reading,
+            tankLevel = tankLevel,
+            readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL && hasReading)
+                entity.lastQuality.toReadQuality() else null,
+            tankType = tankTypeDisplay
+        )
+    }
 
     // --------------------------------------
     // 🧠 MAPPING LOGIC

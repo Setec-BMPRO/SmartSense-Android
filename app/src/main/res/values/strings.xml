@@ -105,7 +105,7 @@
     <string name="notifications">Notifications</string>
     <string name="trigger_alarm_above_or_below_threshold">Trigger alarm above or below threshold ?</string>
     <string name="percent">Percent</string>
-    <string name="centimeter">Centimeter</string>
+    <string name="centimeter">Centimeters</string>
     <string name="above">Above</string>
     <string name="below">Below</string>
     <string name="inches">Inches</string>
@@ -160,6 +160,10 @@
     <string name="yes">Yes</string>
     <string name="tank_info">Tank Info</string>
     <string name="save">Save</string>
+    <string name="discard">Discard</string>
+    <string name="waiting_for_signal">Waiting for signal…</string>
+    <string name="unsaved_changes_title">Unsaved Changes</string>
+    <string name="unsaved_changes_message">You have unsaved changes. Would you like to save or discard them?</string>
     <string name="local_only">Local</string>
     <string name="sign_in_required">Sign In Required</string>
 

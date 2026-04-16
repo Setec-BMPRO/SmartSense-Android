@@ -11,7 +11,7 @@ import com.smartsense.app.data.local.entity.TankEntity
 
 @Database(
     entities = [SensorEntity::class, TankEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class MopekaDatabase : RoomDatabase() {
@@ -32,6 +32,19 @@ abstract class MopekaDatabase : RoomDatabase() {
                 // Add new columns to 'tanks' table
                 db.execSQL("ALTER TABLE tanks ADD COLUMN sync_status TEXT NOT NULL DEFAULT 'SYNCED'")
                 db.execSQL("ALTER TABLE tanks ADD COLUMN last_modified_locally INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add last known reading columns to 'sensors' table
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_battery_voltage REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_rssi INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_quality INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_temperature_celsius REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_raw_height_meters REAL NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_reading_timestamp INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE sensors ADD COLUMN last_sensor_type TEXT NOT NULL DEFAULT ''")
             }
         }
     }
