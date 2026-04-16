@@ -144,9 +144,12 @@ class SensorRepository @Inject constructor(
                         mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
                     )
                 } else {
-                    mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
+                    val entity = sensorDao.getSensor(address)
+                    if (entity != null) {
+                        mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
+                    } else null
                 }
-            }.also { Timber.d("🚀 emit list size=${it.size}") }
+            }.filterNotNull().also { Timber.d("🚀 emit list size=${it.size}") }
         }.distinctUntilChanged()
     }
 
@@ -527,7 +530,8 @@ class SensorRepository @Inject constructor(
             calculateTankUseCase.calculateTankLevel(
                 rawHeightMeters = reading?.rawHeightMeters ?: 0.0,
                 tankHeightMm = calculateTankUseCase.calculateTankHeightMm(tank),
-                tankType = calculateTankUseCase.calculateTankType(tank)
+                tankType = calculateTankUseCase.calculateTankType(tank),
+                rawData = scanned.parsed?.rawData
             )
             //    .apply { percentage = Random.nextFloat() * 100f }
         } else null

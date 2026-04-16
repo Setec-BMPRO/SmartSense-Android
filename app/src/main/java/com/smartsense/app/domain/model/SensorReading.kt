@@ -8,6 +8,6 @@ data class SensorReading(
     val temperatureCelsius: Float,
     val firmwareVersion: String = "",
     var timestampMillis: Long = System.currentTimeMillis(),
-    val tankLevelPercentage: Int=0,
+    var tankLevelPercentage: Int=0,
     val deviceMAC: String=""
 )

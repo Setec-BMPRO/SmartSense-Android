@@ -20,7 +20,8 @@ class CalculateTankUseCase @Inject constructor() {
     fun calculateTankLevel(
         rawHeightMeters: Double,
         tankHeightMm: Float,
-        tankType: TankType
+        tankType: TankType,
+        rawData: ByteArray? = null
     ): TankLevel {
 
         logStart(rawHeightMeters, tankHeightMm, tankType)
@@ -35,6 +36,25 @@ class CalculateTankUseCase @Inject constructor() {
 
         val heightMm = (rawHeightMeters * 1000.0).toFloat()
 
+        // 1. Try modern Mopeka firmware logic if raw data is available
+        if (rawData != null && rawData.size >= 23) {
+            val percentage = com.smartsense.app.data.ble.MopekaSensorCalculator
+                .calculatePercentageFromPayload(rawData, tankHeightMm.toInt())
+            
+            Timber.tag(TAG).d("MopekaSensorCalculator percentage = $percentage, heightMm = $heightMm")
+            
+            // For horizontal tanks, apply the volume correction to the calculated linear percentage
+            val finalPercent = if (tankType == TankType.PROPANE_HORIZONTAL) {
+                val norm = (percentage / 100.0).coerceIn(0.0, 1.0)
+                (100.0 * (-1.16533 * norm.pow(3) + 1.7615 * norm.pow(2) + 0.40923 * norm)).toFloat()
+            } else {
+                percentage.toFloat()
+            }
+
+            return TankLevel(finalPercent.coerceIn(0f, 100f), heightMm)
+        }
+
+        // 2. Fallback to classic ratio-based calculation
         // Per SRS 9.1.3.2: LPG level (%) = (LPG liquid level / Tank height) * 100%
         // For horizontal tanks, we use the polynomial to convert height ratio to volume ratio.
         val percent = when (tankType) {

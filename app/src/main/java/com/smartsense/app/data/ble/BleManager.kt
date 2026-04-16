@@ -134,28 +134,46 @@ class BleManager @Inject constructor(
     // --- Parsing ---
 
     private fun parseScanResult(result: ScanResult): ScannedSensor? {
-        // Nordic's result.scanRecord is the same as native
+        val address = result.device.address
         val record = result.scanRecord ?: return null
-
         val hwType = detectHardwareType(record) ?: return null
 
-        // Use the manufacturer ID to get data
-        val mfgData = when (hwType) {
-            HwType.CC2540 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_CC2540)
-            HwType.NRF52 -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_NRF52)
-            HwType.SETEC -> record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_SETEC)
-        } ?: return null
+        val mfgId = when (hwType) {
+            HwType.CC2540 -> BleConstants.MANUFACTURER_ID_CC2540
+            HwType.NRF52 -> BleConstants.MANUFACTURER_ID_NRF52
+            HwType.SETEC -> BleConstants.MANUFACTURER_ID_SETEC
+        }
 
-        val parsed = parseAdvertData(hwType, mfgData, result) ?: return null
+        val mfgData = record.getManufacturerSpecificData(mfgId) ?: return null
+
+        // Log 1: Raw Data (Hex format is best for BLE)
+        val rawHex = mfgData.joinToString("") { "%02X ".format(it) }
+        //Log.v("SensorParser", "[$address] Raw MfgData ($hwType): $rawHex")
+
+        //val levelPercentage=MopekaSensorCalculator.calculatePercentageFromPayload(mfgData,500)
+        val parsed = parseAdvertData(hwType, mfgData, result) ?: run {
+            Log.e("SensorParser", "[$address] Parsing failed for raw: $rawHex")
+            return null
+        }
+
+        // Log 2: Parsed Data (Assuming 'parsed' is a data class)
+        //Log.d("SensorParser", "[$address] Parsed: $parsed")
+
         if (!parsed.sensorType.isLpg) return null
 
+        //parsed.reading.tankLevelPercentage=levelPercentage
         return ScannedSensor(
-            address = result.device.address,
+            address = address,
             name = result.device.name ?: record.deviceName,
             rssi = result.rssi,
             parsed = parsed
         )
     }
+
+    /**
+     * Helper to convert ByteArray to Hex String: [0x01, 0xFF] -> "01FF"
+     */
+    private fun ByteArray.toHexString(): String = joinToString("") { "%02X".format(it) }
 
     private fun detectHardwareType(record: no.nordicsemi.android.support.v18.scanner.ScanRecord): HwType? {
         val serviceUuids = record.serviceUuids

@@ -10,7 +10,8 @@ import com.smartsense.app.domain.model.SensorReading
 data class ParsedSensor(
     val reading: SensorReading,
     val sensorType: MopekaSensorType,
-    val syncPressed: Boolean = false
+    val syncPressed: Boolean = false,
+    val rawData: ByteArray? = null
 )
 
 /**
@@ -104,7 +105,8 @@ object SensorAdvertParser {
 
                 ),
                 sensorType = MopekaSensorType.fromCC2540DeviceByte(byte1),
-                syncPressed = syncPressed
+                syncPressed = syncPressed,
+                rawData = data
             )
         } catch (e: Exception) {
             Log.w(TAG, "Error parsing CC2540 data", e)
@@ -173,7 +175,8 @@ object SensorAdvertParser {
                     firmwareVersion = ""
                 ),
                 sensorType = mopekaSensorType,
-                syncPressed = syncPressed
+                syncPressed = syncPressed,
+                rawData = data
             )
         } catch (e: Exception) {
             Log.w(TAG, "Error parsing NRF52 data", e)
@@ -336,7 +339,8 @@ object SensorAdvertParser {
                     deviceMAC = macBytes.joinToString(":") { byte -> "%02X".format(byte) }
                 ),
                 sensorType = mopekaSensorType,
-                syncPressed = syncPressed
+                syncPressed = syncPressed,
+                rawData = data
             )
         } catch (e: Exception) {
             Log.w(TAG, "Error parsing Setec data", e)
