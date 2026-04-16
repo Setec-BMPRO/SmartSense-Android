@@ -15,8 +15,6 @@ class CalculateTankUseCase @Inject constructor() {
 
     companion object {
         private const val TAG = "CalculateTankUseCase"
-        private const val MIN_OFFSET_METERS = 0.0381
-        private const val SCALE_FACTOR = 0.78
     }
 
     fun calculateTankLevel(
@@ -35,27 +33,18 @@ class CalculateTankUseCase @Inject constructor() {
             return TankLevel(0f, 0f)
         }
 
-        val effectiveHeight = tankHeightMeters * SCALE_FACTOR
-        Timber.tag(TAG).d("effectiveHeight = $effectiveHeight")
-
         val heightMm = (rawHeightMeters * 1000.0).toFloat()
 
-        if (rawHeightMeters < MIN_OFFSET_METERS) {
-            Timber.tag(TAG).d("Below MIN_OFFSET_METERS ($MIN_OFFSET_METERS) → 0% but heightMm=$heightMm")
-            return TankLevel(0f, heightMm)
-        }
-
+        // Per SRS 9.1.3.2: LPG level (%) = (LPG liquid level / Tank height) * 100%
+        // For horizontal tanks, we use the polynomial to convert height ratio to volume ratio.
         val percent = when (tankType) {
-            TankType.PROPANE_VERTICAL,
-            TankType.CUSTOM -> calculateVerticalPercent(
-                rawHeightMeters,
-                effectiveHeight
-            )
-
-            TankType.PROPANE_HORIZONTAL -> calculateHorizontalPercent(
-                rawHeightMeters,
-                effectiveHeight
-            )
+            TankType.PROPANE_HORIZONTAL -> {
+                val norm = (rawHeightMeters / tankHeightMeters).coerceIn(0.0, 1.0)
+                100.0 * (-1.16533 * norm.pow(3) + 1.7615 * norm.pow(2) + 0.40923 * norm)
+            }
+            else -> {
+                (rawHeightMeters / tankHeightMeters) * 100.0
+            }
         }
 
         Timber.tag(TAG).d("percent (raw) = $percent")
@@ -69,64 +58,6 @@ class CalculateTankUseCase @Inject constructor() {
 
     // --------------------------------------
     // 📐 CALCULATIONS
-    // --------------------------------------
-
-    private fun calculateVerticalPercent(
-        rawHeightMeters: Double,
-        effectiveHeight: Double
-    ): Double {
-        Timber.tag(TAG).d("Mode = VERTICAL/CUSTOM")
-
-        return if (MIN_OFFSET_METERS >= effectiveHeight) {
-            Timber.tag(TAG).d("MIN_OFFSET >= effectiveHeight → 100%")
-            100.0
-        } else {
-            val value = 100.0 * (rawHeightMeters - MIN_OFFSET_METERS) /
-                    (effectiveHeight - MIN_OFFSET_METERS)
-
-            Timber.tag(TAG).d("Vertical formula result = $value")
-            value
-        }
-    }
-
-    private fun calculateHorizontalPercent(
-        rawHeightMeters: Double,
-        effectiveHeight: Double
-    ): Double {
-        Timber.tag(TAG).d("Mode = HORIZONTAL")
-        Timber.tag(TAG).d("diameter = $effectiveHeight")
-
-        return when {
-            rawHeightMeters >= effectiveHeight -> {
-                Timber.tag(TAG).d("rawHeight >= diameter → 100%")
-                100.0
-            }
-
-            rawHeightMeters <= 0 -> {
-                Timber.tag(TAG).d("rawHeight <= 0 → 0%")
-                0.0
-            }
-
-            else -> {
-                val norm = rawHeightMeters / effectiveHeight
-                Timber.tag(TAG).d("normalized height = $norm")
-
-                val p = -1.16533 * norm.pow(3) +
-                        1.7615 * norm.pow(2) +
-                        0.40923 * norm
-
-                Timber.tag(TAG).d("polynomial p = $p")
-
-                val result = 100.0 * p
-                Timber.tag(TAG).d("Horizontal result = $result")
-
-                result
-            }
-        }
-    }
-
-    // --------------------------------------
-    // 🧾 HELPERS
     // --------------------------------------
 
     private fun logStart(

@@ -79,7 +79,7 @@ object SensorAdvertParser {
             val byte3raw = data[3].toInt() and 0xFF
             val syncPressed = (byte3raw and 0x80) != 0
             val tempRaw = byte3raw and 0x3F
-            val temperatureCelsius = if (tempRaw == 0) -40.0f
+            val temperatureCelsius = if (tempRaw == 0) 25.0f
             else (1.776964f * (tempRaw - 25))
 
             val heightMeters = extractHeightFromSamples(data, 4, temperatureCelsius)
@@ -140,7 +140,7 @@ object SensorAdvertParser {
             val byte2raw = data[2].toInt() and 0xFF
             val syncPressed = (byte2raw and 0x80) != 0
             val tempRaw = byte2raw and 0x7F
-            val temperatureCelsius = (tempRaw - 40).toFloat()
+            val temperatureCelsius = if (tempRaw == 0) 25.0f else (tempRaw - 40).toFloat()
 
             val byte3 = data[3].toInt() and 0xFF
             val byte4 = data[4].toInt() and 0xFF
@@ -148,10 +148,12 @@ object SensorAdvertParser {
 
             val quality = (byte4 shr 6) and 0x03
 
-            // Convert raw level to depth in mm using temperature coefficients
-            // depth_mm = rawLevel * (coeff[0] + coeff[1]*temp + coeff[2]*temp²)
-            val coeffs = BleConstants.PROPANE_COEFFICIENTS
-            val depthMm = rawLevel * (coeffs[0] + coeffs[1] * temperatureCelsius + coeffs[2] * temperatureCelsius * temperatureCelsius)
+            // Convert raw level to depth in mm per SRS 9.1.3.2 (M1001 sensor)
+            val t = temperatureCelsius.toDouble()
+            val speed = 0.0004 * t * t * t - 0.0224 * t * t - 6.1989 * t + 940.04
+            // Distance travelled (mm) = (rawLevel units * 20us / 1000) * (speed * 0.7174)
+            // LPG liquid level (mm) = Distance travelled (mm) / 2
+            val depthMm = (rawLevel * 20.0 / 1000.0) * (speed * 0.7174) / 2.0
             val heightMeters = depthMm / 1000.0
 
             val mopekaSensorType = MopekaSensorType.fromNrf52TypeByte(sensorType)
@@ -256,11 +258,13 @@ object SensorAdvertParser {
 
         // CC2540 distance units represent 6µs of round-trip time-of-flight each
         // (firmware timer resolution = 12µs per sample index, distance = index * 2)
-        val timeUs = rawLevel * CC2540_TIME_BASE_US
-        val coeffs = BleConstants.PROPANE_COEFFICIENTS
-        val temp = temperatureCelsius.toDouble()
-        val depthMm = timeUs * (coeffs[0] + coeffs[1] * temp + coeffs[2] * temp * temp)
-        return depthMm / 1000.0
+        val timeUs = rawLevel.toDouble() * CC2540_TIME_BASE_US
+        val t = temperatureCelsius.toDouble()
+        // Speed formula per point 1
+        val speed = 0.0004 * t * t * t - 0.0224 * t * t - 6.1989 * t + 940.04
+        // Apply factor 0.7174 from SRS 9.1.3.2 (u71.74)
+        val depthMeters = (timeUs / 1_000_000.0) * (speed * 0.7174) / 2.0
+        return depthMeters
     }
 
     /**
