@@ -159,14 +159,14 @@
                     android:id="@+id/detail_tank"
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    app:isHorizontal="false"
+                    app:isHorizontal="true"
                     app:isBiggerMode="false"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/last_updated"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-
+                    android:layout_marginTop="@dimen/spacing_md"
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="Updated just now"/>

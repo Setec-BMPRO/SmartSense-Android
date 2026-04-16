@@ -21,4 +21,8 @@
 
     <!-- Bottom nav -->
     <dimen name="bottom_nav_height">80dp</dimen>
+
+    <!-- Tank -->
+    <dimen name="tank_detail_width_horizontal">300dp</dimen>
+    <dimen name="tank_detail_width_vertical">200dp</dimen>
 </resources>

@@ -17,13 +17,17 @@ class TankLevelView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val FILL_TOP_RATIO = 62f / 320f
-        private const val FILL_BOTTOM_RATIO = 290f / 320f
-        private const val SVG_TANK_LEFT_RATIO = 25f / 240f
-        private const val SVG_TANK_RIGHT_RATIO = 215f / 240f
+        private const val FILL_TOP_RATIO = 63.5f / 320f
+        private const val FILL_BOTTOM_RATIO = 288.5f / 320f
+        private const val BODY_TOP_RATIO = 62f / 320f
+        private const val BODY_BOTTOM_RATIO = 290f / 320f
+        private const val SVG_TANK_LEFT_RATIO = 40f / 320f
+        private const val SVG_TANK_RIGHT_RATIO = 280f / 320f
 
-        private const val H_FILL_TOP_RATIO = 14f / 48f
-        private const val H_FILL_BOTTOM_RATIO = 34f / 48f
+        private const val H_FILL_TOP_RATIO = 7f / 32f
+        private const val H_FILL_BOTTOM_RATIO = 25f / 32f
+        private const val H_BODY_TOP_RATIO = 6f / 32f
+        private const val H_BODY_BOTTOM_RATIO = 26f / 32f
         private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
         private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
     }
@@ -47,6 +51,7 @@ class TankLevelView @JvmOverloads constructor(
     var isHorizontal: Boolean = false
         set(value) {
             field = value
+            if (value) isBiggerMode = false
             lastWidth = 0
             aspectRatio = if (value) 0.695f else 1.0f
             requestLayout()
@@ -222,9 +227,13 @@ class TankLevelView @JvmOverloads constructor(
         val bounds = RectF(0f, 0f, w, height.toFloat())
         val topRatio = if (isHorizontal) H_FILL_TOP_RATIO else FILL_TOP_RATIO
         val bottomRatio = if (isHorizontal) H_FILL_BOTTOM_RATIO else FILL_BOTTOM_RATIO
+        val bodyTopRatio = if (isHorizontal) H_BODY_TOP_RATIO else BODY_TOP_RATIO
+        val bodyBottomRatio = if (isHorizontal) H_BODY_BOTTOM_RATIO else BODY_BOTTOM_RATIO
 
         val fillTopY = tankDrawTop + (tankDrawHeight * topRatio)
         val fillBottomY = tankDrawTop + (tankDrawHeight * bottomRatio)
+        val bodyTopY = tankDrawTop + (tankDrawHeight * bodyTopRatio)
+        val bodyBottomY = tankDrawTop + (tankDrawHeight * bodyBottomRatio)
 
         val tankLeftBound = (w - tankDrawWidth) / 2f
         val leftRatio = if (isHorizontal) H_SVG_TANK_LEFT_RATIO else SVG_TANK_LEFT_RATIO
@@ -234,14 +243,21 @@ class TankLevelView @JvmOverloads constructor(
 
         // 1. Draw Tank body
         val saveBody = canvas.saveLayer(bounds, null)
-        canvas.drawRect(0f, fillTopY, w, fillBottomY, tankGradientPaint)
+        canvas.drawRect(0f, bodyTopY, w, bodyBottomY, tankGradientPaint)
         tankBitmap?.let { canvas.drawBitmap(it, 0f, 0f, maskPaint) }
         canvas.restoreToCount(saveBody)
 
         // 2. Draw Liquid
         if (percentage > 0f) {
             val totalHeight = fillBottomY - fillTopY
-            val liquidTopY = fillBottomY - (totalHeight * (percentage / 100f))
+            var liquidTopY = fillBottomY - (totalHeight * (percentage / 100f))
+
+            // Ensure at least a minimal sliver is visible for very low values (e.g. 1-5%)
+            // especially when hardware strokes might overlap the bottom
+            val minHeight = 2f * context.resources.displayMetrics.density 
+            if (fillBottomY - liquidTopY < minHeight && percentage > 0.5f) {
+                liquidTopY = fillBottomY - minHeight
+            }
 
             val bottomColor = 0xFF1E88E5.toInt()
             val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt()
@@ -366,10 +382,9 @@ class TankLevelView @JvmOverloads constructor(
 
         if (isHorizontal) {
             tankDrawWidth = w * scale
-            tankDrawHeight = tankDrawWidth
-            val actualContentHeight = tankDrawHeight * (31f / 48f)
-            if (actualContentHeight > h) {
-                val adjust = h / actualContentHeight
+            tankDrawHeight = tankDrawWidth * (32f / 48f)
+            if (tankDrawHeight > h) {
+                val adjust = h / tankDrawHeight
                 tankDrawWidth *= adjust
                 tankDrawHeight *= adjust
             }

@@ -208,9 +208,9 @@ class SensorDetailFragment : Fragment() {
         // Update width based on orientation
         val layoutParams = detailTank.layoutParams
         layoutParams.width = if (isHorizontal) {
-            (280 * resources.displayMetrics.density).toInt()
+            resources.getDimensionPixelSize(R.dimen.tank_detail_width_horizontal)
         } else {
-            (200 * resources.displayMetrics.density).toInt()
+            resources.getDimensionPixelSize(R.dimen.tank_detail_width_vertical)
         }
         detailTank.layoutParams = layoutParams
 

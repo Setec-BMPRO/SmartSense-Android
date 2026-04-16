@@ -1,42 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="48dp"
-    android:height="48dp"
+    android:height="32dp"
     android:viewportWidth="48"
-    android:viewportHeight="48">
+    android:viewportHeight="32">
 
     <!-- Tank body outline (Horizontal) -->
     <path
         android:strokeColor="#000000"
         android:strokeWidth="2"
-        android:pathData="M8,13 L40,13 Q47,13 47,24 Q47,35 40,35 L8,35 Q1,35 1,24 Q1,13 8,13 Z">
-
-    </path>
+        android:pathData="M8,6 L40,6 Q46,6 46,16 Q46,26 40,26 L8,26 Q2,26 2,16 Q2,6 8,6 Z" />
 
     <!-- End caps -->
     <path
         android:strokeColor="#CCCCCC"
         android:strokeWidth="0.8"
-        android:pathData="M10,13 L10,35"/>
+        android:pathData="M10,6 L10,26"/>
     <path
         android:strokeColor="#CCCCCC"
         android:strokeWidth="0.8"
-        android:pathData="M38,13 L38,35"/>
+        android:pathData="M38,6 L38,26"/>
 
     <!-- Valve on top -->
     <path
         android:fillColor="#000000"
-        android:pathData="M22,9h4v4h-4z"/>
+        android:pathData="M22,2h4v4h-4z"/>
     <path
         android:fillColor="#000000"
-        android:pathData="M23,7 L25,7 L25,10 L23,10 Z"/>
+        android:pathData="M23,0 L25,0 L25,3 L23,3 Z"/>
 
     <!-- Legs/supports -->
     <path
         android:fillColor="#000000"
-        android:pathData="M10,35 L14,35 L14,38 Q14,39 13,39 L11,39 Q10,39 10,38 Z"/>
+        android:pathData="M10,26 L14,26 L14,31 Q14,32 13,32 L11,32 Q10,32 10,31 Z"/>
     <path
         android:fillColor="#000000"
-        android:pathData="M34,35 L38,35 L38,38 Q38,39 37,39 L35,39 Q34,39 34,38 Z"/>
+        android:pathData="M34,26 L38,26 L38,31 Q38,32 37,32 L35,32 Q34,32 34,31 Z"/>
 </vector>
