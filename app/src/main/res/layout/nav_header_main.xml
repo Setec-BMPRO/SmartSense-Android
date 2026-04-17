@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="180dp"
     android:background="?attr/colorPrimary"
-    android:gravity="bottom"
-    android:orientation="vertical"
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
@@ -13,7 +11,8 @@
         android:id="@+id/iv_header_avatar"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:layout_marginBottom="12dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="60dp"
         android:background="@drawable/bg_circle_error"
         android:backgroundTint="?attr/colorOnPrimary"
         android:contentDescription="Avatar"
@@ -21,22 +20,49 @@
         app:srcCompat="@drawable/ic_account"
         app:tint="?attr/colorPrimary" />
 
-    <TextView
-        android:id="@+id/tv_header_title"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SmartSense User"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textColor="?attr/colorOnPrimary"
-        android:textStyle="bold" />
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/tv_header_subtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="user@smartsense.com"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-        android:textColor="?attr/colorOnPrimary"
-        android:alpha="0.8"/>
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/tv_header_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SmartSense User"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:textColor="?attr/colorOnPrimary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_header_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="user@smartsense.com"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                android:textColor="?attr/colorOnPrimary"
+                android:alpha="0.8"/>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/iv_sign_out"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_signin"
+            android:contentDescription="@string/sign_out"
+            android:visibility="gone"
+            app:tint="?attr/colorOnPrimary"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

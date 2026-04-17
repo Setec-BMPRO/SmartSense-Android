@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -42,15 +43,19 @@ class TankAlertService : Service() {
         createNotificationChannels()
     }
 
-    @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // 1. Enter Foreground immediately to avoid ForegroundServiceDidNotStartInTimeException
+        // We must call startForeground even if the intent is invalid/null.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(1001, createServiceNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE)
+        } else {
+            startForeground(1001, createServiceNotification())
+        }
+
         val address = intent?.getStringExtra("EXTRA_ADDRESS") ?: ""
         val level = intent?.getIntExtra("EXTRA_LEVEL", -1) ?: -1
 
         if (address.isNotEmpty() && level != -1) {
-            // 1. Enter Foreground immediately to satisfy Android 12 requirements
-            startForeground(1001, createServiceNotification())
-
             // 2. Process the scan
             processScan(address, level, startId)
         } else {

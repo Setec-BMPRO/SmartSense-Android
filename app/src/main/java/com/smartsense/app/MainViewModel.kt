@@ -64,45 +64,14 @@ class MainViewModel @Inject constructor(
      * marked as registered in our local DataStore.
      */
     fun checkAuthState() {
+        // ... (existing code)
+    }
+
+    fun signOut() {
         viewModelScope.launch {
-            combine(
-                userPreferences.isSignedIn.distinctUntilChanged(),
-                userPreferences.uploadSensorData.distinctUntilChanged(),
-                authStateFlow.distinctUntilChanged()
-            ) { isSignedIn, isSyncEnabled, firebaseUser ->
-                // Log the raw inputs before processing
-                Timber.d("📥 Raw Input - SignedIn: $isSignedIn, SyncEnabled: $isSyncEnabled, UID: ${firebaseUser?.uid}")
-
-                Triple(isSignedIn && firebaseUser != null, isSyncEnabled, firebaseUser?.uid)
-            }
-                .distinctUntilChanged()
-                .collectLatest { (isAuthenticated, isSyncEnabled, uid) ->
-                    Timber.i("🔄 Combined State - Auth: $isAuthenticated, Sync: $isSyncEnabled, UID: $uid")
-
-                    // 1. Update UI State
-                    _uiState.value = if (isAuthenticated) {
-                        Timber.d("✅ UI State: Authenticated")
-                        MainUiState.Authenticated
-                    } else {
-                        Timber.d("❌ UI State: Unauthenticated")
-                        MainUiState.Unauthenticated
-                    }
-
-                    // 2. 🛡️ THE GUARD
-                    if (isAuthenticated && isSyncEnabled && uid != null) {
-                        Timber.i("🚀 SYNC TRIGGERED for UID: $uid")
-                        sharedUseCase.triggerSync()
-                    } else {
-                        // Log exactly why it skipped for debugging
-                        val reason = when {
-                            !isAuthenticated -> "User not authenticated"
-                            !isSyncEnabled -> "Sync toggle is OFF"
-                            uid == null -> "UID is null"
-                            else -> "Unknown condition"
-                        }
-                        Timber.w("🛑 Sync Skipped: $reason")
-                    }
-                }
+            FirebaseAuth.getInstance().signOut()
+            userPreferences.setIsSignedIn(false)
+            userPreferences.setUserEmail(null)
         }
     }
 }
