@@ -197,7 +197,7 @@ class AccountSensorsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         with(binding.toolbar) {
-            navigationIcon = null
+            setNavigationOnClickListener { findNavController().popBackStack() }
             title = getString(R.string.account)
             subtitle = ""
         }

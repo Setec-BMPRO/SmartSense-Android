@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item android:title="Account">
+        <menu>
+            <item
+                android:id="@+id/nav_signin"
+                android:icon="@drawable/ic_account"
+                android:title="@string/sign_in" />
+            <item
+                android:id="@+id/nav_signup"
+                android:icon="@drawable/ic_account"
+                android:title="@string/register" />
+            <item
+                android:id="@+id/nav_sensor_list"
+                android:icon="@drawable/ic_dashboard"
+                android:title="@string/account" />
+        </menu>
+    </item>
+
+    <item android:title="Setting">
+        <menu>
+            <item
+                android:id="@+id/nav_appearance"
+                android:icon="@drawable/ic_light_mode"
+                android:title="@string/setting_appearance" />
+            <item
+                android:id="@+id/nav_general"
+                android:icon="@drawable/ic_settings"
+                android:title="General" />
+            <item
+                android:id="@+id/nav_feature"
+                android:icon="@drawable/ic_settings"
+                android:title="Features" />
+        </menu>
+    </item>
+</menu>
