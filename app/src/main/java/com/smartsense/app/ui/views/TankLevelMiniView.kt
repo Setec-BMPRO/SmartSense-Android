@@ -25,6 +25,7 @@ class TankLevelMiniView @JvmOverloads constructor(
 
     private var percentage: Float = 0f
     private var levelStatus: LevelStatus = LevelStatus.RED
+    private var tankHeightMm: Float = 0f
 
     var isBiggerMode: Boolean = false
         set(value) {
@@ -67,6 +68,7 @@ class TankLevelMiniView @JvmOverloads constructor(
     private var lastDarkMode: Boolean? = null
 
     companion object {
+        private const val STANDARD_HORIZONTAL_HEIGHT_MM = 34.2f
         private const val FILL_TOP_RATIO = 62f / 320f
         private const val FILL_BOTTOM_RATIO = 288f / 320f
         private const val SVG_TANK_LEFT_RATIO = 25f / 240f
@@ -83,10 +85,15 @@ class TankLevelMiniView @JvmOverloads constructor(
                 Configuration.UI_MODE_NIGHT_YES
     }
 
-    fun setLevel(percentage: Float, status: LevelStatus) {
+    fun setLevel(percentage: Float, status: LevelStatus, heightMm: Float = 0f) {
+        val heightChanged = this.tankHeightMm != heightMm
         this.percentage = percentage.coerceIn(0f, 100f)
         this.levelStatus = status
+        this.tankHeightMm = heightMm
 
+        if (heightChanged) {
+            lastWidth = 0
+        }
         invalidate()
     }
 
@@ -101,7 +108,9 @@ class TankLevelMiniView @JvmOverloads constructor(
         val aspect = viewH.toFloat() / viewW.toFloat()
 
         val (targetW, targetH) = if (isHorizontal) {
-            size to (size * aspect).toInt()
+            val hScale = if (tankHeightMm > 0) tankHeightMm / STANDARD_HORIZONTAL_HEIGHT_MM else 1.0f
+            val baseH = size * aspect
+            size to (baseH * hScale).toInt()
         } else {
             (size / aspect).toInt() to size
         }

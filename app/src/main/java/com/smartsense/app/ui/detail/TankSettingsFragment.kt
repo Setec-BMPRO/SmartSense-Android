@@ -19,7 +19,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -38,8 +37,6 @@ import com.smartsense.app.util.uppercaseFirst
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class TankSettingsFragment : Fragment() {
@@ -222,7 +219,7 @@ class TankSettingsFragment : Fragment() {
     private fun setupTankSizeDropdown() {
         val state = viewModel.uiState.value
         val tankTypes = state.availableTankTypes.map {
-            if(it!= TankType.ARBITRARY)
+            if(it!= TankType.CUSTOM)
                 it.displayName + ", " + it.orientation.name.uppercaseFirst()
             else it.displayName
         }
@@ -240,7 +237,7 @@ class TankSettingsFragment : Fragment() {
             val availableTypes = viewModel.uiState.value.availableTankTypes
             val selectedType = availableTypes[position]
             viewModel.updateTankType(selectedType)
-            val isCustom = selectedType.displayName == TankType.ARBITRARY.displayName
+            val isCustom = selectedType.displayName == TankType.CUSTOM.displayName
             binding.layoutTankSizeCustom.isVisible = isCustom
             if (!isCustom) {
                 viewModel.updateCustomHeight("0")
@@ -323,7 +320,7 @@ class TankSettingsFragment : Fragment() {
         }
 
         layoutTankSizeCustom.isVisible =
-            state.tankType.displayName == TankType.ARBITRARY.displayName
+            state.tankType.displayName == TankType.CUSTOM.displayName
 
         val orientationId = when (state.orientation) {
             TankOrientation.VERTICAL -> mbVertical.id

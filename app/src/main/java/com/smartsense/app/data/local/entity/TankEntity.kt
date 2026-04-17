@@ -18,7 +18,7 @@ data class TankEntity(
     @PrimaryKey
     val sensorAddress: String="",
     val name: String = "",
-    val tankType: String = TankType.KG_3_7.name, // TankType enum name
+    val tankType: String = TankType.KG_4.name, // TankType enum name
     val customHeightMeters: Double = 0.0,
     val orientation: String = TankOrientation.default().name, // TankOrientation enum name
     val alarmThresholdPercent: Int = DEFAULT_ALARM_THRESHOLD_PERCENT,

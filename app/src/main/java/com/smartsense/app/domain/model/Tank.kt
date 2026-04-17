@@ -15,8 +15,8 @@ data class Tank(
     val notificationFrequency: NotificationFrequency = NotificationFrequency.EVERY_12_HOURS
 ) {
     val effectiveHeightMeters: Double
-        get() = if (type == TankType.ARBITRARY) customHeightMeters else type.heightMeters
+        get() = if (type == TankType.CUSTOM) customHeightMeters else type.heightMeters
 
     val effectiveOrientation: TankOrientation
-        get() = if (type == TankType.ARBITRARY) orientation else type.orientation
+        get() = if (type == TankType.CUSTOM) orientation else type.orientation
 }

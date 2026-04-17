@@ -223,7 +223,7 @@ class SensorDetailFragment : Fragment() {
         detailTank.setLevelUnit(tank.levelUnit, viewModel.calculateTankHeightMm(tank))
         detailTank.setAspectRatio(tank.type.silhouetteAspect)
 
-        val tankTypeLabel = if (tank.type == TankType.ARBITRARY) {
+        val tankTypeLabel = if (tank.type == TankType.CUSTOM) {
             val unit = if (tank.levelUnit == TankLevelUnit.INCHES) TankLevelUnit.INCHES else TankLevelUnit.CENTIMETERS
             val height = if (unit == TankLevelUnit.INCHES) {
                 ceil(tank.customHeightMeters * 39.3701).toInt().toString()
@@ -236,7 +236,7 @@ class SensorDetailFragment : Fragment() {
         }
         detailTank.setTankTypeLabel(tankTypeLabel)
 
-        detailTank.isBiggerMode = tank.type != TankType.KG_3_7
+        detailTank.isBiggerMode = tank.type != TankType.KG_4
         detailTank.isHorizontal=isHorizontal
     }
 
