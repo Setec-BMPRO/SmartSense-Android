@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import com.smartsense.app.R
 import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.TankLevelUnit
+import com.smartsense.app.domain.model.TankType
 
 class TankLevelView @JvmOverloads constructor(
     context: Context,
@@ -30,6 +31,8 @@ class TankLevelView @JvmOverloads constructor(
         private const val H_BODY_BOTTOM_RATIO = 26f / 32f
         private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
         private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
+
+        private val VERTICAL_THRESHOLD_MM = ((TankType.KG_4.heightMeters + TankType.KG_9.heightMeters) / 2.0 * 1000.0).toFloat()
     }
 
     // --- State & Config ---
@@ -44,6 +47,9 @@ class TankLevelView @JvmOverloads constructor(
         set(value) {
             field = value
             lastWidth = 0
+            if (!isHorizontal) {
+                aspectRatio = if (value) 1.3f else 1.0f
+            }
             requestLayout()
             invalidate()
         }
@@ -51,9 +57,16 @@ class TankLevelView @JvmOverloads constructor(
     var isHorizontal: Boolean = false
         set(value) {
             field = value
-            if (value) isBiggerMode = false
+            if (value) {
+                isBiggerMode = false
+                aspectRatio = 0.695f
+            } else {
+                if (tankHeightMm > 0) {
+                    isBiggerMode = tankHeightMm > VERTICAL_THRESHOLD_MM
+                }
+                aspectRatio = if (isBiggerMode) 1.3f else 1.0f
+            }
             lastWidth = 0
-            aspectRatio = if (value) 0.695f else 1.0f
             requestLayout()
             invalidate()
         }
@@ -120,6 +133,9 @@ class TankLevelView @JvmOverloads constructor(
     fun setLevelUnit(unit: TankLevelUnit, height: Float) {
         this.levelUnit = unit
         this.tankHeightMm = height
+        if (!isHorizontal) {
+            isBiggerMode = height > VERTICAL_THRESHOLD_MM
+        }
         invalidate()
     }
 
@@ -143,8 +159,7 @@ class TankLevelView @JvmOverloads constructor(
             else -> 400
         }
         
-        val dynamicRatio = if (isBiggerMode) aspectRatio * 1.3f else aspectRatio
-        val desiredHeight = (width * dynamicRatio).toInt()
+        val desiredHeight = (width * aspectRatio).toInt()
         
         val heightMode = MeasureSpec.getMode(heightMeasureSpec)
         val heightSize = MeasureSpec.getSize(heightMeasureSpec)

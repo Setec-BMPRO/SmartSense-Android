@@ -497,7 +497,7 @@ class SensorRepository @Inject constructor(
         } else null
 
         val tankTypeDisplay = tank?.let {
-            if (it.type == TankType.ARBITRARY)
+            if (it.type == TankType.CUSTOM)
                 "${it.type.displayName} ${it.orientation.name.lowercase().replaceFirstChar { c -> c.uppercase() }}"
             else it.type.displayName
         }
@@ -546,7 +546,7 @@ class SensorRepository @Inject constructor(
             readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) reading?.quality?.toReadQuality() else null,
             tankType = if (tank != null) {
                 // Logging the string construction for the UI
-                val displayType = if (tank.type == TankType.ARBITRARY) {
+                val displayType = if (tank.type == TankType.CUSTOM) {
                     "${tank.type.displayName} ${tank.orientation.name.uppercaseFirst()}"
                 } else {
                     tank.type.displayName

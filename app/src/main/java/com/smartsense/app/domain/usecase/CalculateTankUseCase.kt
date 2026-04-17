@@ -1,6 +1,5 @@
 package com.smartsense.app.domain.usecase
 
-import com.smartsense.app.data.ble.ScannedSensor
 import com.smartsense.app.domain.model.MopekaSensorType
 import com.smartsense.app.domain.model.Tank
 import com.smartsense.app.domain.model.TankLevel
@@ -88,7 +87,7 @@ class CalculateTankUseCase @Inject constructor() {
 
     fun calculateTankHeightMm(tank: Tank?): Float {
         val heightMm = when (val type = tank?.type) {
-            com.smartsense.app.domain.model.TankType.ARBITRARY -> {
+            com.smartsense.app.domain.model.TankType.CUSTOM -> {
                 // Convert custom height (m) to mm
                 tank.customHeightMeters.toFloat() * 1000f
             }
@@ -104,7 +103,7 @@ class CalculateTankUseCase @Inject constructor() {
     fun calculateTankType(tank: Tank?) =
         when (
             tank?.let {
-                if (it.type == com.smartsense.app.domain.model.TankType.ARBITRARY)
+                if (it.type == com.smartsense.app.domain.model.TankType.CUSTOM)
                     it.orientation
                 else
                     it.type.orientation
