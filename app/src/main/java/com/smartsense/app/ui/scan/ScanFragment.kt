@@ -117,6 +117,10 @@ class ScanFragment : Fragment() {
         }
         binding.smartsenseLogo.logoText.text = logoText
 
+        binding.btnMenu.setOnClickListener {
+            (requireActivity() as com.smartsense.app.MainActivityListener).openDrawer()
+        }
+
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
             viewModel.setFilterQuery(text.toString())

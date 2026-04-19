@@ -3,12 +3,13 @@ package com.smartsense.app
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -18,7 +19,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.smartsense.app.util.showSnackbar
 import com.smartsense.app.data.worker.SyncWorker
 import com.smartsense.app.databinding.ActivityMainBinding
-import com.smartsense.app.ui.settings.SettingsFragment
+import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,7 +45,8 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         setupNavigation()
-        setupClickListeners()
+        setupDrawerNavigation()
+        setupDrawerHeader()
         observeSyncWork()
         setupBackPressHandler()
     }
@@ -56,7 +58,9 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
                 val uiState = viewModel.uiState.value
 
                 val isRootDestination = currentDestId == R.id.scanFragment ||
-                        currentDestId == R.id.settingsFragment ||
+                        currentDestId == R.id.settingsAppearanceFragment ||
+                        currentDestId == R.id.settingsGeneralFragment ||
+                        currentDestId == R.id.settingsFeaturesFragment ||
                         (uiState is MainUiState.Authenticated && currentDestId == R.id.accountSensorsFragment) ||
                         (uiState is MainUiState.Unauthenticated && currentDestId == R.id.accountRegisterFragment)
 
@@ -143,90 +147,104 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
     // 🗺️ Navigation & UI Setup
     // -------------------------------------------------------------------------
 
+    private fun setupDrawerHeader() {
+        val headerView = binding.navView.getHeaderView(0)
+        val tvHeaderTitle = headerView.findViewById<TextView>(R.id.tv_header_title)
+        val tvHeaderSubtitle = headerView.findViewById<TextView>(R.id.tv_header_subtitle)
+        val ivSignOut = headerView.findViewById<ImageView>(R.id.iv_sign_out)
+        val tvVersion = binding.navView.findViewById<TextView>(R.id.tv_drawer_version)
+
+        tvVersion.text = getString(R.string.app_version, BuildConfig.VERSION_NAME)
+
+        ivSignOut.setOnClickListener {
+            showSignOutDialog()
+        }
+
+        lifecycleScope.launch {
+            viewModel.authStateFlow.collect { user ->
+                val menu = binding.navView.menu
+                if (user != null) {
+                    tvHeaderTitle.text = "Welcome Back!"
+                    tvHeaderSubtitle.text = user.email ?: "Signed in"
+                    ivSignOut.isVisible = true
+                    menu.findItem(R.id.nav_signin)?.isVisible = false
+                    menu.findItem(R.id.nav_signup)?.isVisible = false
+                    menu.findItem(R.id.nav_sensor_list)?.isVisible = true
+                } else {
+                    tvHeaderTitle.text = "SmartSense User"
+                    tvHeaderSubtitle.text = "Sign in to sync your data"
+                    ivSignOut.isVisible = false
+                    menu.findItem(R.id.nav_signin)?.isVisible = true
+                    menu.findItem(R.id.nav_signup)?.isVisible = true
+                    menu.findItem(R.id.nav_sensor_list)?.isVisible = false
+                }
+            }
+        }
+    }
+
+    private fun showSignOutDialog() {
+        showConfirmationDialog(
+            title = getString(R.string.sign_out),
+            message = getString(R.string.are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors),
+            positiveText = getString(R.string.yes),
+            negativeText = getString(R.string.no),
+            onConfirm = {
+                binding.drawerLayout.closeDrawer(binding.navView)
+                viewModel.signOut()
+            }
+        )
+    }
+
+    private fun setupDrawerNavigation() {
+        binding.navView.setNavigationItemSelectedListener { menuItem ->
+            binding.drawerLayout.closeDrawer(binding.navView)
+            when (menuItem.itemId) {
+                R.id.nav_signin -> {
+                    navController.navigate(R.id.accountSignInFragment)
+                }
+                R.id.nav_signup -> {
+                    navController.navigate(R.id.accountRegisterFragment)
+                }
+                R.id.nav_sensor_list -> {
+                    navController.navigate(R.id.accountSensorsFragment)
+                }
+                R.id.nav_appearance -> {
+                    navigateToIfNotCurrent(R.id.settingsAppearanceFragment)
+                }
+                R.id.nav_general -> {
+                    navigateToIfNotCurrent(R.id.settingsGeneralFragment)
+                }
+                R.id.nav_feature -> {
+                    navigateToIfNotCurrent(R.id.settingsFeaturesFragment)
+                }
+            }
+            true
+        }
+    }
+
+    private fun navigateToIfNotCurrent(destinationId: Int) {
+        if (navController.currentDestination?.id == destinationId) return
+        navController.navigate(destinationId)
+    }
+
     private fun setupNavigation() {
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
-
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            val destId = destination.id
-
-            // 1. Toggle visibility based on destination
-            val isFullScreen = destId == R.id.sensorDetailFragment ||
-                    destId == R.id.tankSettingsFragment
-            updateSystemBarsVisibility(!isFullScreen)
-
-            // 2. Update Tab selection state
-            handleTabSelection(destId)
-        }
     }
 
-    private fun setupClickListeners() {
-        binding.tabAccount.setOnClickListener {
-            when (viewModel.uiState.value) {
-                is MainUiState.Authenticated -> {
-                    navController.navigate(R.id.accountSensorsFragment)
-                }
-                is MainUiState.Unauthenticated -> {
-                    navController.navigate(R.id.accountRegisterFragment)
-                }
-                is MainUiState.Loading -> {
-                    lifecycleScope.launch {
-                        delay(500)
-                        binding.tabAccount.performClick()
-                    }
-                }
-            }
-        }
 
-        binding.fabSmartsense.setOnClickListener {
-            navController.navigate(R.id.scanFragment)
-        }
-
-        binding.tabSettings.setOnClickListener {
-            navController.navigate(R.id.settingsFragment)
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // 🎨 UI Styling & State Helpers
-    // -------------------------------------------------------------------------
-
-    private fun updateSystemBarsVisibility(showBar: Boolean) {
-        binding.bottomAppBar.isVisible = showBar
-        binding.fabSmartsense.isVisible = showBar
-
-        // Adjust NavHostFragment bottom margin dynamically
-        (binding.navHostFragment.layoutParams as? CoordinatorLayout.LayoutParams)?.apply {
-            bottomMargin = if (showBar) {
-                resources.getDimensionPixelSize(R.dimen.bottom_nav_height)
-            } else 0
-            binding.navHostFragment.layoutParams = this
-        }
-    }
-
-    override fun handleTabSelection(destinationId: Int) {
-        val selectedView = when (destinationId) {
-            R.id.tab_account, R.id.accountSensorsFragment, R.id.accountRegisterFragment, R.id.accountSignInFragment -> binding.tabAccount
-            R.id.tab_settings, R.id.settingsFragment -> binding.tabSettings
-            else -> null
-        }
-        selectTab(selectedView)
-    }
-
-    private fun selectTab(selected: View?) {
-        listOf(binding.tabAccount, binding.tabSettings).forEach { tab ->
-            tab.isSelected = (tab == selected)
-            tab.refreshDrawableState()
-        }
-    }
 
     override fun showLoadingIndicator(isShow: Boolean) {
         binding.loadingOverlay.isVisible = isShow
+    }
+
+    override fun openDrawer() {
+        binding.drawerLayout.openDrawer(binding.navView)
     }
 }
 
 interface MainActivityListener {
     fun showLoadingIndicator(isShow: Boolean)
-    fun handleTabSelection(destinationId: Int)
+    fun openDrawer()
 }

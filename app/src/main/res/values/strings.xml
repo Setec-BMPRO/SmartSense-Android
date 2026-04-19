@@ -3,7 +3,7 @@
     <string name="app_name">SmartSense</string>
 
     <!-- Navigation -->
-    <string name="nav_account">Account</string>
+    <string name="nav_account">Sensor List</string>
     <string name="nav_scan">Scan</string>
     <string name="nav_smartsense">SmartSense</string>
     <string name="nav_settings">Settings</string>
@@ -77,6 +77,9 @@
     <string name="setting_units">Unit System</string>
     <string name="setting_scan_interval">Scan Interval</string>
     <string name="setting_appearance">Appearance</string>
+    <string name="setting_general">General</string>
+    <string name="setting_features">Features</string>
+    <string name="drawer_section_account">Account</string>
     <string name="setting_theme">App Theme</string>
     <string name="setting_about">About</string>
     <string name="app_version">Version %1$s</string>
@@ -150,7 +153,7 @@
     <string name="account_only">Account</string>
     <string name="all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above">All sensors synced locally to the app will be added to your account and listed above</string>
     <string name="delete_account">Delete Account</string>
-    <string name="account">Account</string>
+    <string name="account">Sensor List</string>
     <string name="remove_sensor_data_both">Are you sure you want to remove this sensor? It will be deleted from your device and cloud storage.</string>
     <string name="remove_sensor_data_local">This sensor is only stored on this device. If you remove it, you will need to scan it again to add it back.</string>
     <string name="remove_sensor_data_cloud">This sensor is stored in your account but not on this phone. Removing it will permanently delete it from your cloud storage.</string>

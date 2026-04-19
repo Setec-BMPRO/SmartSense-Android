@@ -13,7 +13,7 @@ import com.smartsense.app.domain.model.SensorLocation
 import com.smartsense.app.domain.model.SensorUIModel
 import com.smartsense.app.domain.model.UiState
 import com.smartsense.app.domain.usecase.AccountUseCase
-import com.smartsense.app.ui.settings.SettingsFragment.Companion.KEY_ENABLE_UPLOAD_SENSOR_DATA
+import com.smartsense.app.ui.settings.SettingsNavArgs.KEY_ENABLE_UPLOAD_SENSOR_DATA
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException

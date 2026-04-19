@@ -136,9 +136,8 @@ class AccountSignInFragment : Fragment() {
             }
         }
 
-        binding.toolbar.setNavigationIcon(R.drawable.ic_back)
         binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigate(R.id.action_signIn_to_register)
+            findNavController().popBackStack()
         }
     }
 

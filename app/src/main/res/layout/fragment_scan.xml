@@ -19,12 +19,23 @@
         android:paddingTop="@dimen/spacing_md"
         android:paddingBottom="@dimen/spacing_sm">
 
+        <ImageButton
+            android:id="@+id/btn_menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_menu"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:padding="@dimen/spacing_sm"
+            app:tint="?attr/colorOnSurface" />
+
         <include
             android:id="@+id/smartsense_logo"
             layout="@layout/layout_smartsense_logo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/spacing_sm" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/sensor_count"
