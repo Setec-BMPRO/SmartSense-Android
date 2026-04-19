@@ -25,6 +25,7 @@ import com.smartsense.app.domain.model.SensorReading
 import com.smartsense.app.domain.usecase.CalculateTankUseCase
 import com.smartsense.app.util.uppercaseFirst
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -35,12 +36,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -116,38 +119,39 @@ class SensorRepository @Inject constructor(
     // --------------------------------------
 
     fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor>> {
-        val ticker = createTicker(scanIntervalMillis)
+        return createTicker(scanIntervalMillis)
+            .mapLatest { _ -> // mapLatest cancels previous block if ticker ticks again
+                withContext(Dispatchers.IO) {
+                    // 1. Fetch from DB on IO thread
+                    val sensorEntities = sensorDao.observeRegisteredSensors()
 
-        return combine(
-            sensorDao.observeRegisteredSensors(),
-            ticker
-        ) { sensorEntities, _ ->
-            Timber.d("⏱ tick (list) with ${sensorEntities.size} sensors")
+                    Timber.d("⏱ tick (list) with ${sensorEntities.size} sensors")
 
-            val currentReadings = sharedReadings.value
-            val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
+                    val currentReadings = sharedReadings.value
+                    val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
 
-            sensorEntities.map { entity ->
-                val address = entity.address
-                val scanned = currentReadings[address]
-                val tank = tankMap[address]?.toDomain()
+                    sensorEntities.map { entity ->
+                        val address = entity.address
+                        val scanned = currentReadings[address]
+                        val tank = tankMap[address]?.toDomain()
 
-                if (scanned != null) {
-                    scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-                    persistReading(scanned, address)
-                    mapToSensor(
-                        scanned = scanned,
-                        tank = tank,
-                        mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
-                    )
-                } else {
-                    val entity = sensorDao.getSensor(address)
-                    if (entity != null) {
-                        mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
-                    } else null
+                        if (scanned != null) {
+                            scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                            persistReading(scanned,address)
+                            mapToSensor(
+                                scanned = scanned,
+                                tank = tank,
+                                mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
+                            )
+                        } else {
+                            // Use the entity we already have from the list
+                            mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
+                        }
+                    }
                 }
-            }.filterNotNull().also { Timber.d("🚀 emit list size=${it.size}") }
-        }.distinctUntilChanged()
+            }
+            .onEach { Timber.d("🚀 emit list size=${it.size}") }
+            .distinctUntilChanged()
     }
 
     fun observeSensorForDetail(address: String, scanIntervalMillis: Long): Flow<Sensor?> =
