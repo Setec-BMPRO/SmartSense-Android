@@ -27,10 +27,10 @@ class TankLevelView @JvmOverloads constructor(
 
         private const val H_FILL_TOP_RATIO = 7f / 32f
         private const val H_FILL_BOTTOM_RATIO = 25f / 32f
-        private const val H_BODY_TOP_RATIO = 6f / 32f
-        private const val H_BODY_BOTTOM_RATIO = 26f / 32f
-        private const val H_SVG_TANK_LEFT_RATIO = 2f / 48f
-        private const val H_SVG_TANK_RIGHT_RATIO = 46f / 48f
+        private const val H_BODY_TOP_RATIO = 7f / 32f
+        private const val H_BODY_BOTTOM_RATIO = 25f / 32f
+        private const val H_SVG_TANK_LEFT_RATIO = 3f / 48f
+        private const val H_SVG_TANK_RIGHT_RATIO = 45f / 48f
 
         private val VERTICAL_THRESHOLD_MM = ((TankType.KG_4.heightMeters + TankType.KG_9.heightMeters) / 2.0 * 1000.0).toFloat()
     }
@@ -258,7 +258,8 @@ class TankLevelView @JvmOverloads constructor(
 
         // 1. Draw Tank body
         val saveBody = canvas.saveLayer(bounds, null)
-        canvas.drawRect(0f, bodyTopY, w, bodyBottomY, tankGradientPaint)
+        // Use full width for the body background, the mask will handle the rounded corners
+        canvas.drawRect(tankLeftBound, bodyTopY, tankLeftBound + tankDrawWidth, bodyBottomY, tankGradientPaint)
         tankBitmap?.let { canvas.drawBitmap(it, 0f, 0f, maskPaint) }
         canvas.restoreToCount(saveBody)
 
@@ -268,9 +269,9 @@ class TankLevelView @JvmOverloads constructor(
             var liquidTopY = fillBottomY - (totalHeight * (percentage / 100f))
 
             // Ensure at least a minimal sliver is visible for very low values (e.g. 1-5%)
-            // especially when hardware strokes might overlap the bottom
-            val minHeight = 2f * context.resources.displayMetrics.density 
-            if (fillBottomY - liquidTopY < minHeight && percentage > 0.5f) {
+            // especially when hardware strokes (1.2dp) might overlap the bottom
+            val minHeight = 2.5f * context.resources.displayMetrics.density
+            if (fillBottomY - liquidTopY < minHeight && percentage > 0f) {
                 liquidTopY = fillBottomY - minHeight
             }
 
@@ -281,7 +282,8 @@ class TankLevelView @JvmOverloads constructor(
                 bottomColor, topColor, Shader.TileMode.CLAMP)
 
             val saveFill = canvas.saveLayer(bounds, null)
-            canvas.drawRect(0f, liquidTopY, w, fillBottomY, fillPaint)
+            // Draw liquid rectangle across the full tank width; the mask will clip it to the rounded ends
+            canvas.drawRect(tankLeftBound, liquidTopY, tankLeftBound + tankDrawWidth, fillBottomY, fillPaint)
 
             canvas.drawRect(
                 tankLeft, liquidTopY,
@@ -351,12 +353,19 @@ class TankLevelView @JvmOverloads constructor(
             canvas.drawText(text, badgeCx, textY, circleTextPaint)
         } else {
             val valueText = when (levelUnit) {
-                TankLevelUnit.INCHES -> "${((tankHeightMm * 0.0393701f) * (percentage / 100f)).toInt()}"
-                TankLevelUnit.PERCENT -> {
-                    val rounded = Math.round(percentage.toDouble()).toInt()
-                    if (rounded == 0 && percentage > 0) "1" else rounded.toString()
+                TankLevelUnit.INCHES -> {
+                    val inchValue = ((tankHeightMm * 0.0393701f) * (percentage / 100f)).toInt()
+                    if (inchValue == 0 && percentage > 0) "1" else inchValue.toString()
                 }
-                else -> "${((tankHeightMm / 10f) * (percentage / 100f)).toInt()}"
+                TankLevelUnit.PERCENT -> {
+                    val rounded = (percentage.toDouble()).toInt()
+                    val displayValue = if (rounded == 0 && percentage > 0) 1 else rounded
+                    displayValue.coerceIn(1, 100).toString()
+                }
+                else -> {
+                    val cmValue = ((tankHeightMm / 10f) * (percentage / 100f)).toInt()
+                    if (cmValue == 0 && percentage > 0) "1" else cmValue.toString()
+                }
             }
             val unitText = levelUnit.shortName
 

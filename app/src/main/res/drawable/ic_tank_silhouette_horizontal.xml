@@ -8,5 +8,5 @@
     <!-- Horizontal Tank Silhouette -->
     <path
         android:fillColor="#FF000000"
-        android:pathData="M8,6 L40,6 Q46,6 46,16 Q46,26 40,26 L8,26 Q2,26 2,16 Q2,6 8,6 Z" />
+        android:pathData="M9,7 L39,7 Q45,7 45,16 Q45,25 39,25 L9,25 Q3,25 3,16 Q3,7 9,7 Z" />
 </vector>

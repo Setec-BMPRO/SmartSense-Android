@@ -8,32 +8,32 @@
     <!-- Tank body outline (Horizontal) -->
     <path
         android:strokeColor="#000000"
-        android:strokeWidth="2"
-        android:pathData="M8,6 L40,6 Q46,6 46,16 Q46,26 40,26 L8,26 Q2,26 2,16 Q2,6 8,6 Z" />
+        android:strokeWidth="1.2"
+        android:pathData="M9,7 L39,7 Q45,7 45,16 Q45,25 39,25 L9,25 Q3,25 3,16 Q3,7 9,7 Z" />
 
     <!-- End caps -->
     <path
         android:strokeColor="#CCCCCC"
         android:strokeWidth="0.8"
-        android:pathData="M10,6 L10,26"/>
+        android:pathData="M10,7 L10,25"/>
     <path
         android:strokeColor="#CCCCCC"
         android:strokeWidth="0.8"
-        android:pathData="M38,6 L38,26"/>
+        android:pathData="M38,7 L38,25"/>
 
     <!-- Valve on top -->
     <path
         android:fillColor="#000000"
-        android:pathData="M22,2h4v4h-4z"/>
+        android:pathData="M23,5h2v2h-2z"/>
     <path
         android:fillColor="#000000"
-        android:pathData="M23,0 L25,0 L25,3 L23,3 Z"/>
+        android:pathData="M23.5,3 L24.5,3 L24.5,5 L23.5,5 Z"/>
 
     <!-- Legs/supports -->
     <path
         android:fillColor="#000000"
-        android:pathData="M10,26 L14,26 L14,31 Q14,32 13,32 L11,32 Q10,32 10,31 Z"/>
+        android:pathData="M11,25 L13,25 L13,28 Q13,29 12.5,29 L11.5,29 Q11,29 11,28 Z"/>
     <path
         android:fillColor="#000000"
-        android:pathData="M34,26 L38,26 L38,31 Q38,32 37,32 L35,32 Q34,32 34,31 Z"/>
+        android:pathData="M35,25 L37,25 L37,28 Q37,29 36.5,29 L35.5,29 Q35,29 35,28 Z"/>
 </vector>
