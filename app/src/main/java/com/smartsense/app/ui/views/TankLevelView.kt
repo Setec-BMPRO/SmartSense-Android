@@ -25,13 +25,12 @@ class TankLevelView @JvmOverloads constructor(
         private const val SVG_TANK_LEFT_RATIO = 40f / 320f
         private const val SVG_TANK_RIGHT_RATIO = 280f / 320f
 
-        private const val H_FILL_TOP_RATIO = 7f / 32f
-        private const val H_FILL_BOTTOM_RATIO = 25f / 32f
-        private const val H_BODY_TOP_RATIO = 7f / 32f
-        private const val H_BODY_BOTTOM_RATIO = 25f / 32f
-        private const val H_SVG_TANK_LEFT_RATIO = 3f / 48f
-        private const val H_SVG_TANK_RIGHT_RATIO = 45f / 48f
-
+        private const val H_FILL_TOP_RATIO = 7.6f / 32f
+        private const val H_FILL_BOTTOM_RATIO = 24.4f / 32f
+        private const val H_BODY_TOP_RATIO = 7.6f / 32f
+        private const val H_BODY_BOTTOM_RATIO = 24.4f / 32f
+        private const val H_SVG_TANK_LEFT_RATIO = 3.6f / 48f
+        private const val H_SVG_TANK_RIGHT_RATIO = 44.4f / 48f
         private val VERTICAL_THRESHOLD_MM = ((TankType.KG_4.heightMeters + TankType.KG_9.heightMeters) / 2.0 * 1000.0).toFloat()
     }
 
