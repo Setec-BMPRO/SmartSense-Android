@@ -13,7 +13,6 @@ import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.smartsense.app.MainActivityListener
 import com.smartsense.app.R
 import com.smartsense.app.SmartSenseApplication
 import com.smartsense.app.databinding.FragmentSettingsBinding
@@ -91,7 +90,10 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         _binding?.toolbar?.let { toolbar ->
-            toolbar.navigationIcon = null
+            toolbar.setNavigationIcon(R.drawable.ic_back)
+            toolbar.setNavigationOnClickListener {
+                findNavController().popBackStack()
+            }
             toolbar.title = getString(R.string.settings_title)
             toolbar.subtitle = ""
         }
@@ -165,8 +167,6 @@ class SettingsFragment : Fragment() {
                             onConfirm = {
                                 val bundle = bundleOf(KEY_ENABLE_UPLOAD_SENSOR_DATA to true)
                                 findNavController().navigate(R.id.accountSignInFragment, bundle)
-                                // Navigate to the correct tab
-                                (requireActivity() as? MainActivityListener)?.handleTabSelection(R.id.tab_account)
                             },
                             onNeutral = {_binding?.switchUploadSensorData?.isChecked = false}
                         )

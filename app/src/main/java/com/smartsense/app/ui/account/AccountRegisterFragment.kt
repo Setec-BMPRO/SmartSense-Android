@@ -94,7 +94,6 @@ class AccountRegisterFragment : Fragment() {
 
         binding.tvSignIn.setOnClickListener {
             findNavController().navigate(R.id.action_register_to_signIn)
-            (requireActivity() as MainActivityListener).handleTabSelection(R.id.tab_account)
         }
     }
 
@@ -159,6 +158,10 @@ class AccountRegisterFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        binding.toolbar.setNavigationIcon(R.drawable.ic_back)
+        binding.toolbar.setNavigationOnClickListener {
+            findNavController().popBackStack()
+        }
         binding.toolbar.title = getString(R.string.register)
     }
 
