@@ -120,6 +120,17 @@
                 app:icon="@drawable/ic_bluetooth_scan"
                 app:iconGravity="textStart" />
 
+            <!-- Help button (shown when no sensors are connected) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_pair_help"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_md"
+                android:text="@string/help_pair_title"
+                app:icon="@drawable/ic_question"
+                app:iconGravity="textStart" />
+
         </LinearLayout>
 
         <!-- Connected sensors state (shown when sensors found) -->

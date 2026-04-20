@@ -148,6 +148,8 @@ class ScanFragment : Fragment() {
             }
         }
 
+        binding.btnPairHelp.setOnClickListener { showPairingHelp() }
+
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
             viewModel.setFilterQuery(text.toString())
@@ -169,6 +171,7 @@ class ScanFragment : Fragment() {
                 val accentColor = ContextCompat.getColor(requireContext(), R.color.primary)
 
                 binding.apply {
+                    btnPairHelp.isVisible = error == null
                     if (error != null) {
                         // Show error inline in the scanning state area
                         pulseView.stopPulse()

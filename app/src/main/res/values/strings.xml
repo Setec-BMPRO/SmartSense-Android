@@ -27,7 +27,7 @@
     <string name="scanning">Scanning for sensors\u2026</string>
     <string name="no_devices_found">No sensors found nearby</string>
     <string name="scan_tap_to_start">Tap below to scan for nearby sensors</string>
-    <string name="scan_auto_pair_hint">Supported sensors are added automatically</string>
+    <string name="scan_auto_pair_hint">Press the pair button on a new sensor to add it</string>
     <string name="sensors_found">%1$d sensor(s) found</string>
     <string name="connected_sensors">Connected</string>
     <string name="sensor_count_label">%1$d sensor(s)</string>
