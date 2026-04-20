@@ -22,6 +22,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.MainUiState
 import com.smartsense.app.MainViewModel
 import com.smartsense.app.R
@@ -137,6 +138,10 @@ class ScanFragment : Fragment() {
                 }
                 R.id.action_settings -> {
                     findNavController().navigate(R.id.settingsFragment)
+                    true
+                }
+                R.id.action_help -> {
+                    showPairingHelp()
                     true
                 }
                 else -> false
@@ -326,6 +331,14 @@ class ScanFragment : Fragment() {
                 delay(1000L) // Wait 1 second
             }
         }
+    }
+
+    private fun showPairingHelp() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.help_pair_title)
+            .setMessage(R.string.help_pair_message)
+            .setPositiveButton(R.string.ok, null)
+            .show()
     }
 
     override fun onStart() {

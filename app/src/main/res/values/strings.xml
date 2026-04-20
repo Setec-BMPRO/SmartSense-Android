@@ -7,6 +7,12 @@
     <string name="nav_scan">Scan</string>
     <string name="nav_smartsense">SmartSense</string>
     <string name="nav_settings">Settings</string>
+    <string name="nav_help">Help</string>
+
+    <!-- Pairing Help -->
+    <string name="help_pair_title">How to pair a sensor</string>
+    <string name="help_pair_message">1. Turn on Bluetooth and Location on your phone, and make sure the sensor has power.\n\n2. Open this screen and keep the sensor within 10 meters of your phone.\n\nPreviously paired sensors:\nReconnect automatically as soon as they broadcast — no button press needed.\n\nNew or removed sensors:\nPress the pair/sync button on the sensor. The app detects the pairing broadcast and registers it automatically.\n\nIf a sensor doesn\'t appear:\n• Press the pair button on the sensor again.\n• Check the sensor\'s battery.\n• Move closer and wait a few seconds for the next broadcast.\n• Confirm Bluetooth and Location permissions are granted in your phone\'s settings.</string>
+
 
     <!-- Dashboard -->
     <string name="empty_title">No Sensors Connected</string>
