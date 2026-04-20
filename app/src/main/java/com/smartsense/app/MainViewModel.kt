@@ -56,15 +56,24 @@ class MainViewModel @Inject constructor(
         WorkManager.getInstance(context).getWorkInfosForUniqueWorkLiveData(SYNC_WORK_NAME)
 
     init {
-        checkAuthState()
+        observeAuthState()
     }
 
-    /**
-     * Determines if the user is authenticated via Firebase AND
-     * marked as registered in our local DataStore.
-     */
-    fun checkAuthState() {
-        // ... (existing code)
+    private fun observeAuthState() {
+        viewModelScope.launch {
+            combine(
+                authStateFlow,
+                userPreferences.isSignedIn
+            ) { firebaseUser, isLocallySignedIn ->
+                if (firebaseUser != null && isLocallySignedIn) {
+                    MainUiState.Authenticated
+                } else {
+                    MainUiState.Unauthenticated
+                }
+            }.collectLatest { newState ->
+                _uiState.value = newState
+            }
+        }
     }
 
     fun signOut() {

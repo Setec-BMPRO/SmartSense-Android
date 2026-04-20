@@ -159,7 +159,7 @@ class AccountRegisterFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.toolbar.title = getString(R.string.register)
-        binding.toolbar.setNavigationOnClickListener { findNavController().popBackStack() }
+        binding.toolbar.setNavigationOnClickListener { findNavController().navigate(R.id.scanFragment) }
     }
 
     override fun onDestroyView() {
