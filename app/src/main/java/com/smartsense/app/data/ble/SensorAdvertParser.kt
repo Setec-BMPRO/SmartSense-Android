@@ -88,7 +88,7 @@ object SensorAdvertParser {
 
             Log.d(TAG, "CC2540 VALID $bleAddress: battery=${"%.2f".format(batteryVoltage)}V, " +
                     "temp=${"%.1f".format(temperatureCelsius)}°C, quality=$quality, " +
-                    "height=${"%.4f".format(heightMeters)}m")
+                    "height=${"%.4f".format(heightMeters)}m, sync=$syncPressed")
 
             ParsedSensor(
                 reading = SensorReading(
@@ -162,7 +162,7 @@ object SensorAdvertParser {
 
             Log.d(TAG, "NRF52 OK $bleAddress: type=${mopekaSensorType.displayName}, " +
                     "battery=${"%.2f".format(batteryVoltage)}V, temp=${temperatureCelsius}°C, " +
-                    "rawLevel=$rawLevel, quality=$quality, height=${"%.4f".format(heightMeters)}m")
+                    "rawLevel=$rawLevel, quality=$quality, height=${"%.4f".format(heightMeters)}m, sync=$syncPressed")
 
             ParsedSensor(
                 reading = SensorReading(

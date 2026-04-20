@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -20,6 +22,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.smartsense.app.MainUiState
+import com.smartsense.app.MainViewModel
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentScanBinding
 import com.smartsense.app.domain.model.Sensor
@@ -49,6 +54,7 @@ class ScanFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ScanViewModel by viewModels()
+    private val mainViewModel: MainViewModel by activityViewModels()
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
     // Initialize the helper
     private lateinit var blePermissionManager: BlePermissionManager
@@ -104,8 +110,9 @@ class ScanFragment : Fragment() {
             adapter = groupAdapter
         }
 
-        // Setup Logo Branding
-        val logoText = SpannableString("SmartSense").apply {
+        // Setup Logo Branding: SMARTSENSE with "petite caps" — initial caps at full size,
+        // remaining letters scaled down. SMART in dark, SENSE in primary.
+        val logoText = SpannableString("SMARTSENSE").apply {
             setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.logo_smart_text)),
                 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -114,12 +121,34 @@ class ScanFragment : Fragment() {
                 ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.primary)),
                 5, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
+            setSpan(RelativeSizeSpan(0.78f), 1, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(RelativeSizeSpan(0.78f), 6, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         binding.smartsenseLogo.logoText.text = logoText
 
-        binding.btnMenu.setOnClickListener {
-            (requireActivity() as com.smartsense.app.MainActivityListener).openDrawer()
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_account -> {
+                    val destination = when (mainViewModel.uiState.value) {
+                        is MainUiState.Authenticated -> R.id.accountSensorsFragment
+                        else -> R.id.accountRegisterFragment
+                    }
+                    findNavController().navigate(destination)
+                    true
+                }
+                R.id.action_settings -> {
+                    findNavController().navigate(R.id.settingsFragment)
+                    true
+                }
+                R.id.action_help -> {
+                    showPairingHelp()
+                    true
+                }
+                else -> false
+            }
         }
+
+        binding.btnPairHelp.setOnClickListener { showPairingHelp() }
 
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
@@ -142,6 +171,7 @@ class ScanFragment : Fragment() {
                 val accentColor = ContextCompat.getColor(requireContext(), R.color.primary)
 
                 binding.apply {
+                    btnPairHelp.isVisible = error == null
                     if (error != null) {
                         // Show error inline in the scanning state area
                         pulseView.stopPulse()
@@ -304,6 +334,14 @@ class ScanFragment : Fragment() {
                 delay(1000L) // Wait 1 second
             }
         }
+    }
+
+    private fun showPairingHelp() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.help_pair_title)
+            .setMessage(R.string.help_pair_message)
+            .setPositiveButton(R.string.ok, null)
+            .show()
     }
 
     override fun onStart() {

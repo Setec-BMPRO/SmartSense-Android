@@ -56,22 +56,10 @@
     </fragment>
 
     <fragment
-        android:id="@+id/settingsAppearanceFragment"
-        android:name="com.smartsense.app.ui.settings.SettingsAppearanceFragment"
-        android:label="@string/setting_appearance"
-        tools:layout="@layout/fragment_settings_appearance" />
-
-    <fragment
-        android:id="@+id/settingsGeneralFragment"
-        android:name="com.smartsense.app.ui.settings.SettingsGeneralFragment"
-        android:label="@string/setting_general"
-        tools:layout="@layout/fragment_settings_general" />
-
-    <fragment
-        android:id="@+id/settingsFeaturesFragment"
-        android:name="com.smartsense.app.ui.settings.SettingsFeaturesFragment"
-        android:label="@string/setting_features"
-        tools:layout="@layout/fragment_settings_features" />
+        android:id="@+id/settingsFragment"
+        android:name="com.smartsense.app.ui.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings" />
 
     <fragment
         android:id="@+id/sensorDetailFragment"

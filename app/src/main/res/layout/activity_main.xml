@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
-
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
@@ -18,8 +13,6 @@
         android:layout_height="match_parent"
         app:navGraph="@navigation/nav_graph"
         app:defaultNavHost="true"/>
-
-
 
     <FrameLayout
         android:id="@+id/loading_overlay"
@@ -39,38 +32,4 @@
             app:trackThickness="4dp" />
     </FrameLayout>
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"
-        android:fitsSystemWindows="true"
-        android:background="@drawable/bg_navigation_drawer"
-        app:itemHorizontalPadding="14dp"
-        app:itemVerticalPadding="8dp"
-        app:itemIconSize="22dp"
-        app:itemBackground="@drawable/bg_drawer_item"
-        app:itemTextColor="@color/drawer_item_text_color"
-        app:itemIconTint="@color/drawer_item_icon_tint"
-        app:headerLayout="@layout/nav_header_main"
-        app:menu="@menu/drawer_menu">
-
-        <TextView
-            android:id="@+id/tv_drawer_version"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:gravity="center_horizontal"
-            android:padding="16dp"
-            android:text="Version 1.0.0"
-            android:textColor="@color/drawer_item_text_color"
-            android:textSize="12sp"
-            android:alpha="0.5" />
-
-    </com.google.android.material.navigation.NavigationView>
-
-</androidx.drawerlayout.widget.DrawerLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

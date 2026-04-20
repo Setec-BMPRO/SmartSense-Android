@@ -8,43 +8,32 @@
     android:orientation="vertical"
     tools:context=".ui.scan.ScanFragment">
 
-    <!-- Header with logo and sensor count (always visible) -->
-    <LinearLayout
+    <!-- Header: logo + sensor count + overflow menu (always visible) -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/spacing_md"
-        android:paddingEnd="@dimen/spacing_md"
-        android:paddingTop="@dimen/spacing_md"
-        android:paddingBottom="@dimen/spacing_sm">
-
-        <ImageButton
-            android:id="@+id/btn_menu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_menu"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Menu"
-            android:padding="@dimen/spacing_sm"
-            app:tint="?attr/colorOnSurface" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:contentInsetStart="@dimen/spacing_md"
+        app:menu="@menu/menu_main">
 
         <include
             android:id="@+id/smartsense_logo"
             layout="@layout/layout_smartsense_logo"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/spacing_sm" />
+            android:layout_gravity="start|center_vertical" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/sensor_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="@dimen/spacing_sm"
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorPrimary"
-            tools:text="5 sensors"/>
-    </LinearLayout>
+            tools:text="5 sensors" />
+    </com.google.android.material.appbar.MaterialToolbar>
 
     <!-- Scanning state (shown when no sensors connected) -->
     <LinearLayout
@@ -118,6 +107,17 @@
             android:text="Open Bluetooth Settings"
             android:visibility="gone"
             app:icon="@drawable/ic_bluetooth_scan"
+            app:iconGravity="textStart" />
+
+        <!-- Help button (shown when no sensors are connected) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_pair_help"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_md"
+            android:text="@string/help_pair_title"
+            app:icon="@drawable/ic_question"
             app:iconGravity="textStart" />
 
     </LinearLayout>

@@ -37,7 +37,7 @@ class ScanViewModel @Inject constructor(
 
     private var scanJob: Job? = null
     private var observeJob: Job? = null
-    private var autoPairDone = false
+    private val pairingInFlight = mutableSetOf<String>()
 
     // -------------------------------------------------------------------------
     // 🌎 Public Observables (UI State)
@@ -88,7 +88,7 @@ class ScanViewModel @Inject constructor(
             useCase.observeRegisteredSensors(interval)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
-                    autoPairDone = sensors.isNotEmpty()
+                    pairingInFlight -= sensors.map { it.address }.toSet()
 
                     sensors.forEach { scannedSensor ->
                         val level = scannedSensor.tankLevel?.percentage?.toInt() ?: -1
@@ -119,10 +119,12 @@ class ScanViewModel @Inject constructor(
             launch {
                 useCase.observeRawReadings()
                     .collect { scanned ->
-                        if (!autoPairDone && scanned.parsed?.syncPressed == true) {
+                        if (scanned.parsed?.syncPressed == true) {
+                            Timber.tag(TAG).d("🔔 Raw syncPressed reading: ${scanned.address} (rssi=${scanned.rssi})")
+                        }
+                        if (scanned.parsed?.syncPressed == true && shouldPair(scanned.address)) {
                             val sensorType = scanned.parsed.sensorType
                             Timber.tag(TAG).d("Fast auto-pairing syncPressed sensor: ${scanned.address}")
-                            autoPairDone = true
                             registerSensor(scanned.address, calculateTankUseCase.calculateName(sensorType))
                         }
                     }
@@ -153,12 +155,17 @@ class ScanViewModel @Inject constructor(
     }
 
     private fun handleAutoPairing(sensors: List<Sensor>) {
-        if (autoPairDone) return
-        sensors.firstOrNull { it.syncPressed }?.let { syncSensor ->
+        sensors.filter { it.syncPressed && shouldPair(it.address) }.forEach { syncSensor ->
             Timber.tag(TAG).d("Auto-pairing syncPressed sensor detected: ${syncSensor.address}")
-            autoPairDone = true
             registerSensor(syncSensor.address, calculateTankUseCase.calculateName(syncSensor.sensorType))
         }
+    }
+
+    private fun shouldPair(address: String): Boolean {
+        if (pairingInFlight.contains(address)) return false
+        if (_uiState.value.sensors.any { it.address == address }) return false
+        pairingInFlight += address
+        return true
     }
 
     // -------------------------------------------------------------------------
@@ -184,9 +191,13 @@ class ScanViewModel @Inject constructor(
     fun registerSensor(address: String, name: String) {
         viewModelScope.launch {
             Timber.tag(TAG).i("Registering sensor: $address ($name)")
-            autoPairDone = true
-            val uploadEnabled = userPreferences.uploadSensorData.first()
-            useCase.registerSensor(address, name, uploadEnabled)
+            try {
+                val uploadEnabled = userPreferences.uploadSensorData.first()
+                useCase.registerSensor(address, name, uploadEnabled)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Failed to register sensor $address")
+                pairingInFlight -= address
+            }
         }
     }
 
