@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.util.showSnackbar
+import com.smartsense.app.util.forceShowMenuIcons
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.smartsense.app.MainActivityListener
@@ -160,6 +161,7 @@ class AccountSensorsFragment : Fragment() {
     private fun setupListeners() {
         with(binding) {
             toolbar.inflateMenu(R.menu.menu_account)
+            toolbar.forceShowMenuIcons()
             toolbar.setOnMenuItemClickListener {
                 if (it.itemId == R.id.action_signout) {
                     requireContext().showConfirmationDialog(

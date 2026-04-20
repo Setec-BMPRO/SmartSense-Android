@@ -11,6 +11,7 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -159,7 +160,17 @@ class AccountRegisterFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.toolbar.title = getString(R.string.register)
-        binding.toolbar.setNavigationOnClickListener { findNavController().navigate(R.id.scanFragment) }
+        binding.toolbar.setNavigationOnClickListener { handleBackNavigation() }
+
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackNavigation()
+            }
+        })
+    }
+
+    private fun handleBackNavigation() {
+        findNavController().navigate(R.id.scanFragment)
     }
 
     override fun onDestroyView() {

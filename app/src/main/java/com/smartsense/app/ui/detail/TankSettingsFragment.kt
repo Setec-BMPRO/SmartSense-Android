@@ -23,6 +23,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.util.hideKeyboard
+import com.smartsense.app.util.forceShowMenuIcons
 import com.smartsense.app.R
 import com.smartsense.app.databinding.FragmentTankSettingsBinding
 import com.smartsense.app.domain.model.NotificationFrequency
@@ -84,6 +85,7 @@ class TankSettingsFragment : Fragment() {
             handleBackNavigation()
         }
         inflateMenu(R.menu.menu_save)
+        forceShowMenuIcons()
         setOnMenuItemClickListener {
             if (it.itemId == R.id.action_save) {
                 viewModel.updateCustomHeight(binding.etHeight.text.toString().trim())

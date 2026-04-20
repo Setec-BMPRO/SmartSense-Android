@@ -23,6 +23,7 @@ import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
+import com.smartsense.app.util.forceShowMenuIcons
 import com.smartsense.app.util.TimeUtils
 import com.smartsense.app.util.showSnackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -83,6 +84,7 @@ class SensorDetailFragment : Fragment() {
             findNavController().popBackStack()
         }
         inflateMenu(R.menu.menu_settings)
+        forceShowMenuIcons()
         setOnMenuItemClickListener {
             if (it.itemId == R.id.action_settings) {
                 navigateToSettings()

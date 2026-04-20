@@ -32,6 +32,7 @@ import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 
 import com.smartsense.app.ui.helper.BlePermissionManager
+import com.smartsense.app.util.forceShowMenuIcons
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -125,6 +126,7 @@ class ScanFragment : Fragment() {
             setSpan(RelativeSizeSpan(0.78f), 6, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         binding.smartsenseLogo.logoText.text = logoText
+        binding.toolbar.forceShowMenuIcons()
 
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {

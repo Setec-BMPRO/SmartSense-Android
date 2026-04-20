@@ -44,14 +44,9 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val currentDestId = navController.currentDestination?.id
-                val uiState = viewModel.uiState.value
+                val isScanPage = currentDestId == R.id.scanFragment
 
-                val isRootDestination = currentDestId == R.id.scanFragment ||
-                        currentDestId == R.id.settingsFragment ||
-                        (uiState is MainUiState.Authenticated && currentDestId == R.id.accountSensorsFragment) ||
-                        (uiState is MainUiState.Unauthenticated && currentDestId == R.id.accountRegisterFragment)
-
-                if (navController.previousBackStackEntry != null && !isRootDestination) {
+                if (navController.previousBackStackEntry != null && !isScanPage) {
                     navController.popBackStack()
                 } else {
                     if (backPressedTime + 2000 > System.currentTimeMillis()) {

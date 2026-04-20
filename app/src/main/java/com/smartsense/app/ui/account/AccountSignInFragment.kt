@@ -137,8 +137,12 @@ class AccountSignInFragment : Fragment() {
         }
 
         binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigate(R.id.action_signIn_to_register)
+            handleBackNavigation()
         }
+    }
+
+    private fun handleBackNavigation() {
+        findNavController().navigate(R.id.action_signIn_to_register)
     }
 
     private fun setupLiveValidation() {
@@ -222,6 +226,11 @@ class AccountSignInFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.toolbar.title = getString(R.string.sign_in)
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                handleBackNavigation()
+            }
+        })
     }
 
     override fun onDestroyView() {
