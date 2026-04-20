@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.smartsense.app.domain.model.AppTheme
@@ -54,7 +55,7 @@ class UserPreferences @Inject constructor(
 
         // Keys for Tank Alert States
         fun lastLevelKey(address: String) = intPreferencesKey("last_level_$address")
-        fun lastTimeKey(address: String) = intPreferencesKey("last_time_$address")
+        fun lastTimeKey(address: String) = longPreferencesKey("last_time_$address")
     }
 
     // -------------------------------------------------------------------------
@@ -161,14 +162,14 @@ class UserPreferences @Inject constructor(
         it[Keys.lastLevelKey(address)] ?: -1 
     }
 
-    fun getLastAlertTime(address: String): Flow<Long> = context.dataStore.data.map { 
-        (it[Keys.lastTimeKey(address)] ?: 0).toLong()
+    fun getLastAlertTime(address: String): Flow<Long> = context.dataStore.data.map {
+        it[Keys.lastTimeKey(address)] ?: 0L
     }
 
     suspend fun saveAlertState(address: String, level: Int) {
         context.dataStore.edit { prefs ->
             prefs[Keys.lastLevelKey(address)] = level
-            prefs[Keys.lastTimeKey(address)] = System.currentTimeMillis().toInt() // DataStore int limit
+            prefs[Keys.lastTimeKey(address)] = System.currentTimeMillis()
         }
     }
 
