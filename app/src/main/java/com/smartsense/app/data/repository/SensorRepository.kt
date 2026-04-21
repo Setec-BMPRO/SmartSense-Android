@@ -8,6 +8,7 @@ import com.smartsense.app.data.local.dao.SensorDao
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.data.local.entity.SyncStatus
 import com.smartsense.app.data.local.entity.TankEntity
+import com.smartsense.app.data.preferences.UserPreferences
 import com.smartsense.app.di.ApplicationScope
 import com.smartsense.app.domain.model.MapToSensorEnum
 import com.smartsense.app.domain.model.MopekaSensorType
@@ -38,7 +39,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -55,6 +55,7 @@ class SensorRepository @Inject constructor(
     private val calculateTankUseCase: CalculateTankUseCase,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
+    private val userPreferences: UserPreferences,
     appScope: ApplicationScope.AppScope
 ) {
     companion object {
@@ -89,7 +90,7 @@ class SensorRepository @Inject constructor(
     fun discoverSensors(scanIntervalMillis: Long): Flow<List<Sensor>> =
         bleManager.startScan()
             .onEach(::cacheReading)
-            .sample(scanIntervalMillis)
+//            .sample(scanIntervalMillis)
             .map {
                 Timber.tag(TAG).i("discoverSensors triggered")
                 // Apply RSSI filtering only for discovery (not registered sensors)
@@ -136,8 +137,15 @@ class SensorRepository @Inject constructor(
                         val tank = tankMap[address]?.toDomain()
 
                         if (scanned != null) {
+                            if (!shouldAcceptSensorData(
+                                    scanned.parsed?.reading?.quality?:0,
+                                    tank?.qualityThreshold?.ordinal ?: QualityThreshold.default().ordinal
+                                )
+                            ) {
+                                return@map mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
+                            }
                             scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-                            persistReading(scanned,address)
+                            persistReading(scanned, address)
                             mapToSensor(
                                 scanned = scanned,
                                 tank = tank,
@@ -162,13 +170,24 @@ class SensorRepository @Inject constructor(
             val tank = tankMap[address]?.toDomain()
 
             if (scanned != null) {
-                scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-                persistReading(scanned, address)
-                mapToSensor(
-                    scanned = scanned,
-                    tank = tank,
-                    mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
-                )
+                if (!shouldAcceptSensorData(
+                        scanned.parsed?.reading?.quality?:0,
+                        tank?.qualityThreshold?.ordinal ?: QualityThreshold.default().ordinal
+                    )
+                ) {
+                    val entity = sensorDao.getSensor(address)
+                    if (entity != null) {
+                        mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_DETAIL)
+                    } else null
+                } else {
+                    scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                    persistReading(scanned, address)
+                    mapToSensor(
+                        scanned = scanned,
+                        tank = tank,
+                        mapToSensorEnum = MapToSensorEnum.OBSERVE_DETAIL
+                    )
+                }
             } else {
                 val entity = sensorDao.getSensor(address)
                 if (entity != null) {
@@ -268,6 +287,8 @@ class SensorRepository @Inject constructor(
             throw e
         }
     }
+
+    suspend fun updateSensorLastSeenMillis(address: String)=sensorDao.updateSensorLastSeenMillis(address)
 
     suspend fun saveTankConfig(tank: Tank) {
         val now = System.currentTimeMillis()
@@ -488,7 +509,7 @@ class SensorRepository @Inject constructor(
             quality = entity.lastQuality,
             temperatureCelsius = entity.lastTemperatureCelsius,
             firmwareVersion = "",
-            timestampMillis = entity.lastReadingTimestamp
+            timestampMillis = entity.lastReadingTimestamp,
         ) else null
 
         val tankLevel = if (hasReading && mapToSensorEnum != MapToSensorEnum.DISCOVER) {
@@ -538,7 +559,7 @@ class SensorRepository @Inject constructor(
             )
             //    .apply { percentage = Random.nextFloat() * 100f }
         } else null
-
+        val readQuality=if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) reading?.quality?.toReadQuality() else null
         return Sensor(
             address = scanned.address,
             name = calculateTankUseCase.calculateName(scanned.parsed?.sensorType, tank?.name),
@@ -547,7 +568,7 @@ class SensorRepository @Inject constructor(
             syncPressed = scanned.parsed?.syncPressed ?: false,
             reading = reading,
             tankLevel = tankLevel,
-            readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) reading?.quality?.toReadQuality() else null,
+            readQuality = readQuality,
             tankType = if (tank != null) {
                 // Logging the string construction for the UI
                 val displayType = if (tank.type == TankType.CUSTOM) {
@@ -592,4 +613,13 @@ class SensorRepository @Inject constructor(
 
     private inline fun <reified T : Enum<T>> enumOrDefault(value: String, default: T): T =
         try { enumValueOf<T>(value) } catch (_: Exception) { default }
+
+    fun shouldAcceptSensorData(qualityStars: Int, thresholdRaw: Int): Boolean {
+        val threshold = QualityThreshold.fromRaw(thresholdRaw)
+        return when (threshold) {
+            QualityThreshold.DISABLE -> true
+            QualityThreshold.ONE -> qualityStars > 1
+            QualityThreshold.TWO -> qualityStars > 2
+        }
+    }
 }

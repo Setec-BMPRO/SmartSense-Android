@@ -11,7 +11,7 @@ data class SensorEntity(
     @PrimaryKey
     val address: String="",
     val name: String = "",
-    val lastSeenMillis: Long = System.currentTimeMillis(),
+    var lastSeenMillis: Long = System.currentTimeMillis(),
     @ColumnInfo(name = "registered", defaultValue = "0")
     val registered: Boolean = false,
 
