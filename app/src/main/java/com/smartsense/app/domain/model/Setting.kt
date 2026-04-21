@@ -19,7 +19,7 @@ enum class ScanIntervals(val value: Int, val displayName: String) {
     FIFTEEN(15,"15 seconds"),
     TWENTY(20,"20 seconds");
     companion object{
-        fun default():ScanIntervals=FIVE
+        fun default():ScanIntervals=ONE
     }
 }
 

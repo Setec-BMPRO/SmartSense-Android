@@ -183,6 +183,7 @@ class DetailTankSettingsViewModel @Inject constructor(
                     triggerAlarmUnit = state.triggerAlarmUnit
                 )
             )
+            useCase.updateSensorLastSeenMillis(sensorAddress)
             if(userPreferences.uploadSensorData.first())
                 sharedUseCase.triggerSync()
             _uiState.update { it.copy(isSaved = true) }

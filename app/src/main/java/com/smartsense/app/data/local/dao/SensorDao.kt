@@ -32,6 +32,12 @@ interface SensorDao {
         lastModifiedLocally: Long = System.currentTimeMillis()
     )
 
+    @Query(" UPDATE sensors SET lastSeenMillis = :lastSeenMillis, last_reading_timestamp = :lastSeenMillis  WHERE address = :address")
+    suspend fun updateSensorLastSeenMillis(
+        address: String,
+        lastSeenMillis: Long = System.currentTimeMillis()
+    )
+
     @Query("""
         SELECT * FROM sensors 
         WHERE registered = 1 AND sync_status != 'DELETED' 

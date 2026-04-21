@@ -127,6 +127,12 @@ enum class QualityThreshold(val displayName: String) {
 
     companion object{
         fun default(): QualityThreshold= DISABLE
+        fun fromRaw(raw: Int): QualityThreshold = when (raw) {
+                1 -> ONE
+                2 -> TWO
+                else -> DISABLE
+        }
+
     }
 }
 
