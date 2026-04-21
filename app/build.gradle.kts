@@ -3,20 +3,19 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
-    kotlin("kapt")
     id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.smartsense.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.smartsense.app"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 1
-        versionName = "1.0.6"
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -75,9 +74,9 @@ dependencies {
 
     // --- Dependency Injection (Hilt) ---
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.work)
-    kapt(libs.hilt.work.compiler)
+    ksp(libs.hilt.work.compiler)
 
     // --- WorkManager ---
     implementation(libs.work.runtime.ktx)
@@ -85,7 +84,7 @@ dependencies {
     // --- Data Storage (Room & DataStore) ---
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    kapt(libs.room.compiler)
+    ksp(libs.room.compiler)
     implementation(libs.datastore.preferences)
     implementation(libs.sqlite.ktx)
     implementation(libs.sqlite)
