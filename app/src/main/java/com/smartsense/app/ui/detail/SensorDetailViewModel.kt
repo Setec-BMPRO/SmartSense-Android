@@ -49,9 +49,11 @@ class Sensor1DetailViewModel @Inject constructor(
         userPreferences.unitSystem.first()
     }
 
-    val scanIntervals: ScanIntervals = runBlocking {
-        userPreferences.scanInterval.first()
-    }
+    // The Update-Rate setting was retired — the detail screen now ticks at the
+    // sensor's own broadcast cadence (or the AUTO fallback before the first
+    // broadcast arrives).
+    private val initialIntervalMs: Long =
+        ScanIntervals.AUTO_FALLBACK_SECONDS.toLong() * 1000L
 
     private val _uiState = MutableStateFlow(SensorDetailUiState())
     val uiState: StateFlow<SensorDetailUiState> = _uiState.asStateFlow()
@@ -80,13 +82,18 @@ class Sensor1DetailViewModel @Inject constructor(
 
     fun startObserveDetailSensor() {
         if (observeJob?.isActive == true) return
+        launchObserveDetailJob(initialIntervalMs)
+    }
 
+    /**
+     * Observe the sensor's live readings at [intervalMs]. After each emission the
+     * collector checks whether the sensor's reported broadcast cadence implies a
+     * different interval and, if so, restarts itself with the new value.
+     */
+    private fun launchObserveDetailJob(intervalMs: Long) {
+        observeJob?.cancel()
         observeJob = viewModelScope.launch {
-            // Get the interval once
-            val interval = userPreferences.scanInterval.first().value.toLong() * 1000
-
-            // Collect the flow directly
-            useCase.observeDetailSensor(sensorAddress, interval)
+            useCase.observeDetailSensor(sensorAddress, intervalMs)
                 .collect { sensor ->
                     _uiState.update {
                         it.copy(sensor = sensor, isLoading = false)
@@ -97,6 +104,15 @@ class Sensor1DetailViewModel @Inject constructor(
                             address = it.address,
                             currentLevel = level
                         )
+                    }
+
+                    val derivedSeconds = sensor?.reading?.reportingIntervalSeconds ?: 0
+                    if (derivedSeconds > 0) {
+                        val derivedMs = derivedSeconds.toLong() * 1000L
+                        if (derivedMs != intervalMs) {
+                            launchObserveDetailJob(derivedMs)
+                            return@collect
+                        }
                     }
                 }
         }

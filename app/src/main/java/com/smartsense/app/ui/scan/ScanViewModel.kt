@@ -80,12 +80,25 @@ class ScanViewModel @Inject constructor(
 
     fun startObserveRegisteredSensors() {
         if (observeJob?.isActive == true) return
+        launchObserveJob(autoFallbackIntervalMs())
+    }
 
+    /**
+     * Launch (or relaunch) the registered-sensors collector at [intervalMs]. The
+     * collector re-evaluates the auto-derived interval after each emission and, if
+     * the sensors now imply a different cadence, swaps the running flow for one at
+     * the new interval.
+     *
+     * The "Update Rate" setting was retired; the cadence always tracks the smallest
+     * `reportingIntervalSeconds` reported by registered sensors, falling back to
+     * [com.smartsense.app.domain.model.ScanIntervals.AUTO_FALLBACK_SECONDS] when no
+     * reading carries one yet (e.g. CC2540/NRF52, or before the first broadcast).
+     */
+    private fun launchObserveJob(intervalMs: Long) {
+        observeJob?.cancel()
         observeJob = viewModelScope.launch {
-            val interval = userPreferences.scanInterval.first().value.toLong() * 1000
-            Timber.tag(TAG).d("Starting observation with interval: $interval ms")
-
-            useCase.observeRegisteredSensors(interval)
+            Timber.tag(TAG).d("Observing registered sensors at $intervalMs ms")
+            useCase.observeRegisteredSensors(intervalMs)
                 .collect { sensors ->
                     _uiState.update { it.copy(sensors = sensors) }
                     pairingInFlight -= sensors.map { it.address }.toSet()
@@ -97,8 +110,24 @@ class ScanViewModel @Inject constructor(
                             currentLevel = level
                         )
                     }
+
+                    val derived = sensors.deriveAutoIntervalMs()
+                    if (derived != intervalMs && derived > 0) {
+                        launchObserveJob(derived)
+                        return@collect
+                    }
                 }
         }
+    }
+
+    private fun autoFallbackIntervalMs(): Long =
+        com.smartsense.app.domain.model.ScanIntervals.AUTO_FALLBACK_SECONDS.toLong() * 1000L
+
+    private fun List<Sensor>.deriveAutoIntervalMs(): Long {
+        val intervals = mapNotNull { it.reading?.reportingIntervalSeconds?.takeIf { s -> s > 0 } }
+        val seconds = intervals.minOrNull()
+            ?: com.smartsense.app.domain.model.ScanIntervals.AUTO_FALLBACK_SECONDS
+        return seconds.toLong() * 1000L
     }
 
     fun stopObserveRegisteredSensors() {
@@ -112,7 +141,10 @@ class ScanViewModel @Inject constructor(
 
         scanJob = viewModelScope.launch {
             _uiState.update { it.copy(isScanning = true) }
-            val interval = userPreferences.scanInterval.first().value.toLong() * 1000
+            // Discovery-side sampling is independent of the per-sensor reporting cadence —
+            // use the AUTO fallback (~3 s) as a reasonable, fixed sampling rate so newly
+            // pressed sync buttons surface promptly.
+            val interval = autoFallbackIntervalMs()
 
             // Fast path: monitor raw BLE readings for sync-pressed devices
             // to trigger auto-pairing immediately without waiting for the sample interval

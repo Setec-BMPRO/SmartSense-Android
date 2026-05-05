@@ -189,7 +189,6 @@ class SensorDetailFragment : Fragment() {
         setupStatusRow(sensor)
         setupQualityWarning(sensor.readQuality)
         setupAdditionalInfo(sensor)
-        updateRefreshRate()
 
     }
 
@@ -288,10 +287,6 @@ class SensorDetailFragment : Fragment() {
             seconds < 3600 -> getString(R.string.reporting_interval_minutes, seconds / 60)
             else -> getString(R.string.reporting_interval_hours, seconds / 3600)
         }
-    }
-
-    private fun FragmentSensorDetailBinding.updateRefreshRate() {
-        detailUpdateRate.text=viewModel.scanIntervals.displayName
     }
 
     // --------------------------------------
