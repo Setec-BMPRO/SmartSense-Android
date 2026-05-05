@@ -181,7 +181,7 @@ class SensorDetailFragment : Fragment() {
         toolbar.subtitle = sensor.name
         // Set text IMMEDIATELY so it's "Just now" without waiting for the timer
         lastUpdated.text = if (sensor.reading != null) {
-            TimeUtils.getLastUpdatedText(sensor.reading.timestampMillis)
+            TimeUtils.getLastUpdatedText(requireContext(), sensor.reading.timestampMillis)
         } else {
             getString(R.string.waiting_for_signal)
         }
@@ -320,7 +320,7 @@ class SensorDetailFragment : Fragment() {
         timerJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
                 delay(1000L) // Wait 1 second
-                binding.lastUpdated.text = TimeUtils.getLastUpdatedText(timestamp)
+                binding.lastUpdated.text = TimeUtils.getLastUpdatedText(requireContext(), timestamp)
             }
         }
     }

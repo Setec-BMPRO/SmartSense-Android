@@ -17,14 +17,22 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
+import com.smartsense.app.R
 import timber.log.Timber
+
+/** Categorises why a permission/hardware check failed so callers can route tips. */
+enum class PermissionDenialKind { PERMISSION, BLUETOOTH, LOCATION, OTHER }
 
 class BlePermissionManager(
     private val fragment: Fragment,
     private val onPermissionGranted: () -> Unit,
-    private val onDenied: (String) -> Unit
+    private val onDenied: (message: String, kind: PermissionDenialKind) -> Unit
 ) {
     private val context = fragment.requireContext()
+
+    private fun deny(@androidx.annotation.StringRes msgRes: Int, kind: PermissionDenialKind) {
+        onDenied(fragment.getString(msgRes), kind)
+    }
 
     // 1. Unified Permission Launcher (Modern approach)
     private val permissionLauncher = fragment.registerForActivityResult(
@@ -34,7 +42,7 @@ class BlePermissionManager(
         if (allGranted) {
             checkHardwareState()
         } else {
-            onDenied("Required permissions were not granted")
+            deny(R.string.permission_required_not_granted, PermissionDenialKind.PERMISSION)
         }
     }
 
@@ -43,7 +51,7 @@ class BlePermissionManager(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) checkHardwareState()
-        else onDenied("Bluetooth is required for this app")
+        else deny(R.string.bluetooth_required_for_app, PermissionDenialKind.BLUETOOTH)
     }
 
     // 3. Location Services (GPS) Toggle Launcher
@@ -51,7 +59,7 @@ class BlePermissionManager(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) checkHardwareState()
-        else onDenied("Location must be ON for scanning on this device")
+        else deny(R.string.location_must_be_on, PermissionDenialKind.LOCATION)
     }
 
     /**
@@ -94,7 +102,7 @@ class BlePermissionManager(
         val adapter = bluetoothManager.adapter
 
         if (adapter == null) {
-            onDenied("Device does not support Bluetooth")
+            deny(R.string.device_no_bluetooth, PermissionDenialKind.BLUETOOTH)
             return
         }
 
@@ -140,10 +148,10 @@ class BlePermissionManager(
                             IntentSenderRequest.Builder(exception.resolution).build()
                         )
                     } catch (e: Exception) {
-                        onDenied("Could not request location services")
+                        deny(R.string.could_not_request_location_services, PermissionDenialKind.LOCATION)
                     }
                 } else {
-                    onDenied("Location services required")
+                    deny(R.string.location_services_required, PermissionDenialKind.LOCATION)
                 }
             }
     }

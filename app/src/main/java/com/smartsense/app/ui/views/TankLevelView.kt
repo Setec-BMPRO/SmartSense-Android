@@ -347,7 +347,7 @@ class TankLevelView @JvmOverloads constructor(
         if (percentage <= 0f) {
             circleTextPaint.textSize = badgeRadius * 0.5f
             circleTextPaint.textAlign = Paint.Align.CENTER
-            val text = "Empty"
+            val text = context.getString(com.smartsense.app.R.string.tank_state_empty)
             val textY = badgeCy - (circleTextPaint.descent() + circleTextPaint.ascent()) / 2f
             canvas.drawText(text, badgeCx, textY, circleTextPaint)
         } else {

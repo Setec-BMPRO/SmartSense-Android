@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.smartsense.app.domain.model.AppLanguage
 import com.smartsense.app.domain.model.AppTheme
 import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.SortPreference
@@ -34,11 +35,13 @@ class UserPreferences @Inject constructor(
         val DEFAULT_SCAN_INTERVAL = ScanIntervals.default()
         val DEFAULT_APP_THEME = AppTheme.SYSTEM
         val DEFAULT_SORT_PREFERENCE = SortPreference.NAME
+        val DEFAULT_APP_LANGUAGE = AppLanguage.SYSTEM
         const val DEFAULT_NOTIFICATIONS_ENABLED = true
         const val DEFAULT_UPLOAD_SENSOR_DATA = true
         const val DEFAULT_GROUP_FILTER_ENABLED = false
         const val DEFAULT_DEVICE_SEARCH_FILTER_ENABLED = false
         const val DEFAULT_IS_SIGNED_IN = false
+        const val DEFAULT_FIRST_RUN_COMPLETED = false
     }
 
     private object Keys {
@@ -46,6 +49,8 @@ class UserPreferences @Inject constructor(
         val SCAN_INTERVAL = intPreferencesKey("scan_interval_value")
         val APP_THEME = stringPreferencesKey("app_theme")
         val SORT_PREFERENCE = stringPreferencesKey("sort_preference")
+        val APP_LANGUAGE = stringPreferencesKey("app_language_tag")
+        val FIRST_RUN_COMPLETED = booleanPreferencesKey("first_run_completed")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val UPLOAD_SENSOR_DATA = booleanPreferencesKey("upload_sensor_data")
         val GROUP_FILTER_ENABLED = booleanPreferencesKey("group_filter_enabled")
@@ -82,6 +87,14 @@ class UserPreferences @Inject constructor(
         SortPreference.entries.find { it.name == name } ?: DEFAULT_SORT_PREFERENCE
     }
 
+    val appLanguage: Flow<AppLanguage> = context.dataStore.data.map { prefs ->
+        AppLanguage.fromTag(prefs[Keys.APP_LANGUAGE])
+    }
+
+    val firstRunCompleted: Flow<Boolean> = context.dataStore.data.map {
+        it[Keys.FIRST_RUN_COMPLETED] ?: DEFAULT_FIRST_RUN_COMPLETED
+    }
+
     // -------------------------------------------------------------------------
     // 📡 Boolean Flow Observables
     // -------------------------------------------------------------------------
@@ -116,6 +129,15 @@ class UserPreferences @Inject constructor(
     suspend fun setSortPreference(sort: SortPreference) {
         Timber.tag(TAG).d("Setting SortPreference: ${sort.name}")
         context.dataStore.edit { it[Keys.SORT_PREFERENCE] = sort.name }
+    }
+
+    suspend fun setAppLanguage(language: AppLanguage) {
+        Timber.tag(TAG).d("Setting AppLanguage: ${language.name} (tag=${language.tag})")
+        context.dataStore.edit { it[Keys.APP_LANGUAGE] = language.tag }
+    }
+
+    suspend fun setFirstRunCompleted(completed: Boolean = true) {
+        context.dataStore.edit { it[Keys.FIRST_RUN_COMPLETED] = completed }
     }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {

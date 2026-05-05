@@ -35,6 +35,9 @@ class SettingsViewModel @Inject constructor(
 
     val sortPreference: StateFlow<SortPreference> = userPreferences.sortPreference
         .stateIn(viewModelScope, SharingStarted.Eagerly, SortPreference.NAME)
+
+    val appLanguage: StateFlow<AppLanguage> = userPreferences.appLanguage
+        .stateIn(viewModelScope, SharingStarted.Eagerly, AppLanguage.SYSTEM)
     val isSignedIn: StateFlow<Boolean> = userPreferences.isSignedIn
         .stateIn(scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = false)
 
@@ -76,6 +79,9 @@ class SettingsViewModel @Inject constructor(
 
     fun setSortPreference(sort: SortPreference) =
         viewModelScope.launch { userPreferences.setSortPreference(sort) }
+
+    fun setAppLanguage(language: AppLanguage) =
+        viewModelScope.launch { userPreferences.setAppLanguage(language) }
 
     fun setNotificationsEnabled(enabled: Boolean) =
         viewModelScope.launch { userPreferences.setNotificationsEnabled(enabled) }

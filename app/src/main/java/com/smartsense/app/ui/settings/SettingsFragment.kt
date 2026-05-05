@@ -16,11 +16,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.smartsense.app.R
 import com.smartsense.app.SmartSenseApplication
 import com.smartsense.app.databinding.FragmentSettingsBinding
+import com.smartsense.app.domain.model.AppLanguage
 import com.smartsense.app.domain.model.AppTheme
 import com.smartsense.app.domain.model.ScanIntervals
 import com.smartsense.app.domain.model.SortPreference
 import com.smartsense.app.domain.model.UnitSystem
 import com.smartsense.app.ui.detail.SelectedAdapter
+import com.smartsense.app.util.LocaleManager
 import com.smartsense.app.util.showConfirmationDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.launchIn
@@ -293,6 +295,33 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(R.string.ok) { _, _ -> viewModel.unregisterAllSensors() }
                 .show()
         }
+
+        binding.rowLanguage.setOnClickListener { showLanguagePicker() }
+
+        // Reflect the current language in the row's value text. Each language's display
+        // name is provided in EVERY locale's strings.xml so the label stays in that
+        // language even when the app's UI is currently in a different one.
+        viewModel.appLanguage
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { lang -> binding.languageValue.text = getString(lang.displayNameRes) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun showLanguagePicker() {
+        val languages = AppLanguage.entries
+        val labels = languages.map { getString(it.displayNameRes) }.toTypedArray()
+        val checkedIndex = languages.indexOf(viewModel.appLanguage.value).coerceAtLeast(0)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.language_picker_title)
+            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
+                val chosen = languages[which]
+                viewModel.setAppLanguage(chosen)
+                LocaleManager.apply(chosen)
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
 

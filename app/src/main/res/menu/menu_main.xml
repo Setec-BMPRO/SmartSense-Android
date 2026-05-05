@@ -18,6 +18,6 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/action_seed_mock"
-        android:title="Load mock data"
+        android:title="@string/load_mock_data"
         app:showAsAction="never" />
 </menu>

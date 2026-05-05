@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SmartSense</string>
+
+    <!-- Navigation -->
+    <string name="nav_account">账户</string>
+    <string name="nav_scan">扫描</string>
+    <string name="nav_smartsense">SmartSense</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_help">帮助</string>
+
+    <!-- Pairing Help -->
+    <string name="help_pair_title">如何配对传感器</string>
+    <string name="help_pair_message">1. 打开手机的蓝牙和位置服务,并确认传感器已通电。\n\n2. 打开此屏幕,将传感器保持在距手机 10 米范围内。\n\n之前已配对的传感器:\n一旦传感器开始广播即可自动重新连接 — 无需按任何按钮。\n\n新的或已移除的传感器:\n按下传感器上的配对/同步按钮。应用会检测到配对广播并自动注册。\n\n如果传感器未出现:\n• 再次按下传感器上的配对按钮。\n• 检查传感器电池。\n• 靠近一些,等待几秒钟接收下一次广播。\n• 确认手机设置中已授予蓝牙和位置权限。</string>
+
+
+    <!-- Dashboard -->
+    <string name="empty_title">未连接传感器</string>
+    <string name="empty_subtitle">点击扫描以查找附近的传感器</string>
+    <string name="empty_action">开始扫描</string>
+    <string name="last_updated">已更新 %1$s</string>
+
+    <!-- Scan -->
+    <string name="scan_title">附近的传感器</string>
+    <string name="start_scan">开始扫描</string>
+    <string name="stop_scan">停止扫描</string>
+    <string name="scanning">正在扫描传感器…</string>
+    <string name="no_devices_found">附近未找到传感器</string>
+    <string name="scan_tap_to_start">点击下方扫描附近的传感器</string>
+    <string name="scan_auto_pair_hint">按下新传感器上的配对按钮以添加</string>
+    <string name="sensors_found">找到 %1$d 个传感器</string>
+    <string name="connected_sensors">已连接</string>
+    <string name="sensor_count_label">%1$d 个传感器</string>
+    <string name="select_tank_type">选择罐类型</string>
+
+    <!-- Detail -->
+    <string name="tank_level">罐液位</string>
+    <string name="battery">电池</string>
+    <string name="signal_strength">信号强度</string>
+    <string name="temperature">温度</string>
+    <string name="read_quality">读取质量</string>
+    <string name="device_mac">设备 MAC</string>
+    <string name="tank_type">罐类型</string>
+    <string name="change">更改</string>
+    <string name="remove_sensor">移除传感器</string>
+    <string name="remove_sensor_confirm_title">移除传感器</string>
+    <string name="remove_sensor_confirm">此传感器将从仪表板隐藏。下次扫描时会重新出现。</string>
+    <string name="remove_all_sensors_confirm">确定要移除所有传感器吗?它们将从设备和云存储中删除。</string>
+    <string name="cancel">取消</string>
+    <string name="remove">移除</string>
+
+    <!-- Quality -->
+    <string name="quality_good">良好</string>
+    <string name="quality_fair">一般</string>
+    <string name="quality_poor">差</string>
+    <string name="quality_warning_poor">质量低:罐为空或传感器位置不正确。(点击了解详情)</string>
+    <string name="quality_warning_fair">质量一般:信号可能较弱。检查传感器位置。</string>
+
+    <!-- Additional Info -->
+    <string name="additional_info">附加信息</string>
+    <string name="update_rate">更新速率</string>
+    <string name="sensor_type">传感器类型</string>
+    <string name="device_address">设备地址</string>
+    <string name="format_seconds">%1$.1f 秒</string>
+    <string name="protocol_version">协议版本</string>
+    <string name="software_version">软件版本</string>
+    <string name="reporting_interval">上报间隔</string>
+    <string name="reporting_interval_seconds">%1$d 秒</string>
+    <string name="reporting_interval_minutes">%1$d 分钟</string>
+    <string name="reporting_interval_hours">%1$d 小时</string>
+    <string name="open_bluetooth_settings">打开蓝牙设置</string>
+    <string name="filter_sensor_hint">筛选传感器</string>
+    <string name="load_mock_data">加载模拟数据</string>
+    <string name="unload_mock_data">卸载模拟数据</string>
+    <string name="custom">自定义</string>
+    <string name="vertical">竖向</string>
+    <string name="horizontal">横向</string>
+    <string name="forgot_your_password">忘记密码?</string>
+    <string name="enter_reset_code">输入重置代码</string>
+
+    <!-- Language picker -->
+    <string name="setting_language">语言</string>
+    <string name="language_picker_title">选择语言</string>
+    <string name="language_system_default">跟随系统</string>
+    <string name="lang_en">English</string>
+    <string name="lang_vi">Tiếng Việt</string>
+    <string name="lang_zh_cn">简体中文</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_pt_br">Português (Brasil)</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_ru">Русский</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_ko">한국어</string>
+    <string name="lang_id">Bahasa Indonesia</string>
+    <string name="lang_th">ไทย</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_hi">हिन्दी</string>
+
+    <!-- Errors / Messages -->
+    <string name="permission_required_not_granted">未授予所需权限</string>
+    <string name="bluetooth_required_for_app">此应用需要蓝牙</string>
+    <string name="location_must_be_on">在此设备上扫描需要打开位置服务</string>
+    <string name="device_no_bluetooth">设备不支持蓝牙</string>
+    <string name="could_not_request_location_services">无法请求位置服务</string>
+    <string name="location_services_required">需要位置服务</string>
+    <string name="grant_permission_in_app_settings">在应用设置中授予权限</string>
+    <string name="enable_bluetooth_in_settings">在设置中启用蓝牙</string>
+    <string name="enable_location_in_settings">在设置中启用位置服务</string>
+    <string name="check_settings">检查设置</string>
+    <string name="ble_scan_failed">BLE 扫描失败</string>
+    <string name="bluetooth_toggle_tip">在设置中关闭蓝牙再打开,然后重新打开应用。</string>
+    <string name="device_removed_and_sync_started">设备已移除并开始同步</string>
+    <string name="device_removed_locally">已在本地移除设备</string>
+    <string name="unknown_error">未知错误</string>
+    <string name="network_timeout">网络超时。请检查您的连接。</string>
+    <string name="unexpected_error">发生意外错误</string>
+    <string name="could_not_delete_account">无法删除账户。</string>
+    <string name="no_signal">无信号</string>
+    <string name="no_data">无数据</string>
+    <string name="updated_just_now">刚刚更新</string>
+    <string name="updated_seconds_ago">%1$d 秒前更新</string>
+    <string name="updated_x">%1$s 更新</string>
+    <string name="tank_alert_title">罐警报: %1$s</string>
+    <string name="tank_alert_message">液位 %1$s %2$d%% (当前: %3$d%%)</string>
+    <string name="checking_levels">正在检查液位…</string>
+    <string name="notification_channel_alerts">罐液位警报</string>
+    <string name="notification_channel_background">后台任务</string>
+    <string name="vertical_tank">立式罐</string>
+    <string name="horizontal_tank">卧式罐</string>
+    <string name="tall_vertical_tank">高立式罐</string>
+    <string name="sync_finished">同步完成! %1$s</string>
+    <string name="cloud_sync_failed">云同步失败</string>
+    <string name="sync_uploaded">上传: %1$d</string>
+    <string name="sync_downloaded">下载: %1$d</string>
+    <string name="ble_register_error_already_active">BLE 扫描已在运行</string>
+    <string name="ble_register_error_register">应用无法注册 BLE 扫描</string>
+    <string name="ble_register_error_internal">BLE 扫描内部错误</string>
+    <string name="ble_register_error_unsupported">此设备不支持 BLE</string>
+    <string name="ble_register_error_other">BLE 扫描错误 (代码 %1$d)</string>
+
+    <!-- Signal -->
+    <string name="signal_excellent">极佳</string>
+    <string name="signal_good">良好</string>
+    <string name="signal_fair">一般</string>
+    <string name="signal_weak">弱</string>
+
+    <!-- Formats -->
+    <string name="format_percent">%1$.0f%%</string>
+    <string name="format_mm">%1$.0f 毫米</string>
+    <string name="format_inches">%1$.1f 英寸</string>
+    <string name="format_celsius">%1$.1f°C</string>
+    <string name="format_fahrenheit">%1$.1f°F</string>
+    <string name="format_battery">%1$d%%</string>
+    <string name="format_rssi">%1$d dBm</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="setting_units">单位制</string>
+    <string name="setting_scan_interval">扫描间隔</string>
+    <string name="setting_appearance">外观</string>
+    <string name="setting_general">常规</string>
+    <string name="setting_features">功能</string>
+    <string name="drawer_section_account">账户</string>
+    <string name="setting_theme">应用主题</string>
+    <string name="setting_about">关于</string>
+    <string name="app_version">版本 %1$s</string>
+    <string name="theme_light">浅色</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_system">跟随系统</string>
+
+    <!-- Permissions -->
+    <string name="permission_bluetooth_title">需要蓝牙权限</string>
+    <string name="permission_bluetooth_message">SmartSense 需要蓝牙权限来发现并连接到罐传感器。</string>
+    <string name="grant_permission">授予权限</string>
+    <string name="settings">设置</string>
+
+    <!-- Help Info -->
+    <string name="help_quality">显示在传感器主屏幕上的质量指示器(3 星等级)用于了解传感器的超声测量系统是否正常工作。通常,如果质量较低(1 星或更低),传感器安装不当:在罐底中心位置不佳、橡胶垫前的罐上有碎屑影响性能,或缺少足够的声学润滑脂。因此,检查质量很重要,尤其是在首次安装和设置期间。通常,正确安装且质量至少 2 星后,除非罐受到干扰使其不再直立和水平,否则不需要更改。</string>
+    <string name="help_device_name">为此传感器和罐设置一个友好的名称,以便您可以轻松识别。此名称仅保存在您的手机上,因此如果您使用多部手机,则需要在每部上分配名称。</string>
+    <string name="help_tank_size">设置罐的尺寸,以便应用可以显示百分比读数。对于未列出的尺寸或卧式罐,您应测量罐的高度并将其输入\"任意\"字段。对于卧式罐,显示的百分比将是相对于您在\"任意\"字段中输入的高度的测量液体高度。</string>
+    <string name="help_tank_level_unit">更改在主页和详细罐信息页上显示的罐液位单位。</string>
+    <string name="help_alarm_threshold">为您的罐设置低液位警报阈值。当液位低于此警报时,您将在手机上收到通知(如果在主菜单中启用)。应用还将显示警告图标和帮助您重新加注罐的选项。</string>
+    <string name="ok">好的</string>
+    <string name="low_quality">质量低</string>
+    <string name="device_name">设备名称</string>
+    <string name="tank_size">罐尺寸</string>
+    <string name="quality_threshold">质量阈值</string>
+    <string name="tank_level_units">罐液位单位</string>
+    <string name="notifications">通知</string>
+    <string name="trigger_alarm_above_or_below_threshold">高于或低于阈值时触发警报?</string>
+    <string name="percent">百分比</string>
+    <string name="centimeter">厘米</string>
+    <string name="above">高于</string>
+    <string name="below">低于</string>
+    <string name="inches">英寸</string>
+    <string name="alarm_threshold">警报阈值</string>
+    <string name="notification_frequency">通知频率</string>
+    <string name="region">地区</string>
+    <string name="tank_height">罐高度</string>
+    <string name="upload_sensor_data">上传传感器数据</string>
+    <string name="device_search_filter">设备搜索过滤器</string>
+    <string name="group_sensors">传感器分组</string>
+    <string name="sort_preferences">排序偏好</string>
+    <string name="forget_all_devices">忘记所有设备</string>
+    <string name="email">邮箱</string>
+    <string name="password">密码</string>
+    <string name="confirm_email">确认邮箱</string>
+    <string name="confirm_password">确认密码</string>
+    <string name="sign_in">登录</string>
+    <string name="register">注册</string>
+    <string name="already_a_user">已有账户?</string>
+    <string name="signup_failed">注册失败</string>
+    <string name="enter_a_valid_email_address">输入有效的邮箱地址</string>
+    <string name="emails_do_not_match">邮箱不匹配</string>
+    <string name="password_must_be_at_least_8_characters">密码至少 8 个字符</string>
+    <string name="passwords_do_not_match">密码不匹配</string>
+    <string name="sign_in_success">登录成功</string>
+    <string name="sign_in_failed">登录失败</string>
+    <string name="reset_email_resent_successfully">重置邮件已成功重新发送!</string>
+    <string name="failed_to_resend_email">重新发送邮件失败</string>
+    <string name="enter_a_valid_email_to_reset_password">输入有效的邮箱以重置密码</string>
+    <string name="please_enter_the_password_reset_code_that_was_sent_to">请输入发送到 %1$s 的密码重置代码。</string>
+    <string name="new_password">新密码</string>
+    <string name="please_enter_new_password_for">请为 %1$s 输入新密码。</string>
+    <string name="enter_new_password">输入新密码</string>
+    <string name="password_too_short">密码过短</string>
+    <string name="resend">重新发送</string>
+    <string name="reset_password">重置密码</string>
+    <string name="reset_password_link_has_been_sent_to">重置密码链接已发送至 %1$s</string>
+    <string name="refresh">刷新</string>
+    <string name="account_sensors">账户传感器</string>
+    <string name="sign_out">退出登录</string>
+    <string name="local_account">本地 + 账户</string>
+    <string name="account_only">账户</string>
+    <string name="all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above">所有同步到应用的本地传感器将被添加到您的账户并在上方列出</string>
+    <string name="delete_account">删除账户</string>
+    <string name="account">账户</string>
+    <string name="remove_sensor_data_both">您确定要移除此传感器吗?它将从您的设备和云存储中删除。</string>
+    <string name="remove_sensor_data_local">此传感器仅存储在此设备上。如果您移除它,需要重新扫描才能再次添加。</string>
+    <string name="remove_sensor_data_cloud">此传感器存储在您的账户中,但不在此手机上。移除将永久从您的云存储中删除它。</string>
+    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">您确定要退出登录吗?</string>
+    <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">此操作不可逆,将清除您云端的所有传感器数据。继续?</string>
+    <string name="no">否</string>
+    <string name="yes">是</string>
+    <string name="tank_info">罐信息</string>
+    <string name="save">保存</string>
+    <string name="discard">丢弃</string>
+    <string name="waiting_for_signal">正在等待信号…</string>
+    <string name="unsaved_changes_title">未保存的更改</string>
+    <string name="unsaved_changes_message">您有未保存的更改。要保存还是丢弃?</string>
+    <string name="local_only">本地</string>
+    <string name="sign_in_required">需要登录</string>
+
+    <string name="re_authentication_required">需要重新验证</string>
+    <string name="for_your_security_please_enter_your_password_to_confirm_account_deletion">为了您的安全,请输入密码以确认删除账户。</string>
+    <string name="confirm">确认</string>
+    <string name="this_setting_only_works_when_you_re_signed_in">此设置仅在您登录后有效。</string>
+    <string name="tank_settings_updated">罐设置已更新</string>
+    <string name="press_back_again_to_exit">再次按下返回键退出</string>
+
+    <string name="tank_state_empty">空</string>
+</resources>

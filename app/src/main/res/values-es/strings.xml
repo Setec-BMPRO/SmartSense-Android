@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SmartSense</string>
+
+    <!-- Navigation -->
+    <string name="nav_account">Cuenta</string>
+    <string name="nav_scan">Escanear</string>
+    <string name="nav_smartsense">SmartSense</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="nav_help">Ayuda</string>
+
+    <!-- Pairing Help -->
+    <string name="help_pair_title">Cómo emparejar un sensor</string>
+    <string name="help_pair_message">1. Activa el Bluetooth y la Ubicación en tu teléfono y asegúrate de que el sensor tenga energía.\n\n2. Abre esta pantalla y mantén el sensor a menos de 10 metros del teléfono.\n\nSensores ya emparejados:\nSe reconectan automáticamente en cuanto emiten — no es necesario pulsar ningún botón.\n\nSensores nuevos o eliminados:\nPulsa el botón de emparejamiento/sincronización del sensor. La aplicación detecta la señal de emparejamiento y lo registra automáticamente.\n\nSi el sensor no aparece:\n• Pulsa de nuevo el botón de emparejamiento.\n• Comprueba la batería del sensor.\n• Acércate y espera unos segundos a la siguiente emisión.\n• Confirma que los permisos de Bluetooth y Ubicación están concedidos en los ajustes del teléfono.</string>
+
+
+    <!-- Dashboard -->
+    <string name="empty_title">Sin sensores conectados</string>
+    <string name="empty_subtitle">Toca Escanear para buscar sensores cercanos</string>
+    <string name="empty_action">Iniciar escaneo</string>
+    <string name="last_updated">Actualizado %1$s</string>
+
+    <!-- Scan -->
+    <string name="scan_title">Sensores cercanos</string>
+    <string name="start_scan">Iniciar escaneo</string>
+    <string name="stop_scan">Detener escaneo</string>
+    <string name="scanning">Buscando sensores…</string>
+    <string name="no_devices_found">No se han encontrado sensores cercanos</string>
+    <string name="scan_tap_to_start">Toca abajo para buscar sensores cercanos</string>
+    <string name="scan_auto_pair_hint">Pulsa el botón de emparejamiento de un sensor nuevo para añadirlo</string>
+    <string name="sensors_found">%1$d sensor(es) encontrados</string>
+    <string name="connected_sensors">Conectados</string>
+    <string name="sensor_count_label">%1$d sensor(es)</string>
+    <string name="select_tank_type">Seleccionar tipo de tanque</string>
+
+    <!-- Detail -->
+    <string name="tank_level">Nivel del tanque</string>
+    <string name="battery">Batería</string>
+    <string name="signal_strength">Intensidad de señal</string>
+    <string name="temperature">Temperatura</string>
+    <string name="read_quality">Calidad de lectura</string>
+    <string name="device_mac">MAC del dispositivo</string>
+    <string name="tank_type">Tipo de tanque</string>
+    <string name="change">Cambiar</string>
+    <string name="remove_sensor">Eliminar sensor</string>
+    <string name="remove_sensor_confirm_title">Eliminar sensor</string>
+    <string name="remove_sensor_confirm">Este sensor se ocultará del panel. Volverá a aparecer en el próximo escaneo.</string>
+    <string name="remove_all_sensors_confirm">¿Seguro que quieres eliminar todos los sensores? Se borrarán de tu dispositivo y de la nube.</string>
+    <string name="cancel">Cancelar</string>
+    <string name="remove">Eliminar</string>
+
+    <!-- Quality -->
+    <string name="quality_good">Buena</string>
+    <string name="quality_fair">Regular</string>
+    <string name="quality_poor">Mala</string>
+    <string name="quality_warning_poor">Calidad baja: tanque vacío o sensor mal colocado. (Toca para más info)</string>
+    <string name="quality_warning_fair">Calidad regular: la señal puede ser débil. Comprueba la posición del sensor.</string>
+
+    <!-- Additional Info -->
+    <string name="additional_info">Información adicional</string>
+    <string name="update_rate">Frecuencia de actualización</string>
+    <string name="sensor_type">Tipo de sensor</string>
+    <string name="device_address">Dirección del dispositivo</string>
+    <string name="format_seconds">%1$.1f segundos</string>
+    <string name="protocol_version">Versión del protocolo</string>
+    <string name="software_version">Versión del software</string>
+    <string name="reporting_interval">Intervalo de informe</string>
+    <string name="reporting_interval_seconds">%1$d s</string>
+    <string name="reporting_interval_minutes">%1$d min</string>
+    <string name="reporting_interval_hours">%1$d h</string>
+    <string name="open_bluetooth_settings">Abrir ajustes de Bluetooth</string>
+    <string name="filter_sensor_hint">Filtrar sensor</string>
+    <string name="load_mock_data">Cargar datos de prueba</string>
+    <string name="unload_mock_data">Quitar datos de prueba</string>
+    <string name="custom">Personalizado</string>
+    <string name="vertical">Vertical</string>
+    <string name="horizontal">Horizontal</string>
+    <string name="forgot_your_password">¿Olvidaste tu contraseña?</string>
+    <string name="enter_reset_code">Introducir código</string>
+
+    <!-- Signal -->
+    <string name="signal_excellent">Excelente</string>
+    <string name="signal_good">Buena</string>
+    <string name="signal_fair">Regular</string>
+    <string name="signal_weak">Débil</string>
+
+    <!-- Formats -->
+    <string name="format_percent">%1$.0f%%</string>
+    <string name="format_mm">%1$.0f mm</string>
+    <string name="format_inches">%1$.1f in</string>
+    <string name="format_celsius">%1$.1f°C</string>
+    <string name="format_fahrenheit">%1$.1f°F</string>
+    <string name="format_battery">%1$d%%</string>
+    <string name="format_rssi">%1$d dBm</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="setting_units">Sistema de unidades</string>
+    <string name="setting_scan_interval">Intervalo de escaneo</string>
+    <string name="setting_appearance">Apariencia</string>
+    <string name="setting_general">General</string>
+    <string name="setting_features">Funciones</string>
+    <string name="drawer_section_account">Cuenta</string>
+    <string name="setting_theme">Tema de la app</string>
+    <string name="setting_about">Acerca de</string>
+    <string name="app_version">Versión %1$s</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_system">Sistema</string>
+
+    <!-- Permissions -->
+    <string name="permission_bluetooth_title">Bluetooth requerido</string>
+    <string name="permission_bluetooth_message">SmartSense necesita permiso de Bluetooth para descubrir y conectarse a los sensores de tanque.</string>
+    <string name="grant_permission">Conceder permiso</string>
+    <string name="settings">Ajustes</string>
+
+    <!-- Help Info -->
+    <string name="help_quality">El indicador de Calidad mostrado en la pantalla principal de un sensor (escala de 3 estrellas) sirve para saber si el sistema de medición ultrasónica del sensor funciona correctamente. Normalmente, si la calidad es baja (1 estrella o menos) el sensor está mal montado: mal colocado en el centro del fondo del tanque, con suciedad delante de la almohadilla de goma que afecta al rendimiento, o sin grasa acústica suficiente. Por eso es importante revisar la Calidad, sobre todo durante la primera instalación. Una vez instalado correctamente con al menos 2 estrellas no debería cambiar a menos que el tanque deje de estar vertical y nivelado.</string>
+    <string name="help_device_name">Asigna un nombre amigable a este sensor y tanque para identificarlo fácilmente. Este nombre solo se guarda en tu teléfono, así que si usas varios teléfonos tendrás que asignarlo en cada uno.</string>
+    <string name="help_tank_size">Define el tamaño de tu tanque para que la app pueda mostrar un porcentaje. Para tamaños no listados o tanques horizontales, mide la altura del tanque e introdúcela en el campo \"Personalizado\". Para tanques horizontales, el porcentaje mostrado será la altura del líquido medida respecto a la que introduzcas en \"Personalizado\".</string>
+    <string name="help_tank_level_unit">Cambia las unidades que se muestran en las pantallas principal y de detalle del nivel del tanque.</string>
+    <string name="help_alarm_threshold">Define un umbral de alarma de nivel bajo para tu tanque. Cuando el nivel baje de este umbral recibirás una notificación en el teléfono (si está activado en el menú principal). La app mostrará también un icono de aviso y opciones para ayudarte a rellenar el tanque.</string>
+    <string name="ok">Aceptar</string>
+    <string name="low_quality">Calidad baja</string>
+    <string name="device_name">Nombre del dispositivo</string>
+    <string name="tank_size">Tamaño del tanque</string>
+    <string name="quality_threshold">Umbral de calidad</string>
+    <string name="tank_level_units">Unidades del nivel</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="trigger_alarm_above_or_below_threshold">¿Activar la alarma por encima o por debajo del umbral?</string>
+    <string name="percent">Porcentaje</string>
+    <string name="centimeter">Centímetros</string>
+    <string name="above">Por encima</string>
+    <string name="below">Por debajo</string>
+    <string name="inches">Pulgadas</string>
+    <string name="alarm_threshold">Umbral de alarma</string>
+    <string name="notification_frequency">Frecuencia de notificación</string>
+    <string name="region">Región</string>
+    <string name="tank_height">Altura del tanque</string>
+    <string name="upload_sensor_data">Subir datos del sensor</string>
+    <string name="device_search_filter">Filtro de búsqueda</string>
+    <string name="group_sensors">Agrupar sensores</string>
+    <string name="sort_preferences">Preferencias de orden</string>
+    <string name="forget_all_devices">Olvidar todos los dispositivos</string>
+    <string name="email">Correo</string>
+    <string name="password">Contraseña</string>
+    <string name="confirm_email">Confirmar correo</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="sign_in">Iniciar sesión</string>
+    <string name="register">Registrarse</string>
+    <string name="already_a_user">¿Ya eres usuario?</string>
+    <string name="signup_failed">Registro fallido</string>
+    <string name="enter_a_valid_email_address">Introduce una dirección de correo válida</string>
+    <string name="emails_do_not_match">Los correos no coinciden</string>
+    <string name="password_must_be_at_least_8_characters">La contraseña debe tener al menos 8 caracteres</string>
+    <string name="passwords_do_not_match">Las contraseñas no coinciden</string>
+    <string name="sign_in_success">Sesión iniciada</string>
+    <string name="sign_in_failed">Error al iniciar sesión</string>
+    <string name="reset_email_resent_successfully">¡Correo de restablecimiento reenviado!</string>
+    <string name="failed_to_resend_email">No se pudo reenviar el correo</string>
+    <string name="enter_a_valid_email_to_reset_password">Introduce un correo válido para restablecer la contraseña</string>
+    <string name="please_enter_the_password_reset_code_that_was_sent_to">Introduce el código de restablecimiento enviado a %1$s.</string>
+    <string name="new_password">Nueva contraseña</string>
+    <string name="please_enter_new_password_for">Introduce la nueva contraseña para %1$s.</string>
+    <string name="enter_new_password">Introducir nueva contraseña</string>
+    <string name="password_too_short">Contraseña demasiado corta</string>
+    <string name="resend">Reenviar</string>
+    <string name="reset_password">Restablecer contraseña</string>
+    <string name="reset_password_link_has_been_sent_to">Enlace de restablecimiento enviado a %1$s</string>
+    <string name="refresh">Actualizar</string>
+    <string name="account_sensors">Sensores de la cuenta</string>
+    <string name="sign_out">Cerrar sesión</string>
+    <string name="local_account">Local + Cuenta</string>
+    <string name="account_only">Cuenta</string>
+    <string name="all_sensors_synced_locally_to_the_app_will_be_added_to_your_account_and_listed_above">Todos los sensores sincronizados localmente con la app se añadirán a tu cuenta y aparecerán arriba</string>
+    <string name="delete_account">Eliminar cuenta</string>
+    <string name="account">Cuenta</string>
+    <string name="remove_sensor_data_both">¿Seguro que quieres eliminar este sensor? Se borrará de tu dispositivo y de la nube.</string>
+    <string name="remove_sensor_data_local">Este sensor solo está en este dispositivo. Si lo eliminas, tendrás que escanearlo de nuevo para añadirlo.</string>
+    <string name="remove_sensor_data_cloud">Este sensor está en tu cuenta pero no en este teléfono. Eliminarlo lo borrará de forma permanente de tu nube.</string>
+    <string name="are_you_sure_you_want_to_sign_out_you_ll_need_to_sign_back_in_to_access_your_sensors">¿Seguro que quieres cerrar sesión?</string>
+    <string name="this_action_is_permanent_and_will_erase_all_your_sensor_data_proceed">Esta acción es permanente y borrará todos los datos de sensor de tu nube. ¿Continuar?</string>
+    <string name="no">No</string>
+    <string name="yes">Sí</string>
+    <string name="tank_info">Información del tanque</string>
+    <string name="save">Guardar</string>
+    <string name="discard">Descartar</string>
+    <string name="waiting_for_signal">Esperando señal…</string>
+    <string name="unsaved_changes_title">Cambios sin guardar</string>
+    <string name="unsaved_changes_message">Tienes cambios sin guardar. ¿Quieres guardarlos o descartarlos?</string>
+    <string name="local_only">Local</string>
+    <string name="sign_in_required">Inicio de sesión requerido</string>
+
+    <string name="re_authentication_required">Reautenticación requerida</string>
+    <string name="for_your_security_please_enter_your_password_to_confirm_account_deletion">Por seguridad, introduce tu contraseña para confirmar la eliminación de la cuenta.</string>
+    <string name="confirm">Confirmar</string>
+    <string name="this_setting_only_works_when_you_re_signed_in">Este ajuste solo funciona cuando has iniciado sesión.</string>
+    <string name="tank_settings_updated">Ajustes del tanque actualizados</string>
+    <string name="press_back_again_to_exit">Pulsa atrás de nuevo para salir</string>
+
+    <!-- Language picker -->
+    <string name="setting_language">Idioma</string>
+    <string name="language_picker_title">Elegir idioma</string>
+    <string name="language_system_default">Predeterminado del sistema</string>
+    <string name="lang_en">English</string>
+    <string name="lang_vi">Tiếng Việt</string>
+    <string name="lang_zh_cn">简体中文</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_pt_br">Português (Brasil)</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_ru">Русский</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_ko">한국어</string>
+    <string name="lang_id">Bahasa Indonesia</string>
+    <string name="lang_th">ไทย</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_hi">हिन्दी</string>
+
+    <!-- Errors / Messages -->
+    <string name="permission_required_not_granted">No se concedieron los permisos requeridos</string>
+    <string name="bluetooth_required_for_app">Esta app necesita Bluetooth</string>
+    <string name="location_must_be_on">La ubicación debe estar activada para escanear en este dispositivo</string>
+    <string name="device_no_bluetooth">El dispositivo no es compatible con Bluetooth</string>
+    <string name="could_not_request_location_services">No se pudo solicitar los servicios de ubicación</string>
+    <string name="location_services_required">Se requieren los servicios de ubicación</string>
+    <string name="grant_permission_in_app_settings">Concede el permiso en los ajustes de la app</string>
+    <string name="enable_bluetooth_in_settings">Activa el Bluetooth en Ajustes</string>
+    <string name="enable_location_in_settings">Activa la Ubicación en Ajustes</string>
+    <string name="check_settings">Comprueba los ajustes</string>
+    <string name="ble_scan_failed">Error en el escaneo BLE</string>
+    <string name="bluetooth_toggle_tip">Apaga y enciende el Bluetooth en Ajustes y vuelve a abrir la app.</string>
+    <string name="device_removed_and_sync_started">Dispositivo eliminado y sincronización iniciada</string>
+    <string name="device_removed_locally">Dispositivo eliminado localmente</string>
+    <string name="unknown_error">Error desconocido</string>
+    <string name="network_timeout">Tiempo de espera de red. Comprueba tu conexión.</string>
+    <string name="unexpected_error">Se produjo un error inesperado</string>
+    <string name="could_not_delete_account">No se pudo eliminar la cuenta.</string>
+    <string name="no_signal">Sin señal</string>
+    <string name="no_data">Sin datos</string>
+    <string name="updated_just_now">Actualizado hace un momento</string>
+    <string name="updated_seconds_ago">Actualizado hace %1$d s</string>
+    <string name="updated_x">Actualizado %1$s</string>
+    <string name="tank_alert_title">Alerta de tanque: %1$s</string>
+    <string name="tank_alert_message">El nivel está %1$s del %2$d%% (Actual: %3$d%%)</string>
+    <string name="checking_levels">Comprobando niveles…</string>
+    <string name="notification_channel_alerts">Alertas de nivel</string>
+    <string name="notification_channel_background">Tareas en segundo plano</string>
+    <string name="vertical_tank">Tanque vertical</string>
+    <string name="horizontal_tank">Tanque horizontal</string>
+    <string name="tall_vertical_tank">Tanque vertical alto</string>
+    <string name="sync_finished">¡Sincronización terminada! %1$s</string>
+    <string name="cloud_sync_failed">Error de sincronización con la nube</string>
+    <string name="sync_uploaded">Subidos: %1$d</string>
+    <string name="sync_downloaded">Descargados: %1$d</string>
+    <string name="ble_register_error_already_active">Escaneo BLE ya activo</string>
+    <string name="ble_register_error_register">La app no pudo registrarse para escanear BLE</string>
+    <string name="ble_register_error_internal">Error interno del escaneo BLE</string>
+    <string name="ble_register_error_unsupported">BLE no soportado en este dispositivo</string>
+    <string name="ble_register_error_other">Error de escaneo BLE (código %1$d)</string>
+
+    <string name="tank_state_empty">Vacío</string>
+</resources>

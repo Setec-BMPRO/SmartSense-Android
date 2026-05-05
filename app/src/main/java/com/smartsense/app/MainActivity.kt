@@ -103,11 +103,11 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
                     val down = workInfo.outputData.getInt(SyncWorker.KEY_DOWNLOADED_COUNT, 0)
 
                     val parts = mutableListOf<String>()
-                    if (up > 0) parts.add("Uploaded: $up")
-                    if (down > 0) parts.add("Downloaded: $down")
+                    if (up > 0) parts.add(getString(R.string.sync_uploaded, up))
+                    if (down > 0) parts.add(getString(R.string.sync_downloaded, down))
 
                     val message = if (parts.isNotEmpty()) {
-                        "Sync finished! ${parts.joinToString(", ")}"
+                        getString(R.string.sync_finished, parts.joinToString(", "))
                     } else {
                         null
                     }
@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity(), MainActivityListener {
                     message?.let { handleSyncResult(it) }
                 }
                 WorkInfo.State.FAILED -> {
-                    handleSyncResult("Cloud Sync Failed")
+                    handleSyncResult(getString(R.string.cloud_sync_failed))
                 }
                 else -> { /* No-op */ }
             }

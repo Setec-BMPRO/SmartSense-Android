@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="24dp"
-        android:text="Enter reset code"
+        android:text="@string/enter_reset_code"
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
         android:textStyle="bold"
         android:textColor="?attr/colorOnSurface" />
@@ -59,7 +59,7 @@
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_weight="1"
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:textColor="?attr/colorOnSurface"
             app:shapeAppearance="@null" />
 
@@ -75,7 +75,7 @@
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_weight="1"
-            android:text="OK"
+            android:text="@string/ok"
             android:textColor="?attr/colorOnSurface"
             app:shapeAppearance="@null" />
 
@@ -91,7 +91,7 @@
             android:layout_width="0dp"
             android:layout_height="64dp"
             android:layout_weight="1"
-            android:text="Resend"
+            android:text="@string/resend"
             android:textColor="?attr/colorOnSurface"
             app:shapeAppearance="@null" />
     </LinearLayout>
