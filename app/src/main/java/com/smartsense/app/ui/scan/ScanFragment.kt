@@ -155,6 +155,7 @@ class ScanFragment : Fragment() {
         }
 
         binding.btnPairHelp.setOnClickListener { showPairingHelp() }
+        binding.pairHintBanner.setOnClickListener { showPairingHelp() }
 
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
@@ -323,6 +324,8 @@ class ScanFragment : Fragment() {
             layoutSensor.isVisible = totalInSystem > 0
             sensorList.isVisible = filteredCount > 0
             sensorCount.isVisible = filteredCount > 0
+            // Footer reminder is only relevant once at least one sensor is paired.
+            pairHintBanner.isVisible = totalInSystem > 0
 
             if (filteredCount > 0) {
                 sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
