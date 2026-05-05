@@ -75,7 +75,7 @@ interface SensorDao {
     )
 
     @Query("SELECT * FROM sensors WHERE registered = 1 AND sync_status != 'DELETED'")
-    fun observeRegisteredSensors(): List<SensorEntity>
+    fun observeRegisteredSensors(): Flow<List<SensorEntity>>
 
     @Query("SELECT * FROM sensors WHERE address = :address LIMIT 1")
     suspend fun getSensor(address: String): SensorEntity?
