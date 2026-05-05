@@ -14,6 +14,7 @@ import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
+import com.smartsense.app.domain.model.UiState
 import com.smartsense.app.domain.usecase.SharedUseCase
 import com.smartsense.app.domain.usecase.TankSettingUseCase
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
@@ -41,6 +42,9 @@ class DetailTankSettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(TankSettingsUiState())
     val uiState: StateFlow<TankSettingsUiState> = _uiState.asStateFlow()
+
+    private val _removeUiState = MutableStateFlow(UiState())
+    val removeUiState: StateFlow<UiState> = _removeUiState.asStateFlow()
 
     private var initialState: TankSettingsUiState? = null
 
@@ -191,6 +195,35 @@ class DetailTankSettingsViewModel @Inject constructor(
     }
 
 
+
+    // --------------------------------------
+    // 🗑️ REMOVE SENSOR
+    // --------------------------------------
+
+    fun unregisterSensor() {
+        viewModelScope.launch {
+            val result = sharedUseCase.unregisterSensor(
+                sensorAddress,
+                userPreferences.uploadSensorData.first()
+            )
+            result.onSuccess { wasSyncTriggered ->
+                Timber.d("✅ UI: Deletion successful for $sensorAddress. Sync triggered: $wasSyncTriggered")
+                _removeUiState.update {
+                    it.copy(
+                        successMessage = if (wasSyncTriggered) "Device removed & Sync started" else "Device removed locally"
+                    )
+                }
+            }.onFailure { error ->
+                val errorMsg = error.message ?: "Unknown Error"
+                Timber.e("❌ UI: Deletion failed for $sensorAddress. Error: $errorMsg")
+                _removeUiState.update { it.copy(errorMessage = errorMsg) }
+            }
+        }
+    }
+
+    fun clearMessages() {
+        _removeUiState.update { it.copy(successMessage = null, errorMessage = null) }
+    }
 
     // --------------------------------------
     // 🔍 CHANGE DETECTION

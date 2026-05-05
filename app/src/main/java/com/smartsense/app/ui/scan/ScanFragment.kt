@@ -146,6 +146,10 @@ class ScanFragment : Fragment() {
                     showPairingHelp()
                     true
                 }
+                R.id.action_seed_mock -> {
+                    viewModel.toggleMockData()
+                    true
+                }
                 else -> false
             }
         }
@@ -258,6 +262,15 @@ class ScanFragment : Fragment() {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach {
                 binding.filterLayout.isVisible=it
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewModel.mockDataLoaded
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { loaded ->
+                binding.toolbar.menu.findItem(R.id.action_seed_mock)?.setTitle(
+                    if (loaded) "Unload mock data" else "Load mock data"
+                )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }

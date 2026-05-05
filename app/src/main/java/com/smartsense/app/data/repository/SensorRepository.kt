@@ -264,6 +264,76 @@ class SensorRepository @Inject constructor(
         }
     }
 
+    private val mockAddresses = listOf(
+        "MO:CK:00:00:00:01",
+        "MO:CK:00:00:00:02",
+        "MO:CK:00:00:00:03",
+        "MO:CK:00:00:00:04"
+    )
+
+    suspend fun seedMockData() {
+        Timber.i("💾 Repository: Seeding mock sensor data")
+        val now = System.currentTimeMillis()
+        data class Mock(
+            val address: String,
+            val name: String,
+            val tankType: com.smartsense.app.domain.model.TankType,
+            val rawHeightMeters: Double,
+            val batteryVoltage: Float,
+            val rssi: Int,
+            val quality: Int,
+            val temperatureCelsius: Float,
+            val sensorType: com.smartsense.app.domain.model.MopekaSensorType
+        )
+        val mocks = listOf(
+            Mock(mockAddresses[0], "Kitchen LPG", com.smartsense.app.domain.model.TankType.KG_9,
+                0.308, 3.15f, -52, 3, 21.5f, com.smartsense.app.domain.model.MopekaSensorType.PRO),
+            Mock(mockAddresses[1], "BBQ Tank", com.smartsense.app.domain.model.TankType.KG_4,
+                0.117, 2.85f, -64, 2, 26.0f, com.smartsense.app.domain.model.MopekaSensorType.PRO),
+            Mock(mockAddresses[2], "Caravan Spare", com.smartsense.app.domain.model.TankType.LB_20,
+                0.063, 2.60f, -72, 2, 19.0f, com.smartsense.app.domain.model.MopekaSensorType.CC2540_STD),
+            Mock(mockAddresses[3], "Garage Heater", com.smartsense.app.domain.model.TankType.LB_40,
+                0.025, 2.40f, -80, 1, 18.0f, com.smartsense.app.domain.model.MopekaSensorType.CC2540_XL),
+        )
+
+        for (mock in mocks) {
+            val sensor = SensorEntity(
+                address = mock.address,
+                name = mock.name,
+                lastSeenMillis = now,
+                registered = true,
+                syncStatus = SyncStatus.PENDING,
+                lastModifiedLocally = now,
+                lastBatteryVoltage = mock.batteryVoltage,
+                lastRssi = mock.rssi,
+                lastQuality = mock.quality,
+                lastTemperatureCelsius = mock.temperatureCelsius,
+                lastRawHeightMeters = mock.rawHeightMeters,
+                lastReadingTimestamp = now,
+                lastSensorType = mock.sensorType.name
+            )
+            val tank = TankEntity(
+                name = mock.name,
+                sensorAddress = mock.address,
+                tankType = mock.tankType.name,
+                syncStatus = SyncStatus.PENDING,
+                lastModifiedLocally = now
+            )
+            sensorDao.insertSensor(sensor)
+            sensorDao.insertTank(tank)
+        }
+        Timber.d("✅ Seeded ${mocks.size} mock sensors")
+    }
+
+    suspend fun unloadMockData() {
+        Timber.i("💾 Repository: Unloading mock sensor data")
+        mockAddresses.forEach { address ->
+            sensorDao.deleteTankPermanently(address)
+            sensorDao.deleteSensorPermanently(address)
+        }
+        Timber.d("✅ Removed ${mockAddresses.size} mock sensors")
+    }
+
     suspend fun markSensorTankAsDeleted(address: String) {
         Timber.i("💾 Repository: Marking sensor and tank as DELETED: $address")
         try {

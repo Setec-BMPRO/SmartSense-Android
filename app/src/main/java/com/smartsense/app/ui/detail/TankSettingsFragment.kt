@@ -33,6 +33,7 @@ import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankRegion
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.domain.model.TriggerAlarmUnit
+import com.smartsense.app.util.showSnackbar
 import com.smartsense.app.util.uppercaseFirst
 
 import dagger.hilt.android.AndroidEntryPoint
@@ -196,6 +197,9 @@ class TankSettingsFragment : Fragment() {
         imgQuestionTankSize.setOnClickListener {
             showQuestionDialog(R.string.tank_size, R.string.help_tank_size)
         }
+
+        // Remove Sensor
+        btnUnpair.setOnClickListener { showUnpairConfirmationDialog() }
     }
 
     // --------------------------------------
@@ -302,6 +306,17 @@ class TankSettingsFragment : Fragment() {
                     // if you don't want it to trigger again on backstack return.
                     findNavController().previousBackStackEntry?.savedStateHandle?.set(KEY_TANK_UPDATED, true)
                     findNavController().popBackStack()
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Surface remove-sensor errors via snackbar
+        viewModel.removeUiState
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { state ->
+                state.errorMessage?.let { msg ->
+                    binding.root.showSnackbar(msg)
+                    viewModel.clearMessages()
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
@@ -418,6 +433,19 @@ class TankSettingsFragment : Fragment() {
             .setTitle(resTitleId)
             .setMessage(resMessageId)
             .setPositiveButton(R.string.ok) { _, _ -> }
+            .show()
+    }
+
+    private fun showUnpairConfirmationDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.remove_sensor_confirm_title)
+            .setMessage(R.string.remove_sensor_confirm)
+            .setPositiveButton(R.string.remove) { _, _ ->
+                viewModel.unregisterSensor()
+                // Sensor no longer exists — skip the now-stale detail screen and return to the scan list
+                findNavController().popBackStack(R.id.scanFragment, /* inclusive = */ false)
+            }
+            .setNegativeButton(R.string.cancel, null)
             .show()
     }
 
