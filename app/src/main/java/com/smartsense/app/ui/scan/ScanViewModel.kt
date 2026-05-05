@@ -188,6 +188,22 @@ class ScanViewModel @Inject constructor(
         }
     }
 
+    val mockDataLoaded: StateFlow<Boolean> = _uiState
+        .map { state -> state.sensors.any { it.address.startsWith("MO:CK:") } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun toggleMockData() {
+        viewModelScope.launch {
+            if (mockDataLoaded.value) {
+                Timber.tag(TAG).i("Unloading mock data")
+                useCase.unloadMockData()
+            } else {
+                Timber.tag(TAG).i("Seeding mock data")
+                useCase.seedMockData()
+            }
+        }
+    }
+
     fun registerSensor(address: String, name: String) {
         viewModelScope.launch {
             Timber.tag(TAG).i("Registering sensor: $address ($name)")

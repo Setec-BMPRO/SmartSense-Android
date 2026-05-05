@@ -146,11 +146,16 @@ class ScanFragment : Fragment() {
                     showPairingHelp()
                     true
                 }
+                R.id.action_seed_mock -> {
+                    viewModel.toggleMockData()
+                    true
+                }
                 else -> false
             }
         }
 
         binding.btnPairHelp.setOnClickListener { showPairingHelp() }
+        binding.pairHintBanner.setOnClickListener { showPairingHelp() }
 
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
@@ -260,6 +265,15 @@ class ScanFragment : Fragment() {
                 binding.filterLayout.isVisible=it
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewModel.mockDataLoaded
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { loaded ->
+                binding.toolbar.menu.findItem(R.id.action_seed_mock)?.setTitle(
+                    if (loaded) "Unload mock data" else "Load mock data"
+                )
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     /**
@@ -310,6 +324,8 @@ class ScanFragment : Fragment() {
             layoutSensor.isVisible = totalInSystem > 0
             sensorList.isVisible = filteredCount > 0
             sensorCount.isVisible = filteredCount > 0
+            // Footer reminder is only relevant once at least one sensor is paired.
+            pairHintBanner.isVisible = totalInSystem > 0
 
             if (filteredCount > 0) {
                 sensorCount.text = getString(R.string.sensor_count_label, filteredCount)

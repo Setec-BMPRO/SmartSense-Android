@@ -362,13 +362,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Action Buttons -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_unpair"
-                style="@style/Widget.SmartSense.Button.Large"
-                android:layout_marginBottom="16dp"
-                android:text="@string/remove_sensor" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

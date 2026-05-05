@@ -152,8 +152,6 @@ class SensorDetailFragment : Fragment() {
     // --------------------------------------
 
     private fun setupClickListeners() = with(binding) {
-        btnUnpair.setOnClickListener { showUnpairConfirmationDialog() }
-
         additionalInfoHeader.setOnClickListener { toggleAdditionalInfo() }
 
         qualityWarning.setOnClickListener { showQualityDialog() }
@@ -187,8 +185,6 @@ class SensorDetailFragment : Fragment() {
         } else {
             getString(R.string.waiting_for_signal)
         }
-        setupObserve()
-
         setupTankDisplay(sensor)
         setupStatusRow(sensor)
         setupQualityWarning(sensor.readQuality)
@@ -197,19 +193,6 @@ class SensorDetailFragment : Fragment() {
 
     }
 
-    private fun setupObserve(){
-        // Remove Sensor
-        viewModel.removeUiState
-            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .onEach { state ->
-                // Error Handling
-                state.errorMessage?.let { msg ->
-                    binding.root.showSnackbar(msg)
-                    viewModel.clearMessages()
-                }
-            }
-            .launchIn(viewLifecycleOwner.lifecycleScope)
-    }
     private fun FragmentSensorDetailBinding.bindTank(tank: Tank) {
         val isHorizontal = tank.orientation == TankOrientation.HORIZONTAL
         
@@ -300,18 +283,6 @@ class SensorDetailFragment : Fragment() {
             .rotation(if (isVisible) 180f else 0f)
             .setDuration(200)
             .start()
-    }
-
-    private fun showUnpairConfirmationDialog() {
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.remove_sensor_confirm_title)
-            .setMessage(R.string.remove_sensor_confirm)
-            .setPositiveButton(R.string.remove) { _, _ ->
-                viewModel.unregisterSensor()
-                findNavController().popBackStack()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun formatShortAddress(address: String): String {
