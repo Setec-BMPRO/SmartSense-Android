@@ -68,6 +68,80 @@
     <string name="reporting_interval_seconds">%1$d s</string>
     <string name="reporting_interval_minutes">%1$d min</string>
     <string name="reporting_interval_hours">%1$d h</string>
+    <string name="open_bluetooth_settings">Open Bluetooth Settings</string>
+    <string name="filter_sensor_hint">Filter sensor</string>
+    <string name="load_mock_data">Load mock data</string>
+    <string name="unload_mock_data">Unload mock data</string>
+    <string name="custom">Custom</string>
+    <string name="vertical">Vertical</string>
+    <string name="horizontal">Horizontal</string>
+    <string name="forgot_your_password">Forgot your password?</string>
+    <string name="enter_reset_code">Enter reset code</string>
+
+    <!-- Language picker -->
+    <string name="setting_language">Language</string>
+    <string name="language_picker_title">Choose language</string>
+    <string name="language_system_default">System default</string>
+    <string name="lang_en">English</string>
+    <string name="lang_vi">Tiếng Việt</string>
+    <string name="lang_zh_cn">简体中文</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_pt_br">Português (Brasil)</string>
+    <string name="lang_it">Italiano</string>
+    <string name="lang_ru">Русский</string>
+    <string name="lang_ja">日本語</string>
+    <string name="lang_ko">한국어</string>
+    <string name="lang_id">Bahasa Indonesia</string>
+    <string name="lang_th">ไทย</string>
+    <string name="lang_ar">العربية</string>
+    <string name="lang_hi">हिन्दी</string>
+
+    <!-- Errors / Messages (extracted from Kotlin) -->
+    <string name="permission_required_not_granted">Required permissions were not granted</string>
+    <string name="bluetooth_required_for_app">Bluetooth is required for this app</string>
+    <string name="location_must_be_on">Location must be ON for scanning on this device</string>
+    <string name="device_no_bluetooth">Device does not support Bluetooth</string>
+    <string name="could_not_request_location_services">Could not request location services</string>
+    <string name="location_services_required">Location services required</string>
+    <string name="grant_permission_in_app_settings">Grant permission in App Settings</string>
+    <string name="enable_bluetooth_in_settings">Enable Bluetooth in Settings</string>
+    <string name="enable_location_in_settings">Enable Location in Settings</string>
+    <string name="check_settings">Check Settings</string>
+    <string name="ble_scan_failed">BLE scan failed</string>
+    <string name="bluetooth_toggle_tip">Toggle Bluetooth off and on in Settings, then reopen the app.</string>
+    <string name="device_removed_and_sync_started">Device removed &amp; Sync started</string>
+    <string name="device_removed_locally">Device removed locally</string>
+    <string name="unknown_error">Unknown Error</string>
+    <string name="network_timeout">Network timeout. Please check your connection.</string>
+    <string name="unexpected_error">An unexpected error occurred</string>
+    <string name="could_not_delete_account">Could not delete account.</string>
+    <string name="no_signal">No Signal</string>
+    <string name="no_data">No data</string>
+    <string name="updated_just_now">Updated just now</string>
+    <string name="updated_seconds_ago">Updated %1$d sec ago</string>
+    <string name="updated_x">Updated %1$s</string>
+    <string name="tank_alert_title">Tank Alert: %1$s</string>
+    <string name="tank_alert_message">Level is %1$s %2$d%% (Current: %3$d%%)</string>
+    <string name="checking_levels">Checking Levels…</string>
+    <string name="notification_channel_alerts">Tank Level Alerts</string>
+    <string name="notification_channel_background">Background Tasks</string>
+    <string name="vertical_tank">Vertical Tank</string>
+    <string name="horizontal_tank">Horizontal Tank</string>
+    <string name="tall_vertical_tank">Tall Vertical Tank</string>
+    <string name="sync_finished">Sync finished! %1$s</string>
+    <string name="cloud_sync_failed">Cloud Sync Failed</string>
+    <string name="sync_uploaded">Uploaded: %1$d</string>
+    <string name="sync_downloaded">Downloaded: %1$d</string>
+    <string name="ble_register_error_already_active">BLE scan already active</string>
+    <string name="ble_register_error_register">App could not register for BLE scanning</string>
+    <string name="ble_register_error_internal">BLE scan internal error</string>
+    <string name="ble_register_error_unsupported">BLE feature not supported on this device</string>
+    <string name="ble_register_error_other">BLE scan error (code %1$d)</string>
+
+    <!-- Tank level overlay -->
+    <string name="tank_state_empty">Empty</string>
 
     <!-- Signal -->
     <string name="signal_excellent">Excellent</string>

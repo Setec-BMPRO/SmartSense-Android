@@ -68,21 +68,22 @@ class ScanFragment : Fragment() {
             onPermissionGranted = {
                 viewModel.onPermissionsGranted()
             },
-            onDenied = { message ->
+            onDenied = { message, kind ->
                 val btAction = Settings.ACTION_BLUETOOTH_SETTINGS
-                val (tip, action) = when {
-                    message.contains("connect permission", ignoreCase = true) ||
-                    message.contains("Scan permission", ignoreCase = true) ->
-                        "Grant permission in App Settings" to Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                val (tip, action) = when (kind) {
+                    com.smartsense.app.ui.helper.PermissionDenialKind.PERMISSION ->
+                        getString(R.string.grant_permission_in_app_settings) to
+                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 
-                    message.contains("Bluetooth is required", ignoreCase = true) ->
-                        "Enable Bluetooth in Settings" to btAction
+                    com.smartsense.app.ui.helper.PermissionDenialKind.BLUETOOTH ->
+                        getString(R.string.enable_bluetooth_in_settings) to btAction
 
-                    message.contains("Location", ignoreCase = true) ->
-                        "Enable Location in Settings" to Settings.ACTION_LOCATION_SOURCE_SETTINGS
+                    com.smartsense.app.ui.helper.PermissionDenialKind.LOCATION ->
+                        getString(R.string.enable_location_in_settings) to
+                            Settings.ACTION_LOCATION_SOURCE_SETTINGS
 
-                    else ->
-                        "Check Settings" to btAction
+                    com.smartsense.app.ui.helper.PermissionDenialKind.OTHER ->
+                        getString(R.string.check_settings) to btAction
                 }
                 viewModel.setPermissionError(message, tip, action)
             }
@@ -271,7 +272,7 @@ class ScanFragment : Fragment() {
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .onEach { loaded ->
                 binding.toolbar.menu.findItem(R.id.action_seed_mock)?.setTitle(
-                    if (loaded) "Unload mock data" else "Load mock data"
+                    if (loaded) R.string.unload_mock_data else R.string.load_mock_data
                 )
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)

@@ -123,7 +123,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="General"
+                android:text="@string/setting_general"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary"
                 android:textAllCaps="true"
@@ -144,6 +144,48 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
+                    <!-- Language (tap to open picker dialog) -->
+                    <LinearLayout
+                        android:id="@+id/row_language"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/spacing_lg"
+                        android:gravity="center_vertical"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_question"
+                            app:tint="?attr/colorOnSurfaceVariant"
+                            android:layout_marginEnd="@dimen/spacing_md"
+                            android:importantForAccessibility="no"/>
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/setting_language"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"/>
+
+                        <TextView
+                            android:id="@+id/language_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textColor="?attr/colorPrimary"
+                            tools:text="English"/>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?attr/colorOutlineVariant"
+                        android:layout_marginStart="64dp"/>
 
                     <!-- Unit System -->
                     <LinearLayout
@@ -308,7 +350,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Features"
+                android:text="@string/setting_features"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorPrimary"
                 android:textAllCaps="true"

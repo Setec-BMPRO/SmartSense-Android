@@ -76,7 +76,7 @@ class SensorItem(
     override fun bind(binding: ItemSensorCardBinding, position: Int, payloads: MutableList<Any>) {
         if (payloads.contains("UPDATE_TIME")) {
             // ONLY update the text, don't touch anything else
-            binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+            binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(binding.root.context, sensor.reading?.timestampMillis)
         } else {
             super.bind(binding, position, payloads)
         }
@@ -89,8 +89,8 @@ class SensorItem(
         // Level
         val levelPercent: Float = sensor.tankLevel?.percentage ?: 0F
         val levelText = when {
-            sensor.tankLevel == null -> "No Signal"
-            levelPercent <= 0f -> "Empty"
+            sensor.tankLevel == null -> binding.root.context.getString(R.string.no_signal)
+            levelPercent <= 0f -> binding.root.context.getString(R.string.tank_state_empty)
             else -> "${levelPercent.toInt()}%"
         }
         binding.sensorLevel.text = levelText
@@ -157,7 +157,7 @@ class SensorItem(
         binding.sensorSignal.text = signalInfo.text
         binding.sensorSignal.setTextColor(signalColor)
 
-        binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(sensor.reading?.timestampMillis)
+        binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(binding.root.context, sensor.reading?.timestampMillis)
         binding.sensorType.text = sensor.tankType
 
         binding.root.setOnClickListener { onClick(sensor) }

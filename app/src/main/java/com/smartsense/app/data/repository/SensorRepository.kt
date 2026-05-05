@@ -167,15 +167,23 @@ class SensorRepository @Inject constructor(
     }
 
     fun observeSensorForDetail(address: String, scanIntervalMillis: Long): Flow<Sensor?> =
-        createTicker(scanIntervalMillis).map {
+        // Same architectural fix as observeRegisteredSensors: combine the live BLE
+        // readings StateFlow with the periodic ticker so the detail screen re-emits
+        // the moment a fresh advert lands for THIS sensor — not only on the next
+        // ticker fire. Previously the detail flow was ticker-only (`createTicker(...)`)
+        // so the timestamp could lag the actual radio activity by up to one tick.
+        combine(
+            sharedReadings,
+            createTicker(scanIntervalMillis)
+        ) { readings, _ ->
             Timber.d("⏱ tick (detail)")
-            val scanned = sharedReadings.value[address]
+            val scanned = readings[address]
             val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
             val tank = tankMap[address]?.toDomain()
 
             if (scanned != null) {
                 if (!shouldAcceptSensorData(
-                        scanned.parsed?.reading?.quality?:0,
+                        scanned.parsed?.reading?.quality ?: 0,
                         tank?.qualityThreshold?.ordinal ?: QualityThreshold.default().ordinal
                     )
                 ) {
@@ -199,6 +207,7 @@ class SensorRepository @Inject constructor(
                 } else null
             }.also { Timber.d("🚀 emit detail: $it") }
         }
+            .flowOn(Dispatchers.IO)
 
     private fun createTicker(interval: Long): Flow<Unit> = flow {
         while (currentCoroutineContext().isActive) {

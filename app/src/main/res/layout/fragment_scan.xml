@@ -104,7 +104,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_md"
-            android:text="Open Bluetooth Settings"
+            android:text="@string/open_bluetooth_settings"
             android:visibility="gone"
             app:icon="@drawable/ic_bluetooth_scan"
             app:iconGravity="textStart" />
@@ -137,7 +137,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:hint="Filter sensor"
+        android:hint="@string/filter_sensor_hint"
         android:textAppearance="?attr/textAppearanceTitleMedium"
         app:endIconDrawable="@drawable/ic_close"
         app:endIconTint="?attr/colorOnSurfaceVariant"
