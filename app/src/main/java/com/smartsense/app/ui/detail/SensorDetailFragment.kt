@@ -263,6 +263,31 @@ class SensorDetailFragment : Fragment() {
         // Hide temperature for Setec gas sensors (no temperature in protocol)
         detailTemperatureContainer.visibility =
             if (sensor.sensorType == MopekaSensorType.SETEC_GAS) View.GONE else View.VISIBLE
+
+        // Setec / Sigmawit-only fields. Show whenever the live reading carries them
+        // (the parser fills them only for Setec adverts, so other sensors stay hidden).
+        val isSetec = sensor.sensorType == MopekaSensorType.SETEC_GAS
+        val reading = sensor.reading
+
+        detailSensorTypeContainer.isVisible = isSetec
+        detailProtocolVersionContainer.isVisible = isSetec && !reading?.protocolVersion.isNullOrBlank()
+        detailSoftwareVersionContainer.isVisible = isSetec && !reading?.firmwareVersion.isNullOrBlank()
+        detailReportingIntervalContainer.isVisible = isSetec && (reading?.reportingIntervalSeconds ?: 0) > 0
+
+        if (isSetec && reading != null) {
+            detailProtocolVersion.text = reading.protocolVersion
+            detailSoftwareVersion.text = reading.firmwareVersion
+            detailReportingInterval.text = formatReportingInterval(reading.reportingIntervalSeconds)
+        }
+    }
+
+    private fun formatReportingInterval(seconds: Int): String {
+        return when {
+            seconds <= 0 -> "--"
+            seconds < 60 -> getString(R.string.reporting_interval_seconds, seconds)
+            seconds < 3600 -> getString(R.string.reporting_interval_minutes, seconds / 60)
+            else -> getString(R.string.reporting_interval_hours, seconds / 3600)
+        }
     }
 
     private fun FragmentSensorDetailBinding.updateRefreshRate() {

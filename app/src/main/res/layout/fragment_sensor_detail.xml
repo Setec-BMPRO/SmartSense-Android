@@ -276,6 +276,7 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/detail_sensor_type_container"
                             android:visibility="gone"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -294,6 +295,75 @@
                                 android:textAppearance="?attr/textAppearanceBodyMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 tools:text="Std"/>
+                        </LinearLayout>
+
+                        <!-- Setec / Sigmawit only: protocol version -->
+                        <LinearLayout
+                            android:id="@+id/detail_protocol_version_container"
+                            android:visibility="gone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingVertical="@dimen/spacing_sm">
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/protocol_version"
+                                android:textAppearance="?attr/textAppearanceTitleSmall"
+                                android:textStyle="bold"/>
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/detail_protocol_version"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="0.1"/>
+                        </LinearLayout>
+
+                        <!-- Setec / Sigmawit only: software version -->
+                        <LinearLayout
+                            android:id="@+id/detail_software_version_container"
+                            android:visibility="gone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingVertical="@dimen/spacing_sm">
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/software_version"
+                                android:textAppearance="?attr/textAppearanceTitleSmall"
+                                android:textStyle="bold"/>
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/detail_software_version"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="1.0"/>
+                        </LinearLayout>
+
+                        <!-- Setec / Sigmawit only: reporting interval -->
+                        <LinearLayout
+                            android:id="@+id/detail_reporting_interval_container"
+                            android:visibility="gone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingVertical="@dimen/spacing_sm">
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/reporting_interval"
+                                android:textAppearance="?attr/textAppearanceTitleSmall"
+                                android:textStyle="bold"/>
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/detail_reporting_interval"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="3 s"/>
                         </LinearLayout>
 
                         <LinearLayout

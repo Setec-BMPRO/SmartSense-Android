@@ -125,11 +125,54 @@ class BleManager @Inject constructor(
             .setUseHardwareBatchingIfSupported(true) // Nordic specific optimization
             .build()
 
-    private fun buildScanFilters(): List<ScanFilter> =
-        // Empty filter list = accept all advertisements; filtering is done in parseScanResult.
-        // Mixing service UUID and manufacturer data filters caused the manufacturer data
-        // filter to be silently dropped on some Android versions (notably Android 11).
-        emptyList()
+    private fun buildScanFilters(): List<ScanFilter> {
+        // ScanFilters are OR'd by the OS — each advertisement is delivered once if it
+        // matches *any* filter. Listing both service UUID and manufacturer-ID filters as
+        // separate entries (rather than combining them in a single filter) avoids the
+        // Android 11 quirk where mixed criteria inside one filter silently dropped the
+        // manufacturer-data side.
+        val emptyMfgPrefix = ByteArray(0)
+        val emptyMfgMask = ByteArray(0)
+        return listOf(
+            // CC2540 (Texas Instruments)
+            ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_CC2540))
+                .build(),
+            ScanFilter.Builder()
+                .setManufacturerData(BleConstants.MANUFACTURER_ID_CC2540, emptyMfgPrefix, emptyMfgMask)
+                .build(),
+            // NRF52 (Nordic Semiconductor)
+            ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_NRF52))
+                .build(),
+            ScanFilter.Builder()
+                .setManufacturerData(BleConstants.MANUFACTURER_ID_NRF52, emptyMfgPrefix, emptyMfgMask)
+                .build(),
+            // Setec / Sigmawit. G300 broadcasts 0x3000 service UUID, 0x051F mfg ID,
+            // and a fixed advertising name "G300". The manufacturer-data prefix locks
+            // the filter to the Sigmawit company-ID slot (byte 1, bits 0-6 = 0x01;
+            // bit 7 is the sync flag and stays masked out).
+            //
+            // Each criterion is its own ScanFilter so the OS has multiple quick paths
+            // to recognise a G300 even if one field is occasionally trimmed.
+            ScanFilter.Builder()
+                .setServiceUuid(ParcelUuid(BleConstants.SERVICE_UUID_SETEC))
+                .build(),
+            ScanFilter.Builder()
+                .setManufacturerData(
+                    BleConstants.MANUFACTURER_ID_SETEC,
+                    /* prefix */ byteArrayOf(
+                        BleConstants.SETEC_DATA_TYPE_3RD_PARTY.toByte(),
+                        BleConstants.SETEC_COMPANY_SIGMAWIT.toByte()
+                    ),
+                    /* mask   */ byteArrayOf(0xFF.toByte(), 0x7F.toByte())
+                )
+                .build(),
+            ScanFilter.Builder()
+                .setDeviceName(BleConstants.SETEC_G300_ADV_NAME)
+                .build()
+        )
+    }
 
     // --- Parsing ---
 
@@ -175,6 +218,7 @@ class BleManager @Inject constructor(
         return when {
             serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_CC2540 } == true -> HwType.CC2540
             serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_NRF52 } == true -> HwType.NRF52
+            serviceUuids?.any { it.uuid == BleConstants.SERVICE_UUID_SETEC } == true -> HwType.SETEC
             record.getManufacturerSpecificData(BleConstants.MANUFACTURER_ID_SETEC) != null -> HwType.SETEC
             else -> null
         }
