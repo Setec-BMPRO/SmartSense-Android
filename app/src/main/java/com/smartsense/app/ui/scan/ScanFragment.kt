@@ -127,6 +127,7 @@ class ScanFragment : Fragment() {
         }
         binding.smartsenseLogo.logoText.text = logoText
         binding.toolbar.forceShowMenuIcons()
+        binding.toolbar.menu.findItem(R.id.action_seed_mock)?.isVisible = com.smartsense.app.BuildConfig.DEBUG
 
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
