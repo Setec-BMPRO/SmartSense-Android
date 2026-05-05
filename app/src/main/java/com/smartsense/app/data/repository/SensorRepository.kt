@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -120,44 +121,47 @@ class SensorRepository @Inject constructor(
     // --------------------------------------
 
     fun observeRegisteredSensors(scanIntervalMillis: Long): Flow<List<Sensor>> {
-        return createTicker(scanIntervalMillis)
-            .mapLatest { _ -> // mapLatest cancels previous block if ticker ticks again
-                withContext(Dispatchers.IO) {
-                    // 1. Fetch from DB on IO thread
-                    val sensorEntities = sensorDao.observeRegisteredSensors()
+        // Combine the DAO's reactive list (emits the moment a row is inserted, updated,
+        // or marked DELETED) with a periodic ticker that keeps live BLE readings refreshed
+        // even when the underlying entities don't change. Either source emits → re-map.
+        // This eliminates the up-to-`scanIntervalMillis` lag between deleting a sensor
+        // and the scan UI reflecting it, which previously caused the next sync-press to
+        // be ignored by `shouldPair`.
+        return combine(
+            sensorDao.observeRegisteredSensors(),
+            createTicker(scanIntervalMillis)
+        ) { sensorEntities, _ ->
+            Timber.d("⏱ tick (list) with ${sensorEntities.size} sensors")
+            val currentReadings = sharedReadings.value
+            val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
 
-                    Timber.d("⏱ tick (list) with ${sensorEntities.size} sensors")
+            sensorEntities.map { entity ->
+                val address = entity.address
+                val scanned = currentReadings[address]
+                val tank = tankMap[address]?.toDomain()
 
-                    val currentReadings = sharedReadings.value
-                    val tankMap = sharedTanks.value.associateBy { it.sensorAddress }
-
-                    sensorEntities.map { entity ->
-                        val address = entity.address
-                        val scanned = currentReadings[address]
-                        val tank = tankMap[address]?.toDomain()
-
-                        if (scanned != null) {
-                            if (!shouldAcceptSensorData(
-                                    scanned.parsed?.reading?.quality?:0,
-                                    tank?.qualityThreshold?.ordinal ?: QualityThreshold.default().ordinal
-                                )
-                            ) {
-                                return@map mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
-                            }
-                            scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
-                            persistReading(scanned, address)
-                            mapToSensor(
-                                scanned = scanned,
-                                tank = tank,
-                                mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
-                            )
-                        } else {
-                            // Use the entity we already have from the list
-                            mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
-                        }
+                if (scanned != null) {
+                    if (!shouldAcceptSensorData(
+                            scanned.parsed?.reading?.quality ?: 0,
+                            tank?.qualityThreshold?.ordinal ?: QualityThreshold.default().ordinal
+                        )
+                    ) {
+                        return@map mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
                     }
+                    scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                    persistReading(scanned, address)
+                    mapToSensor(
+                        scanned = scanned,
+                        tank = tank,
+                        mapToSensorEnum = MapToSensorEnum.OBSERVE_REGISTERED
+                    )
+                } else {
+                    // Use the entity we already have from the list
+                    mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
                 }
             }
+        }
+            .flowOn(Dispatchers.IO)
             .onEach { Timber.d("🚀 emit list size=${it.size}") }
             .distinctUntilChanged()
     }
