@@ -256,26 +256,6 @@
 
                         <!-- Technical Detail Rows -->
                         <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:paddingVertical="@dimen/spacing_sm">
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/update_rate"
-                                android:textAppearance="?attr/textAppearanceTitleSmall"
-                                android:textStyle="bold"/>
-                            <com.google.android.material.textview.MaterialTextView
-                                android:id="@+id/detail_update_rate"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                tools:text="10.5 seconds"/>
-                        </LinearLayout>
-
-                        <LinearLayout
                             android:id="@+id/detail_sensor_type_container"
                             android:visibility="gone"
                             android:layout_width="match_parent"

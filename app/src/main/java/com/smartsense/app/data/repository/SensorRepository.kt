@@ -272,7 +272,8 @@ class SensorRepository @Inject constructor(
         "MO:CK:00:00:00:01",
         "MO:CK:00:00:00:02",
         "MO:CK:00:00:00:03",
-        "MO:CK:00:00:00:04"
+        "MO:CK:00:00:00:04",
+        "MO:CK:G3:00:00:01"
     )
 
     suspend fun seedMockData() {
@@ -287,7 +288,12 @@ class SensorRepository @Inject constructor(
             val rssi: Int,
             val quality: Int,
             val temperatureCelsius: Float,
-            val sensorType: com.smartsense.app.domain.model.MopekaSensorType
+            val sensorType: com.smartsense.app.domain.model.MopekaSensorType,
+            // Setec/Sigmawit-only live fields. Empty/0 for non-Setec mocks.
+            val protocolVersion: String = "",
+            val firmwareVersion: String = "",
+            val sensorTypeCode: Int = 0,
+            val reportingIntervalSeconds: Int = 0
         )
         val mocks = listOf(
             Mock(mockAddresses[0], "Kitchen LPG", com.smartsense.app.domain.model.TankType.KG_9,
@@ -298,6 +304,23 @@ class SensorRepository @Inject constructor(
                 0.063, 2.60f, -72, 2, 19.0f, com.smartsense.app.domain.model.MopekaSensorType.CC2540_STD),
             Mock(mockAddresses[3], "Garage Heater", com.smartsense.app.domain.model.TankType.LB_40,
                 0.025, 2.40f, -80, 1, 18.0f, com.smartsense.app.domain.model.MopekaSensorType.CC2540_XL),
+            // G300 demo: mirrors a real Sigmawit G300 broadcast
+            // (proto 0.1, sw 1.0, sensor type 6 = gas, reporting 3 s, fresh CR2450 ≈ 2.72 V)
+            Mock(
+                address = mockAddresses[4],
+                name = "G300 Demo",
+                tankType = com.smartsense.app.domain.model.TankType.KG_4,
+                rawHeightMeters = 0.141, // ~60% of a 4 kg tank (235 mm)
+                batteryVoltage = 2.72f,
+                rssi = -45,
+                quality = 3,
+                temperatureCelsius = 0f,
+                sensorType = com.smartsense.app.domain.model.MopekaSensorType.SETEC_GAS,
+                protocolVersion = "0.1",
+                firmwareVersion = "1.0",
+                sensorTypeCode = com.smartsense.app.data.ble.BleConstants.SensorType.GAS_SENSOR,
+                reportingIntervalSeconds = 3
+            )
         )
 
         for (mock in mocks) {
@@ -325,6 +348,40 @@ class SensorRepository @Inject constructor(
             )
             sensorDao.insertSensor(sensor)
             sensorDao.insertTank(tank)
+
+            // Inject a fake "live" ScannedSensor so the detail view can render the
+            // Setec-only fields (protocol version, software version, reporting
+            // interval) which only flow through the live-reading path. Persisted
+            // SensorEntity rows don't carry those.
+            if (mock.sensorType == com.smartsense.app.domain.model.MopekaSensorType.SETEC_GAS) {
+                val reading = com.smartsense.app.domain.model.SensorReading(
+                    rawHeightMeters = mock.rawHeightMeters,
+                    batteryVoltage = mock.batteryVoltage,
+                    rssi = mock.rssi,
+                    quality = mock.quality,
+                    temperatureCelsius = mock.temperatureCelsius,
+                    firmwareVersion = mock.firmwareVersion,
+                    timestampMillis = now,
+                    deviceMAC = mock.address,
+                    protocolVersion = mock.protocolVersion,
+                    sensorTypeCode = mock.sensorTypeCode,
+                    reportingIntervalSeconds = mock.reportingIntervalSeconds
+                )
+                val parsed = com.smartsense.app.data.ble.ParsedSensor(
+                    reading = reading,
+                    sensorType = mock.sensorType,
+                    syncPressed = false,
+                    rawData = null
+                )
+                liveReadings.update {
+                    it + (mock.address to com.smartsense.app.data.ble.ScannedSensor(
+                        address = mock.address,
+                        name = mock.name,
+                        rssi = mock.rssi,
+                        parsed = parsed
+                    ))
+                }
+            }
         }
         Timber.d("✅ Seeded ${mocks.size} mock sensors")
     }
@@ -334,6 +391,8 @@ class SensorRepository @Inject constructor(
         mockAddresses.forEach { address ->
             sensorDao.deleteTankPermanently(address)
             sensorDao.deleteSensorPermanently(address)
+            // Also strip any injected mock readings
+            liveReadings.update { it - address }
         }
         Timber.d("✅ Removed ${mockAddresses.size} mock sensors")
     }
