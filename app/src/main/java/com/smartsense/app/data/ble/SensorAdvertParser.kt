@@ -297,6 +297,10 @@ object SensorAdvertParser {
             val companyId = byte1 and 0x7F
             val syncPressed = (byte1 and 0x80) != 0
 
+            // Only Sigmawit-branded Setec sensors (company id 0x01) are supported today.
+            // The spec reserves 0x00 and 0x7F; everything else is some other partner.
+            if (companyId != BleConstants.SETEC_COMPANY_SIGMAWIT) return null
+
             // MAC validation — bytes 4-9 must match BLE address
             val macBytes = parseMacBytes(bleAddress) ?: return null
             val payloadMac = ByteArray(6) { data[4 + it] }
@@ -323,10 +327,21 @@ object SensorAdvertParser {
                 else -> MopekaSensorType.UNKNOWN
             }
 
+            // Reporting interval (Setec spec byte 30 → data[16]) is a coded value, not raw seconds.
+            val reportingIntervalRaw = if (data.size > 16) data[16].toInt() and 0xFF else 0
+            val reportingIntervalSeconds = when (reportingIntervalRaw) {
+                0x01 -> 3
+                0x02 -> 10
+                0x04 -> 60
+                0x05 -> 3600
+                else -> 0
+            }
+
             Log.d(TAG, "SETEC OK $bleAddress: company=$companyId, type=${mopekaSensorType.displayName}, " +
                     "battery=${"%.2f".format(batteryVoltage)}V, " +
                     "height=${heightMm}mm, sync=$syncPressed, " +
-                    "proto=$protoMajor.$protoMinor, sw=$swMajor.$swMinor")
+                    "proto=$protoMajor.$protoMinor, sw=$swMajor.$swMinor, " +
+                    "reportingInterval=${reportingIntervalSeconds}s (raw=0x${"%02X".format(reportingIntervalRaw)})")
 
             ParsedSensor(
                 reading = SensorReading(
@@ -336,7 +351,10 @@ object SensorAdvertParser {
                     quality = 3, // No quality field in Setec protocol; default to good
                     temperatureCelsius = 0f, // No temperature field in Setec protocol
                     firmwareVersion = "$swMajor.$swMinor",
-                    deviceMAC = macBytes.joinToString(":") { byte -> "%02X".format(byte) }
+                    deviceMAC = macBytes.joinToString(":") { byte -> "%02X".format(byte) },
+                    protocolVersion = "$protoMajor.$protoMinor",
+                    sensorTypeCode = sensorType,
+                    reportingIntervalSeconds = reportingIntervalSeconds
                 ),
                 sensorType = mopekaSensorType,
                 syncPressed = syncPressed,

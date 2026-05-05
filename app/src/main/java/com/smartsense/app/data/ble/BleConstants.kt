@@ -28,6 +28,9 @@ object BleConstants {
     /** Service UUID indicating NRF52 hardware */
     val SERVICE_UUID_NRF52: UUID = shortUuid("FEE5")
 
+    /** Service UUID advertised by Setec / Sigmawit G300 LPG sensors */
+    val SERVICE_UUID_SETEC: UUID = shortUuid("3000")
+
     object SensorType {
         const val UNKNOWN = 0x00
         const val STANDARD_BOTTOM_UP = 0x03
@@ -44,6 +47,9 @@ object BleConstants {
 
     /** Sigmawit company ID within the Setec protocol */
     const val SETEC_COMPANY_SIGMAWIT = 0x01
+
+    /** Fixed advertising name broadcast by the Sigmawit G300 LPG sensor */
+    const val SETEC_G300_ADV_NAME = "G300"
 
     /** Setec payload size after manufacturer ID is stripped (bytes 14-30 = 17 bytes) */
     const val SETEC_PAYLOAD_SIZE = 17
