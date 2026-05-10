@@ -57,6 +57,7 @@ class SensorRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val userPreferences: UserPreferences,
+    private val qualityCalculator: com.smartsense.app.data.quality.ReadingQualityCalculator,
     appScope: ApplicationScope.AppScope
 ) {
     companion object {
@@ -111,9 +112,29 @@ class SensorRepository @Inject constructor(
     fun observeRawReadings(): Flow<ScannedSensor> = _rawReadings
 
 
+    /**
+     * Update [reading.quality] in place using [ReadingQualityCalculator] so all downstream
+     * mappers (list, detail, persist) see the derived quality instead of the broadcast byte.
+     *
+     * We also pass the broadcast's reporting-interval (G300 reports it; CC2540/NRF52 don't
+     * and will send 0). The calculator caches the most recent non-zero value per address and
+     * uses it to size the per-sensor sliding-window eviction.
+     */
+    private fun applyDerivedQuality(scanned: ScannedSensor): ScannedSensor {
+        val reading = scanned.parsed?.reading ?: return scanned
+        val q = qualityCalculator.addSample(
+            address = scanned.address,
+            heightMeters = reading.rawHeightMeters,
+            reportingIntervalSeconds = reading.reportingIntervalSeconds
+        )
+        reading.quality = q
+        return scanned
+    }
+
     private fun cacheReading(scanned: ScannedSensor) {
-        liveReadings.update { it + (scanned.address to scanned) }
-        _rawReadings.tryEmit(scanned)
+        val enriched = applyDerivedQuality(scanned)
+        liveReadings.update { it + (enriched.address to enriched) }
+        _rawReadings.tryEmit(enriched)
     }
 
     // --------------------------------------
@@ -148,7 +169,13 @@ class SensorRepository @Inject constructor(
                     ) {
                         return@map mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_REGISTERED)
                     }
-                    scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                    // NOTE: we deliberately do NOT mutate scanned.parsed.reading.timestampMillis
+                    // here. The parser already stamps it at adv-arrival time, which is what
+                    // "Updated X ago" should mean. Overwriting it to System.currentTimeMillis()
+                    // on every map iteration made the list look "just now" forever and broke
+                    // distinctUntilChanged on the detail screen (same reading instance is
+                    // shared, so the previous emit's timestamp was mutated to match the new
+                    // emit's, and `bindSensor` never re-ran).
                     persistReading(scanned, address)
                     mapToSensor(
                         scanned = scanned,
@@ -192,7 +219,8 @@ class SensorRepository @Inject constructor(
                         mapFromPersistedReading(entity, tank, MapToSensorEnum.OBSERVE_DETAIL)
                     } else null
                 } else {
-                    scanned.parsed?.reading?.timestampMillis = System.currentTimeMillis()
+                    // See comment in observeRegisteredSensors — do NOT mutate
+                    // reading.timestampMillis. The parser set it at adv-arrival time.
                     persistReading(scanned, address)
                     mapToSensor(
                         scanned = scanned,
@@ -411,6 +439,9 @@ class SensorRepository @Inject constructor(
         try {
             sensorDao.markSensorForDeletion(address)
             sensorDao.markTankForDeletion(address)
+            // Reset the deviation-quality window so a future re-pair doesn't inherit
+            // stale samples from this sensor's last lifetime.
+            qualityCalculator.clear(address)
             Timber.d("✅ Local DB updated successfully for $address")
         } catch (e: Exception) {
             Timber.e(e, "❌ Failed to update local status for $address")

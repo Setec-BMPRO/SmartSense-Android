@@ -48,6 +48,12 @@ class SensorDetailFragment : Fragment() {
 
     private var timerJob: kotlinx.coroutines.Job? = null
 
+    /** Timestamp of the most recent sample we've already flashed in the Quality buffer table. */
+    private var lastQualityHighlightTs: Long = 0L
+
+    /** In-flight highlight-clear coroutine — cancelled if a newer reading lands first. */
+    private var qualityHighlightJob: kotlinx.coroutines.Job? = null
+
     // --------------------------------------
     // 🧱 LIFECYCLE
     // --------------------------------------
@@ -107,6 +113,7 @@ class SensorDetailFragment : Fragment() {
 
     override fun onStop() {
         viewModel.stopObserveDetailSensor()
+        qualityHighlightJob?.cancel()
         super.onStop()
 
     }
@@ -155,6 +162,17 @@ class SensorDetailFragment : Fragment() {
         additionalInfoHeader.setOnClickListener { toggleAdditionalInfo() }
 
         qualityWarning.setOnClickListener { showQualityDialog() }
+
+        debugQualityHeader.setOnClickListener { toggleDebugQuality() }
+    }
+
+    private fun toggleDebugQuality() = with(binding) {
+        val isVisible = debugQualityContent.isVisible
+        debugQualityContent.visibility = if (isVisible) View.GONE else View.VISIBLE
+        debugQualityArrow.animate()
+            .rotation(if (isVisible) 180f else 0f)
+            .setDuration(200)
+            .start()
     }
 
     private fun showQualityDialog() {
@@ -189,7 +207,69 @@ class SensorDetailFragment : Fragment() {
         setupStatusRow(sensor)
         setupQualityWarning(sensor.readQuality)
         setupAdditionalInfo(sensor)
+        setupDebugQuality()
 
+    }
+
+    /**
+     * Populate the "Debug · Quality buffer" card with the calculator's current rolling
+     * window so the user can correlate displayed quality with the underlying readings
+     * and tune the stddev thresholds.
+     */
+    private fun FragmentSensorDetailBinding.setupDebugQuality() {
+        val snapshot = viewModel.qualitySnapshot()
+        val meanMm = snapshot.meanMeters * 1000.0
+        val stdDevMm = snapshot.stdDevMeters * 1000.0
+        debugQualitySummary.text = String.format(
+            java.util.Locale.US,
+            "n=%d  mean=%.1fmm  σ=%.2fmm  q=%d",
+            snapshot.samples.size,
+            meanMm,
+            stdDevMm,
+            snapshot.quality
+        )
+
+        debugQualitySamples.removeAllViews()
+        val now = System.currentTimeMillis()
+        val inflater = LayoutInflater.from(requireContext())
+        snapshot.samples.forEach { sample ->
+            val row = inflater.inflate(R.layout.item_debug_quality_sample, debugQualitySamples, false)
+            // Stash the sample timestamp on the row so qualityAgeTimerJob can refresh the
+            // "age" cell every second without rebuilding the whole table.
+            row.tag = sample.timestampMillis
+            row.findViewById<android.widget.TextView>(R.id.cell_age).text =
+                "${(now - sample.timestampMillis) / 1000}s"
+            row.findViewById<android.widget.TextView>(R.id.cell_height).text =
+                String.format(java.util.Locale.US, "%.1f", sample.heightMeters * 1000.0)
+            row.findViewById<android.widget.TextView>(R.id.cell_deviation).text =
+                String.format(java.util.Locale.US, "%+.2f", sample.deviationFromMeanMeters * 1000.0)
+            debugQualitySamples.addView(row)
+        }
+        // Per-second age refresh is driven by startLastUpdatedTimer's shared heartbeat
+        // (see refreshQualityBufferAges) — no per-table timer needed here.
+
+        // Flash the top row whenever it represents a genuinely new sample. We compare the
+        // newest sample's calculator-recorded timestamp (not the BLE-reading timestamp, which
+        // is overwritten on every ticker tick) against the last one we flashed — so the row
+        // only highlights when an actual broadcast lands, not on idle re-binds.
+        val newestTs = snapshot.samples.firstOrNull()?.timestampMillis ?: 0L
+        if (newestTs > lastQualityHighlightTs && debugQualitySamples.childCount > 0) {
+            lastQualityHighlightTs = newestTs
+            qualityHighlightJob?.cancel()
+            val row = debugQualitySamples.getChildAt(0)
+            val highlight = com.google.android.material.color.MaterialColors.getColor(
+                row,
+                com.google.android.material.R.attr.colorPrimaryContainer,
+                android.graphics.Color.TRANSPARENT
+            )
+            row.setBackgroundColor(highlight)
+            qualityHighlightJob = viewLifecycleOwner.lifecycleScope.launch {
+                delay(1000L)
+                // The row may have been replaced if the table re-populated meanwhile; that's
+                // fine — setting the background on a detached view is harmless.
+                row.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            }
+        }
     }
 
     private fun FragmentSensorDetailBinding.bindTank(tank: Tank) {
@@ -316,12 +396,33 @@ class SensorDetailFragment : Fragment() {
         // 1. Cancel the old timer so we don't have duplicates
         timerJob?.cancel()
 
-        // 2. Start the new heartbeat
+        // 2. Start the new heartbeat — drives both the toolbar's "Updated X ago" label
+        //    AND the Quality Buffer age column, so the UI ticks from a single coroutine
+        //    instead of two parallel timers.
         timerJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
                 delay(1000L) // Wait 1 second
-                binding.lastUpdated.text = TimeUtils.getLastUpdatedText(requireContext(), timestamp)
+                val binding = _binding ?: break
+                binding.lastUpdated.text =
+                    TimeUtils.getLastUpdatedText(requireContext(), timestamp)
+                refreshQualityBufferAges(binding)
             }
+        }
+    }
+
+    /**
+     * Walk the rows of the Quality Buffer table and update only their "age" cell from the
+     * per-row timestamp stashed on `View.tag` by [setupDebugQuality]. Called from the
+     * shared heartbeat above so the ages tick between BLE adverts.
+     */
+    private fun refreshQualityBufferAges(binding: FragmentSensorDetailBinding) {
+        val container = binding.debugQualitySamples
+        val now = System.currentTimeMillis()
+        for (i in 0 until container.childCount) {
+            val row = container.getChildAt(i)
+            val ts = row.tag as? Long ?: continue
+            row.findViewById<android.widget.TextView>(R.id.cell_age)
+                ?.text = "${(now - ts) / 1000}s"
         }
     }
 }
