@@ -4,7 +4,9 @@ data class SensorReading(
     val rawHeightMeters: Double=0.0,
     val batteryVoltage: Float,
     val rssi: Int,
-    val quality: Int, // 0-3 stars
+    // Mutable so SensorRepository.applyDerivedQuality can overwrite the raw broadcast byte
+    // with the App-computed quality derived from recent-reading deviation.
+    var quality: Int, // 0-3 stars
     val temperatureCelsius: Float,
     val firmwareVersion: String = "",
     var timestampMillis: Long = System.currentTimeMillis(),
