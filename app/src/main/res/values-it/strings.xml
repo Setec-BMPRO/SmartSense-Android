@@ -235,6 +235,7 @@
     <string name="offline_cause_scanner_stalled">Scansione del telefono bloccata — riavvia l\'app</string>
     <string name="offline_cause_sensor_not_responding">Sensore non risponde — controlla batteria o portata</string>
     <string name="developer_mode_steps_away">Mancano %1$d passaggi per diventare sviluppatore</string>
+    <string name="developer_mode_steps_away_disable">Mancano %1$d passaggi per disattivare la modalità sviluppatore</string>
     <string name="developer_mode_enabled">Ora sei uno sviluppatore!</string>
     <string name="developer_mode_already_enabled">Le funzioni sviluppatore sono già attive</string>
     <string name="app_version_developer">Versione %1$s · Modalità sviluppatore</string>

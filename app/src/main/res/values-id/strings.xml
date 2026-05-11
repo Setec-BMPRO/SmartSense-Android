@@ -235,6 +235,7 @@
     <string name="offline_cause_scanner_stalled">Pemindaian ponsel terhenti — mulai ulang aplikasi</string>
     <string name="offline_cause_sensor_not_responding">Sensor tidak merespons — periksa baterai atau jangkauan</string>
     <string name="developer_mode_steps_away">Anda %1$d langkah lagi menjadi pengembang</string>
+    <string name="developer_mode_steps_away_disable">Anda %1$d langkah lagi untuk menonaktifkan mode pengembang</string>
     <string name="developer_mode_enabled">Anda sekarang seorang pengembang!</string>
     <string name="developer_mode_already_enabled">Fitur pengembang sudah aktif</string>
     <string name="app_version_developer">Versi %1$s · Mode pengembang</string>

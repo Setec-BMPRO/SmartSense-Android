@@ -235,6 +235,7 @@
     <string name="offline_cause_scanner_stalled">Varredura travada no telefone — reinicie o app</string>
     <string name="offline_cause_sensor_not_responding">Sensor sem resposta — verifique bateria ou alcance</string>
     <string name="developer_mode_steps_away">Falta(m) %1$d passo(s) para você ser um desenvolvedor</string>
+    <string name="developer_mode_steps_away_disable">Falta(m) %1$d passo(s) para desativar o modo desenvolvedor</string>
     <string name="developer_mode_enabled">Agora você é um desenvolvedor!</string>
     <string name="developer_mode_already_enabled">Os recursos de desenvolvedor já estão ativados</string>
     <string name="app_version_developer">Versão %1$s · Modo desenvolvedor</string>

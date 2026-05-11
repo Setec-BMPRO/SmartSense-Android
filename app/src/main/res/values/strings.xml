@@ -277,6 +277,7 @@
          version label in Settings. Reveals diagnostic surfaces (Quality Buffer card on
          the sensor detail screen, etc.). -->
     <string name="developer_mode_steps_away">You are %1$d step(s) away from being a developer</string>
+    <string name="developer_mode_steps_away_disable">You are %1$d step(s) away from disabling developer mode</string>
     <string name="developer_mode_enabled">You are now a developer!</string>
     <string name="developer_mode_already_enabled">Developer features are already enabled</string>
     <!-- Persistent label decoration when developer mode is on; %1$s = version string. -->

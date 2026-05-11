@@ -266,6 +266,7 @@
     <string name="offline_cause_scanner_stalled">手机扫描停滞 — 请重启应用</string>
     <string name="offline_cause_sensor_not_responding">传感器无响应 — 请检查电池或信号范围</string>
     <string name="developer_mode_steps_away">距离成为开发者还差 %1$d 步</string>
+    <string name="developer_mode_steps_away_disable">距离关闭开发者模式还差 %1$d 步</string>
     <string name="developer_mode_enabled">您现在是开发者了!</string>
     <string name="developer_mode_already_enabled">开发者功能已启用</string>
     <string name="app_version_developer">版本 %1$s · 开发者模式</string>

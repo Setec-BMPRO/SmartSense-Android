@@ -235,6 +235,7 @@
     <string name="offline_cause_scanner_stalled">Scan du téléphone bloqué — redémarrez l\'app</string>
     <string name="offline_cause_sensor_not_responding">Capteur ne répond pas — vérifiez la pile ou la portée</string>
     <string name="developer_mode_steps_away">Plus que %1$d étape(s) pour devenir développeur</string>
+    <string name="developer_mode_steps_away_disable">Plus que %1$d étape(s) pour désactiver le mode développeur</string>
     <string name="developer_mode_enabled">Vous êtes maintenant développeur !</string>
     <string name="developer_mode_already_enabled">Les fonctions développeur sont déjà activées</string>
     <string name="app_version_developer">Version %1$s · Mode développeur</string>

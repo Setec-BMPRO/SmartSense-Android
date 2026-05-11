@@ -115,13 +115,17 @@ class SettingsFragment : Fragment() {
     }
 
     /**
-     * Android-style developer-mode unlock. Tap the version label seven times in quick
-     * succession to flip [SettingsViewModel.developerModeEnabled] on. Mirrors the AOSP
-     * gesture:
+     * Android-style developer-mode toggle. Tap the version label seven times in quick
+     * succession to flip [SettingsViewModel.developerModeEnabled]. Works in **both**
+     * directions — same gesture enables developer mode when off, disables it when on.
+     * Long-press is also still wired up as a shortcut to disable, see
+     * [handleVersionLongPress].
+     *
+     * Mirrors the AOSP gesture:
      * - Taps 1-2: silent (avoid noise from accidental taps).
-     * - Taps 3-6: toast counts down the remaining taps.
-     * - Tap 7: persist the flag, show "You are now a developer!" toast.
-     * - Subsequent taps once enabled: brief "already a developer" hint.
+     * - Taps 3-6: inline countdown of remaining taps, with text adapting to the
+     *   direction we're heading (becoming / disabling).
+     * - Tap 7: persist the flag, show the resulting state.
      * - >[TAP_RESET_GAP_MS] between consecutive taps resets the counter, so the gesture
      *   has to be deliberate.
      */
@@ -131,25 +135,25 @@ class SettingsFragment : Fragment() {
         lastVersionTapMs = now
         versionTapCount++
 
-        if (viewModel.developerModeEnabled.value) {
-            if (versionTapCount >= 3) {
-                showVersionTapFeedback(getString(R.string.developer_mode_already_enabled))
-                versionTapCount = 0
-            }
-            return
-        }
-
+        val currentlyEnabled = viewModel.developerModeEnabled.value
         val tapsRemaining = TAPS_TO_UNLOCK - versionTapCount
         when {
             tapsRemaining <= 0 -> {
-                viewModel.setDeveloperModeEnabled(true)
-                showVersionTapFeedback(getString(R.string.developer_mode_enabled), durationMs = 3_000L)
+                val newState = !currentlyEnabled
+                viewModel.setDeveloperModeEnabled(newState)
+                val msg = if (newState) R.string.developer_mode_enabled
+                else R.string.developer_mode_disabled
+                showVersionTapFeedback(getString(msg), durationMs = 3_000L)
                 versionTapCount = 0
             }
-            // Stay silent for the first couple of taps to avoid harassing the user about an
-            // accidental brush. Start counting down once they're obviously trying.
-            versionTapCount >= 3 ->
-                showVersionTapFeedback(getString(R.string.developer_mode_steps_away, tapsRemaining))
+            // Stay silent for the first couple of taps to avoid harassing the user about
+            // an accidental brush. Start counting down once they're obviously trying.
+            versionTapCount >= 3 -> {
+                val countdownRes = if (currentlyEnabled)
+                    R.string.developer_mode_steps_away_disable
+                else R.string.developer_mode_steps_away
+                showVersionTapFeedback(getString(countdownRes, tapsRemaining))
+            }
         }
     }
 

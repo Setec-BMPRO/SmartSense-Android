@@ -235,6 +235,7 @@
     <string name="offline_cause_scanner_stalled">توقّف فحص الهاتف — أعد تشغيل التطبيق</string>
     <string name="offline_cause_sensor_not_responding">لا يستجيب المستشعر — افحص البطارية أو المدى</string>
     <string name="developer_mode_steps_away">أنت على بُعد %1$d خطوة من أن تصبح مطوّرًا</string>
+    <string name="developer_mode_steps_away_disable">أنت على بُعد %1$d خطوة من إيقاف وضع المطوّر</string>
     <string name="developer_mode_enabled">أصبحت الآن مطوّرًا!</string>
     <string name="developer_mode_already_enabled">ميزات المطوّر مفعّلة بالفعل</string>
     <string name="app_version_developer">الإصدار %1$s · وضع المطوّر</string>
