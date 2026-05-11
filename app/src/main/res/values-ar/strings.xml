@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">حدود الجودة (الانحراف المعياري بالملم)</string>
     <string name="developer_threshold_good">جيد ≤</string>
     <string name="developer_threshold_fair">متوسط ≤</string>
+    <string name="developer_buffer_size">حجم المخزن المؤقت (n)</string>
     <string name="developer_reset_defaults">إعادة التعيين إلى الافتراضي</string>
 </resources>

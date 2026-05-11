@@ -55,6 +55,17 @@ class UserPreferences @Inject constructor(
         // measurements without redeploying.
         const val DEFAULT_STDDEV_GOOD_MM = 5.0f
         const val DEFAULT_STDDEV_FAIR_MM = 15.0f
+
+        /** Default cap on the rolling-window buffer in [ReadingQualityCalculator]. Matches
+         *  the original hardcoded MAX_SAMPLES so existing users keep the same behaviour
+         *  until they change it. Spec: "store the last 10 readings". */
+        const val DEFAULT_MAX_SAMPLES = 10
+
+        /** Lower bound for [DEFAULT_MAX_SAMPLES] — keep at least the calculator's
+         *  MIN_SAMPLES (3) so deviation-based quality can still trigger. Anything below
+         *  this is clamped at write time so a typo can't lock the buffer below the
+         *  warm-up threshold. */
+        const val MIN_ALLOWED_MAX_SAMPLES = 3
     }
 
     private object Keys {
@@ -73,6 +84,7 @@ class UserPreferences @Inject constructor(
         val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
         val STDDEV_GOOD_MM = floatPreferencesKey("quality_stddev_good_mm")
         val STDDEV_FAIR_MM = floatPreferencesKey("quality_stddev_fair_mm")
+        val MAX_SAMPLES = intPreferencesKey("quality_max_samples")
 
         // Keys for Tank Alert States
         fun lastLevelKey(address: String) = intPreferencesKey("last_level_$address")
@@ -146,6 +158,12 @@ class UserPreferences @Inject constructor(
         it[Keys.STDDEV_FAIR_MM] ?: DEFAULT_STDDEV_FAIR_MM
     }
 
+    /** Rolling-window cap (`n`) the calculator uses for its eviction logic. Surfaced on
+     *  the Quality Buffer card as the displayed `n=` value once the buffer fills up. */
+    val maxSamples: Flow<Int> = context.dataStore.data.map {
+        it[Keys.MAX_SAMPLES] ?: DEFAULT_MAX_SAMPLES
+    }
+
     // -------------------------------------------------------------------------
     // ✍️ Update Functions (Setters)
     // -------------------------------------------------------------------------
@@ -217,6 +235,14 @@ class UserPreferences @Inject constructor(
     suspend fun setStddevFairMm(valueMm: Float) {
         Timber.tag(TAG).i("Setting StddevFairMm: $valueMm")
         context.dataStore.edit { it[Keys.STDDEV_FAIR_MM] = valueMm.coerceAtLeast(0f) }
+    }
+
+    suspend fun setMaxSamples(n: Int) {
+        // Coerce to at least MIN_ALLOWED_MAX_SAMPLES so the calculator can still leave
+        // the n<MIN_SAMPLES warm-up branch and compute deviation-based quality.
+        val clamped = n.coerceAtLeast(MIN_ALLOWED_MAX_SAMPLES)
+        Timber.tag(TAG).i("Setting MaxSamples: $n (clamped to $clamped)")
+        context.dataStore.edit { it[Keys.MAX_SAMPLES] = clamped }
     }
 
     suspend fun setUserEmail(email: String?) {

@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">เกณฑ์คุณภาพ (ส่วนเบี่ยงเบนมาตรฐาน หน่วยมม.)</string>
     <string name="developer_threshold_good">ดี ≤</string>
     <string name="developer_threshold_fair">พอใช้ ≤</string>
+    <string name="developer_buffer_size">ขนาดบัฟเฟอร์ (n)</string>
     <string name="developer_reset_defaults">รีเซ็ตเป็นค่าเริ่มต้น</string>
 </resources>

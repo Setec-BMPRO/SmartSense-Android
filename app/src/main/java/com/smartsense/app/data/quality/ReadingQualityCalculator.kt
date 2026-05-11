@@ -72,6 +72,12 @@ class ReadingQualityCalculator @Inject constructor(
     @Volatile
     private var stddevFairMeters: Double = UserPreferences.DEFAULT_STDDEV_FAIR_MM.toDouble() / 1000.0
 
+    /** Cached cap (`n`) on the rolling window. Read by [evict] and the per-sensor window
+     *  duration in [windowMsFor]. Defaults to the value the calculator originally
+     *  shipped with so the math doesn't change until the user opts in. */
+    @Volatile
+    private var maxSamples: Int = UserPreferences.DEFAULT_MAX_SAMPLES
+
     init {
         // Hydrate the cached thresholds from DataStore and keep them in sync with whatever
         // the developer-mode Settings UI writes. UserPreferences stores values in mm; we
@@ -82,6 +88,9 @@ class ReadingQualityCalculator @Inject constructor(
             .launchIn(scope)
         userPreferences.stddevFairMm
             .onEach { stddevFairMeters = it.toDouble() / 1000.0 }
+            .launchIn(scope)
+        userPreferences.maxSamples
+            .onEach { maxSamples = it.coerceAtLeast(MIN_SAMPLES) }
             .launchIn(scope)
     }
 
@@ -278,12 +287,14 @@ class ReadingQualityCalculator @Inject constructor(
 
     /**
      * Sliding-window length for [address], derived from the latest broadcast cadence:
-     *   (reportingIntervalSeconds + [MARGIN_S]) × [MAX_SAMPLES]
-     * Falls back to [DEFAULT_REPORTING_INTERVAL_S] when we haven't seen one yet.
+     *   (reportingIntervalSeconds + [MARGIN_S]) × maxSamples
+     * Falls back to [DEFAULT_REPORTING_INTERVAL_S] when we haven't seen one yet. Uses the
+     * runtime-tunable [maxSamples] cache rather than the legacy constant so changing `n`
+     * in the developer Settings UI immediately widens / narrows the eviction window too.
      */
     private fun windowMsFor(address: String): Long {
         val interval = reportingIntervalSeconds[address] ?: DEFAULT_REPORTING_INTERVAL_S
-        return (interval + MARGIN_S).toLong() * MAX_SAMPLES * 1_000L
+        return (interval + MARGIN_S).toLong() * maxSamples * 1_000L
     }
 
     /**
@@ -291,14 +302,16 @@ class ReadingQualityCalculator @Inject constructor(
      * 1. Drop entries older than the per-sensor sliding window so a sensor that has
      *    stopped broadcasting eventually empties the buffer rather than scoring on
      *    stale data.
-     * 2. Cap to the most recent [MAX_SAMPLES] entries (the "rolling last 10" rule).
+     * 2. Cap to the most recent [maxSamples] entries (the "rolling last n" rule —
+     *    runtime-tunable from developer Settings; default 10).
      */
     private fun evict(buffer: ArrayDeque<Sample>, now: Long, address: String) {
         val cutoff = now - windowMsFor(address)
         while (buffer.isNotEmpty() && buffer.first().timestampMillis < cutoff) {
             buffer.removeFirst()
         }
-        while (buffer.size > MAX_SAMPLES) {
+        val cap = maxSamples
+        while (buffer.size > cap) {
             buffer.removeFirst()
         }
     }
@@ -349,7 +362,12 @@ class ReadingQualityCalculator @Inject constructor(
     companion object {
         private const val TAG = "Quality"
 
-        /** Ring-buffer cap. Spec: "store the last 10 readings". */
+        /**
+         * Legacy fixed ring-buffer cap. Spec called for "last 10 readings"; the live cap
+         * now comes from [UserPreferences.maxSamples] via the volatile cache. Kept as the
+         * canonical default value.
+         */
+        @Deprecated("Use UserPreferences.maxSamples — runtime-tunable.")
         const val MAX_SAMPLES = 10
 
         /**

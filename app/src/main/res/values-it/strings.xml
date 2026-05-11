@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">Soglie di qualità (dev. std. in mm)</string>
     <string name="developer_threshold_good">Buona ≤</string>
     <string name="developer_threshold_fair">Discreta ≤</string>
+    <string name="developer_buffer_size">Dimensione buffer (n)</string>
     <string name="developer_reset_defaults">Ripristina valori predefiniti</string>
 </resources>

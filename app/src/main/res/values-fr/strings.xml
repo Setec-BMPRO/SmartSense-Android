@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">Seuils de qualité (écart-type en mm)</string>
     <string name="developer_threshold_good">Bonne ≤</string>
     <string name="developer_threshold_fair">Moyenne ≤</string>
+    <string name="developer_buffer_size">Taille du tampon (n)</string>
     <string name="developer_reset_defaults">Restaurer les valeurs par défaut</string>
 </resources>

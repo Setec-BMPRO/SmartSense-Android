@@ -76,6 +76,10 @@ class SettingsViewModel @Inject constructor(
     val stddevFairMm: StateFlow<Float> = userPreferences.stddevFairMm
         .stateIn(viewModelScope, SharingStarted.Eagerly, UserPreferences.DEFAULT_STDDEV_FAIR_MM)
 
+    /** Developer-tunable rolling-window cap (`n`) for the Quality Buffer. */
+    val maxSamples: StateFlow<Int> = userPreferences.maxSamples
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UserPreferences.DEFAULT_MAX_SAMPLES)
+
     // -------------------------------------------------------------------------
     // ✍️ Update Functions
     // -------------------------------------------------------------------------
@@ -116,12 +120,17 @@ class SettingsViewModel @Inject constructor(
     fun setStddevFairMm(valueMm: Float) =
         viewModelScope.launch { userPreferences.setStddevFairMm(valueMm) }
 
-    /** Reset the quality thresholds to the constants the app shipped with. Bound to a
-     *  "Reset to defaults" button in the developer-mode UI so QA doesn't have to remember
-     *  the original numbers after a calibration run. */
+    fun setMaxSamples(n: Int) =
+        viewModelScope.launch { userPreferences.setMaxSamples(n) }
+
+    /** Reset all three quality parameters (Good cutoff, Fair cutoff, buffer size n) to
+     *  the constants the app shipped with. Bound to a "Reset to defaults" button in the
+     *  developer-mode UI so QA doesn't have to remember the original numbers after a
+     *  calibration run. */
     fun resetQualityThresholds() = viewModelScope.launch {
         userPreferences.setStddevGoodMm(UserPreferences.DEFAULT_STDDEV_GOOD_MM)
         userPreferences.setStddevFairMm(UserPreferences.DEFAULT_STDDEV_FAIR_MM)
+        userPreferences.setMaxSamples(UserPreferences.DEFAULT_MAX_SAMPLES)
     }
 
 

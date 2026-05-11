@@ -619,6 +619,46 @@
                             </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
 
+                        <!-- Rolling-window cap (n). Different unit / domain from the
+                             stddev rows above — separated by a thin divider for clarity. -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="?attr/colorOutlineVariant"
+                            android:layout_marginVertical="@dimen/spacing_sm"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingBottom="@dimen/spacing_sm">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/developer_buffer_size"
+                                android:textAppearance="?attr/textAppearanceBodyLarge"/>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="120dp"
+                                android:layout_height="wrap_content"
+                                app:hintEnabled="false"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/max_samples_input"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="number"
+                                    android:imeOptions="actionDone"
+                                    android:textAlignment="viewEnd"
+                                    android:saveEnabled="false"
+                                    tools:ignore="LabelFor"/>
+                            </com.google.android.material.textfield.TextInputLayout>
+                        </LinearLayout>
+
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_reset_thresholds"
                             style="@style/Widget.Material3.Button.TextButton"

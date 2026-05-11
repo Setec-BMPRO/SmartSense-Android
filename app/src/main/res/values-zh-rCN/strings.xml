@@ -275,5 +275,6 @@
     <string name="developer_thresholds_caption">质量阈值 (标准差，mm)</string>
     <string name="developer_threshold_good">良好 ≤</string>
     <string name="developer_threshold_fair">一般 ≤</string>
+    <string name="developer_buffer_size">缓冲区大小 (n)</string>
     <string name="developer_reset_defaults">恢复默认值</string>
 </resources>

@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">Limiares de qualidade (desvio padrão em mm)</string>
     <string name="developer_threshold_good">Boa ≤</string>
     <string name="developer_threshold_fair">Regular ≤</string>
+    <string name="developer_buffer_size">Tamanho do buffer (n)</string>
     <string name="developer_reset_defaults">Restaurar padrões</string>
 </resources>

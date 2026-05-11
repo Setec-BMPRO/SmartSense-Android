@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">Пороги качества (СКО в мм)</string>
     <string name="developer_threshold_good">Хорошее ≤</string>
     <string name="developer_threshold_fair">Среднее ≤</string>
+    <string name="developer_buffer_size">Размер буфера (n)</string>
     <string name="developer_reset_defaults">Сбросить к настройкам по умолчанию</string>
 </resources>

@@ -275,5 +275,6 @@
     <string name="developer_thresholds_caption">Ngưỡng chất lượng (độ lệch chuẩn, mm)</string>
     <string name="developer_threshold_good">Tốt ≤</string>
     <string name="developer_threshold_fair">Khá ≤</string>
+    <string name="developer_buffer_size">Kích thước bộ đệm (n)</string>
     <string name="developer_reset_defaults">Khôi phục mặc định</string>
 </resources>

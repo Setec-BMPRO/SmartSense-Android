@@ -292,6 +292,8 @@
     <string name="developer_thresholds_caption">Quality thresholds (stddev in mm)</string>
     <string name="developer_threshold_good">Good ≤</string>
     <string name="developer_threshold_fair">Fair ≤</string>
+    <!-- Rolling-window cap on the Quality Buffer (`n` on the debug card). -->
+    <string name="developer_buffer_size">Buffer size (n)</string>
     <string name="developer_reset_defaults">Reset to defaults</string>
 
 </resources>

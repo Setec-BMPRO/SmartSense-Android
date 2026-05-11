@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">क्वालिटी थ्रेशोल्ड (मिमी में स्टैंडर्ड डेविएशन)</string>
     <string name="developer_threshold_good">अच्छी ≤</string>
     <string name="developer_threshold_fair">ठीक ≤</string>
+    <string name="developer_buffer_size">बफ़र आकार (n)</string>
     <string name="developer_reset_defaults">डिफ़ॉल्ट पर रीसेट करें</string>
 </resources>

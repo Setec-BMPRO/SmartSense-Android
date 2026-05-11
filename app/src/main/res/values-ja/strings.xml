@@ -244,5 +244,6 @@
     <string name="developer_thresholds_caption">品質しきい値 (標準偏差・mm)</string>
     <string name="developer_threshold_good">良好 ≤</string>
     <string name="developer_threshold_fair">普通 ≤</string>
+    <string name="developer_buffer_size">バッファサイズ (n)</string>
     <string name="developer_reset_defaults">デフォルトにリセット</string>
 </resources>

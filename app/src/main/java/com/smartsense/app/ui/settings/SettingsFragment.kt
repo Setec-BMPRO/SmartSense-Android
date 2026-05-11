@@ -132,14 +132,25 @@ class SettingsFragment : Fragment() {
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
+        viewModel.maxSamples
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { n ->
+                if (!binding.maxSamplesInput.isFocused) {
+                    binding.maxSamplesInput.setText(n.toString())
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
         bindThresholdInput(binding.stddevGoodInput) { viewModel.setStddevGoodMm(it) }
         bindThresholdInput(binding.stddevFairInput) { viewModel.setStddevFairMm(it) }
+        bindIntInput(binding.maxSamplesInput) { viewModel.setMaxSamples(it) }
 
         binding.btnResetThresholds.setOnClickListener {
             // Clear any in-flight focus so the flow-observer can repopulate the inputs
             // after the reset writes new values to DataStore.
             binding.stddevGoodInput.clearFocus()
             binding.stddevFairInput.clearFocus()
+            binding.maxSamplesInput.clearFocus()
             viewModel.resetQualityThresholds()
         }
     }
@@ -176,6 +187,41 @@ class SettingsFragment : Fragment() {
         if (parsed == null || parsed < 0f) {
             // Bad input — flag it and don't persist. The next viewModel emission will
             // re-populate the field from the last good value when focus changes back.
+            input.error = "?"
+            return
+        }
+        save(parsed)
+    }
+
+    /**
+     * Integer-input twin of [bindThresholdInput]: same Done / focus-loss commit pattern,
+     * different parser. Used by the rolling-window-size (`n`) field — the lower-bound
+     * coerceAtLeast in UserPreferences keeps the value above the calculator's MIN_SAMPLES
+     * warm-up threshold, so we don't need a separate clamp here.
+     */
+    private fun bindIntInput(
+        input: com.google.android.material.textfield.TextInputEditText,
+        save: (Int) -> Unit
+    ) {
+        input.doAfterTextChanged { input.error = null }
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                commitIntInput(input, save)
+                input.clearFocus()
+                true
+            } else false
+        }
+        input.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) commitIntInput(input, save)
+        }
+    }
+
+    private fun commitIntInput(
+        input: com.google.android.material.textfield.TextInputEditText,
+        save: (Int) -> Unit
+    ) {
+        val parsed = input.text?.toString()?.trim()?.toIntOrNull()
+        if (parsed == null || parsed <= 0) {
             input.error = "?"
             return
         }
