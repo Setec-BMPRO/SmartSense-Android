@@ -57,7 +57,7 @@
     <string name="quality_warning_fair">Fair Quality: Signal may be weak. Check sensor position.</string>
 
     <!-- Additional Info -->
-    <string name="additional_info">Additional Info</string>
+    <string name="additional_info">Sensor Info</string>
     <string name="update_rate">Update Rate</string>
     <string name="sensor_type">Sensor Type</string>
     <string name="device_address">Device Address</string>
@@ -142,6 +142,16 @@
 
     <!-- Tank level overlay -->
     <string name="tank_state_empty">Empty</string>
+
+    <!-- Sensor freshness badge — shown when no BLE adv has arrived for several reporting
+         intervals (see SensorFreshness). -->
+    <string name="offline">Offline</string>
+    <!-- Detail-screen subtitle decoration when the sensor is stale; %1$s = sensor name. -->
+    <string name="format_offline_subtitle">%1$s · OFFLINE</string>
+    <!-- Offline cause caption — surfaces in the detail screen below the OFFLINE pill to
+         tell the user whether to act on the phone (scan demoted) or the sensor itself. -->
+    <string name="offline_cause_scanner_stalled">Phone scan stalled — restart the app</string>
+    <string name="offline_cause_sensor_not_responding">Sensor not responding — check battery or range</string>
 
     <!-- Signal -->
     <string name="signal_excellent">Excellent</string>

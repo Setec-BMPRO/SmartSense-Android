@@ -42,7 +42,7 @@
     <string name="quality_poor">Mauvaise</string>
     <string name="quality_warning_poor">Qualité faible : réservoir vide ou capteur mal positionné. (Touchez pour plus d\'infos)</string>
     <string name="quality_warning_fair">Qualité moyenne : signal possiblement faible. Vérifiez la position du capteur.</string>
-    <string name="additional_info">Infos supplémentaires</string>
+    <string name="additional_info">Infos du capteur</string>
     <string name="update_rate">Fréquence d\'actualisation</string>
     <string name="sensor_type">Type de capteur</string>
     <string name="device_address">Adresse de l\'appareil</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE non pris en charge sur cet appareil</string>
     <string name="ble_register_error_other">Erreur de recherche BLE (code %1$d)</string>
     <string name="tank_state_empty">Vide</string>
+    <string name="offline">Hors ligne</string>
+    <string name="format_offline_subtitle">%1$s · HORS LIGNE</string>
+    <string name="offline_cause_scanner_stalled">Scan du téléphone bloqué — redémarrez l\'app</string>
+    <string name="offline_cause_sensor_not_responding">Capteur ne répond pas — vérifiez la pile ou la portée</string>
 </resources>

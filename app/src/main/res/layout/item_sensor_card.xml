@@ -160,6 +160,21 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginTop="@dimen/spacing_xs"
                 tools:text="Updated 5s ago"/>
+
+            <!-- Stale badge — visible when SensorFreshness says we haven't heard from
+                 the sensor for a while. Visibility is controlled in ScanAdapter. -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/sensor_offline_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textStyle="bold"
+                android:textColor="@color/level_red"
+                android:textAllCaps="true"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:visibility="gone"
+                android:text="@string/offline"
+                tools:visibility="visible"/>
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/sensor_type"
                 android:layout_width="wrap_content"

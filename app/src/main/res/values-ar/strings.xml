@@ -42,7 +42,7 @@
     <string name="quality_poor">ضعيفة</string>
     <string name="quality_warning_poor">جودة منخفضة: الخزان فارغ أو المستشعر في موضع غير صحيح. (اضغط للمزيد)</string>
     <string name="quality_warning_fair">جودة متوسطة: قد تكون الإشارة ضعيفة. تحقق من موضع المستشعر.</string>
-    <string name="additional_info">معلومات إضافية</string>
+    <string name="additional_info">معلومات المستشعر</string>
     <string name="update_rate">معدل التحديث</string>
     <string name="sensor_type">نوع المستشعر</string>
     <string name="device_address">عنوان الجهاز</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE غير مدعوم على هذا الجهاز</string>
     <string name="ble_register_error_other">خطأ مسح BLE (الرمز %1$d)</string>
     <string name="tank_state_empty">فارغ</string>
+    <string name="offline">غير متصل</string>
+    <string name="format_offline_subtitle">%1$s · غير متصل</string>
+    <string name="offline_cause_scanner_stalled">توقّف فحص الهاتف — أعد تشغيل التطبيق</string>
+    <string name="offline_cause_sensor_not_responding">لا يستجيب المستشعر — افحص البطارية أو المدى</string>
 </resources>

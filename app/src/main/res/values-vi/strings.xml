@@ -57,7 +57,7 @@
     <string name="quality_warning_fair">Chất lượng trung bình: Tín hiệu có thể yếu. Kiểm tra vị trí cảm biến.</string>
 
     <!-- Additional Info -->
-    <string name="additional_info">Thông tin bổ sung</string>
+    <string name="additional_info">Thông tin cảm biến</string>
     <string name="update_rate">Tốc độ cập nhật</string>
     <string name="sensor_type">Loại cảm biến</string>
     <string name="device_address">Địa chỉ thiết bị</string>
@@ -261,4 +261,8 @@
     <string name="press_back_again_to_exit">Nhấn quay lại lần nữa để thoát</string>
 
     <string name="tank_state_empty">Trống</string>
+    <string name="offline">Ngoại tuyến</string>
+    <string name="format_offline_subtitle">%1$s · NGOẠI TUYẾN</string>
+    <string name="offline_cause_scanner_stalled">Quét trên điện thoại bị treo — khởi động lại ứng dụng</string>
+    <string name="offline_cause_sensor_not_responding">Cảm biến không phản hồi — kiểm tra pin hoặc khoảng cách</string>
 </resources>

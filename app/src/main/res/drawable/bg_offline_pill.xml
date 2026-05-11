@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Red rounded background for the "OFFLINE" pill on the sensor detail screen. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/level_red" />
+    <corners android:radius="999dp" />
+</shape>

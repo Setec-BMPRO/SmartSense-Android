@@ -10,8 +10,12 @@ import android.os.ParcelUuid
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicLong
 import no.nordicsemi.android.support.v18.scanner.BluetoothLeScannerCompat
 import no.nordicsemi.android.support.v18.scanner.ScanCallback
 import no.nordicsemi.android.support.v18.scanner.ScanFilter
@@ -27,6 +31,35 @@ class BleManager @Inject constructor(
 ) {
     companion object {
         private const val TAG = "BleManager"
+
+        // ------- BLE scan watchdog ----------------------------------------------------
+        // Android (since Marshmallow) silently demotes long-running scan clients to
+        // SCAN_MODE_OPPORTUNISTIC after a per-app duration threshold. Symptom: every
+        // ScanCallback method stops being invoked, with NO onScanFailed and a single
+        // "BtGatt.ScanManager: Moving scan client to opportunistic" line in system
+        // logcat. The only escape is to stop+startScan as a fresh client. The watchdog
+        // detects the stall and does exactly that.
+
+        /** How often the watchdog checks whether callbacks have stalled. Tighter than
+         *  the original 15 s so a UI-requested restart (via
+         *  [BleScanHealth.requestScanRestart]) is picked up within a few seconds. */
+        private const val WATCHDOG_INTERVAL_MS = 5_000L
+
+        /**
+         * If we haven't seen a callback in this long, assume opportunistic demotion.
+         * 20 s is ~7× a typical G300 reporting interval, comfortably above the noise
+         * floor of dropped advs in a populated BLE area but quick enough that an
+         * unstuck recovery completes inside a single staleness window
+         * (`SensorFreshness.staleThresholdMs` = 15 s for a 3 s interval) most of the
+         * time.
+         */
+        private const val WATCHDOG_STALL_THRESHOLD_MS = 20_000L
+
+        /** Brief settle between stop+start so the OS treats us as a new scanner. */
+        private const val WATCHDOG_RESTART_DELAY_MS = 200L
+
+        /** How often to emit a per-process snapshot of BLE callback stats. */
+        private const val HEALTH_SNAPSHOT_INTERVAL_MS = 30_000L
     }
 
     private val bluetoothAdapter: BluetoothAdapter? =
@@ -50,8 +83,22 @@ class BleManager @Inject constructor(
 
         stopScan()
 
+        // Wall-clock of the last callback we got. Updated from onScanResult /
+        // onBatchScanResults. Watchdog (below) uses it to detect that Android has
+        // silently demoted us to SCAN_MODE_OPPORTUNISTIC — observed in BtGatt logs as
+        // "Moving scan client to opportunistic". That demotion produces no onScanFailed
+        // and no log on our side; we only notice because callbacks stop.
+        val lastCallbackAtMs = AtomicLong(System.currentTimeMillis())
+
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
+                val now = System.currentTimeMillis()
+                lastCallbackAtMs.set(now)
+                // Per-device variant — feeds both the global "any callback" pulse and the
+                // per-address stats that the 30 s health snapshot dumps to logcat. Without
+                // the per-device side it's impossible to grep "did THIS sensor stop talking
+                // 90 s before the global silence" from the post-incident logs.
+                BleScanHealth.recordDeviceCallback(result.device.address)
                 val record = result.scanRecord
                 // DEBUG: Log all devices with any manufacturer data to find the Setec prototype
                 val mfgSparse = record?.manufacturerSpecificData
@@ -71,7 +118,9 @@ class BleManager @Inject constructor(
             }
 
             override fun onBatchScanResults(results: List<ScanResult>) {
+                lastCallbackAtMs.set(System.currentTimeMillis())
                 results.forEach { result ->
+                    BleScanHealth.recordDeviceCallback(result.device.address)
                     parseScanResult(result)?.let { trySend(it) }
                 }
             }
@@ -100,8 +149,77 @@ class BleManager @Inject constructor(
             close(e)
         }
 
+        // Watchdog: every WATCHDOG_INTERVAL_MS, check that callbacks have arrived within
+        // WATCHDOG_STALL_THRESHOLD_MS *or* that UI code has flagged a stall via
+        // BleScanHealth.requestScanRestart. If either tripwire fires, the OS has either
+        // demoted us to opportunistic or the user is staring at an offline sensor — stop
+        // + re-register the scan to count as a new client and pull us back into active
+        // scanning. Runs on the callbackFlow's coroutine scope so it dies with the flow.
+        val watchdog = launch {
+            while (isActive) {
+                delay(WATCHDOG_INTERVAL_MS)
+                val silentForMs = System.currentTimeMillis() - lastCallbackAtMs.get()
+                val uiRequested = BleScanHealth.consumeScanRestartRequest()
+                val timeoutHit = silentForMs > WATCHDOG_STALL_THRESHOLD_MS
+                if (uiRequested || timeoutHit) {
+                    val reason = when {
+                        uiRequested && timeoutHit -> "ui+timeout(${silentForMs / 1000}s)"
+                        uiRequested -> "ui-request"
+                        else -> "timeout(${silentForMs / 1000}s)"
+                    }
+                    Timber.w("BLE scan stalled — restarting scanner [reason=$reason]")
+                    BleScanHealth.recordWatchdogRestart(reason)
+                    try {
+                        scanner.stopScan(callback)
+                    } catch (e: Exception) {
+                        Timber.w(e, "stopScan during watchdog restart failed (continuing)")
+                    }
+                    // Brief settle before re-registering so the OS sees this as a fresh client.
+                    delay(WATCHDOG_RESTART_DELAY_MS)
+                    try {
+                        scanner.startScan(buildScanFilters(), buildScanSettings(), callback)
+                        lastCallbackAtMs.set(System.currentTimeMillis())
+                        Timber.d("BLE scan re-registered by watchdog")
+                    } catch (e: Exception) {
+                        Timber.e(e, "Watchdog scan-restart failed")
+                    }
+                }
+            }
+        }
+
+        // Periodic snapshot of BLE health — emits one line per 30 s with the global
+        // "last callback" gap, watchdog restart counter, and per-device callback counts.
+        // Designed for `adb logcat | grep BleHealth` post-incident grep: lets us answer
+        // "did the radio go quiet across the board, or did this one address stop
+        // talking while others kept streaming?" from the saved log.
+        val healthLogger = launch {
+            while (isActive) {
+                delay(HEALTH_SNAPSHOT_INTERVAL_MS)
+                logHealthSnapshot()
+            }
+        }
+
         awaitClose {
+            watchdog.cancel()
+            healthLogger.cancel()
             stopScan()
+        }
+    }
+
+    /** Dump a one-shot picture of BLE callback stats to logcat under the BleHealth tag. */
+    private fun logHealthSnapshot() {
+        val snap = BleScanHealth.snapshot()
+        val now = System.currentTimeMillis()
+        val anyGapS = if (snap.lastAnyCallbackMs > 0) (now - snap.lastAnyCallbackMs) / 1000 else -1
+        val restartGapS = if (snap.lastWatchdogRestartMs > 0)
+            (now - snap.lastWatchdogRestartMs) / 1000 else -1
+        Timber.tag("BleHealth").i(
+            "snapshot anyGap=${anyGapS}s restarts=${snap.watchdogRestarts}" +
+                    " lastRestart=${restartGapS}s ago devices=${snap.deviceCallbackCounts.size}"
+        )
+        snap.deviceCallbackCounts.forEach { (addr, count) ->
+            val deviceGapS = snap.deviceLastSeen[addr]?.let { (now - it) / 1000 } ?: -1
+            Timber.tag("BleHealth").i("  device=$addr callbacks=$count lastGap=${deviceGapS}s")
         }
     }
 

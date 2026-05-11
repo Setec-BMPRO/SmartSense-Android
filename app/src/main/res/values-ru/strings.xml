@@ -42,7 +42,7 @@
     <string name="quality_poor">Плохое</string>
     <string name="quality_warning_poor">Низкое качество: бак пуст или датчик неправильно установлен. (Нажмите для деталей)</string>
     <string name="quality_warning_fair">Среднее качество: возможно слабый сигнал. Проверьте установку датчика.</string>
-    <string name="additional_info">Дополнительная информация</string>
+    <string name="additional_info">О датчике</string>
     <string name="update_rate">Частота обновления</string>
     <string name="sensor_type">Тип датчика</string>
     <string name="device_address">Адрес устройства</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE не поддерживается на этом устройстве</string>
     <string name="ble_register_error_other">Ошибка BLE-поиска (код %1$d)</string>
     <string name="tank_state_empty">Пусто</string>
+    <string name="offline">Не в сети</string>
+    <string name="format_offline_subtitle">%1$s · НЕ В СЕТИ</string>
+    <string name="offline_cause_scanner_stalled">Сканирование на телефоне зависло — перезапустите приложение</string>
+    <string name="offline_cause_sensor_not_responding">Датчик не отвечает — проверьте батарею или дальность</string>
 </resources>

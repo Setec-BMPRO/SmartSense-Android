@@ -170,6 +170,40 @@
                     android:textAppearance="?attr/textAppearanceBodySmall"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     tools:text="Updated just now"/>
+
+                <!-- OFFLINE pill — flipped visible/gone by the per-second heartbeat in
+                     SensorDetailFragment as soon as Sensor.isStale crosses the threshold
+                     (15 s of silence for a 3 s reporting interval). Designed to be more
+                     prominent than the toolbar-subtitle decoration. -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/offline_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_sm"
+                    android:paddingHorizontal="@dimen/spacing_md"
+                    android:paddingVertical="@dimen/spacing_xs"
+                    android:background="@drawable/bg_offline_pill"
+                    android:textAppearance="?attr/textAppearanceLabelMedium"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="true"
+                    android:visibility="gone"
+                    android:text="@string/offline"
+                    tools:visibility="visible"/>
+
+                <!-- Automatic offline-cause caption, set by SensorDetailFragment from
+                     Sensor.offlineCause. SCANNER_STALLED → app-side problem; SENSOR_QUIET →
+                     sensor-side problem. Gone while online. -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/offline_cause"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/spacing_xs"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:visibility="gone"
+                    tools:text="Sensor not responding"
+                    tools:visibility="visible"/>
             </LinearLayout>
 
             <!-- Quality Warning Banner -->

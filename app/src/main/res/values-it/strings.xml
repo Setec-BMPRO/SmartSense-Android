@@ -42,7 +42,7 @@
     <string name="quality_poor">Scarsa</string>
     <string name="quality_warning_poor">Qualità bassa: serbatoio vuoto o sensore mal posizionato. (Tocca per info)</string>
     <string name="quality_warning_fair">Qualità discreta: segnale potenzialmente debole. Verifica la posizione del sensore.</string>
-    <string name="additional_info">Informazioni aggiuntive</string>
+    <string name="additional_info">Informazioni sensore</string>
     <string name="update_rate">Frequenza di aggiornamento</string>
     <string name="sensor_type">Tipo di sensore</string>
     <string name="device_address">Indirizzo dispositivo</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE non supportato su questo dispositivo</string>
     <string name="ble_register_error_other">Errore di scansione BLE (codice %1$d)</string>
     <string name="tank_state_empty">Vuoto</string>
+    <string name="offline">Offline</string>
+    <string name="format_offline_subtitle">%1$s · OFFLINE</string>
+    <string name="offline_cause_scanner_stalled">Scansione del telefono bloccata — riavvia l\'app</string>
+    <string name="offline_cause_sensor_not_responding">Sensore non risponde — controlla batteria o portata</string>
 </resources>

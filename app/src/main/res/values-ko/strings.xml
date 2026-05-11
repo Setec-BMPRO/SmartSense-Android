@@ -42,7 +42,7 @@
     <string name="quality_poor">나쁨</string>
     <string name="quality_warning_poor">품질 낮음: 탱크가 비었거나 센서 위치가 부적절합니다. (자세한 내용을 보려면 탭)</string>
     <string name="quality_warning_fair">품질 보통: 신호가 약할 수 있습니다. 센서 위치를 확인하세요.</string>
-    <string name="additional_info">추가 정보</string>
+    <string name="additional_info">센서 정보</string>
     <string name="update_rate">업데이트 주기</string>
     <string name="sensor_type">센서 유형</string>
     <string name="device_address">기기 주소</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">이 기기는 BLE 미지원</string>
     <string name="ble_register_error_other">BLE 검색 오류 (코드 %1$d)</string>
     <string name="tank_state_empty">비어 있음</string>
+    <string name="offline">오프라인</string>
+    <string name="format_offline_subtitle">%1$s · 오프라인</string>
+    <string name="offline_cause_scanner_stalled">휴대전화 스캔이 중단됨 — 앱을 다시 시작하세요</string>
+    <string name="offline_cause_sensor_not_responding">센서가 응답하지 않음 — 배터리나 거리 확인</string>
 </resources>

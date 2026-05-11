@@ -77,6 +77,12 @@ class SensorItem(
         if (payloads.contains("UPDATE_TIME")) {
             // ONLY update the text, don't touch anything else
             binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(binding.root.context, sensor.reading?.timestampMillis)
+            // Stale state is purely a function of (now - timestamp), so it can flip on
+            // the same UPDATE_TIME tick that updates the label — even without a fresh
+            // BLE adv. Re-evaluate the badge here so a sensor that just timed out
+            // shows "Offline" within the next 1 s heartbeat tick.
+            binding.sensorOfflineBadge.visibility =
+                if (sensor.isStale) View.VISIBLE else View.GONE
         } else {
             super.bind(binding, position, payloads)
         }
@@ -85,6 +91,10 @@ class SensorItem(
     override fun bind(binding: ItemSensorCardBinding, position: Int) {
         // Name
         binding.sensorName.text = sensor.name
+
+        // Stale badge (shown when SensorFreshness.isStale)
+        binding.sensorOfflineBadge.visibility =
+            if (sensor.isStale) View.VISIBLE else View.GONE
 
         // Level
         val levelPercent: Float = sensor.tankLevel?.percentage ?: 0F

@@ -42,7 +42,7 @@
     <string name="quality_poor">แย่</string>
     <string name="quality_warning_poor">คุณภาพต่ำ: ถังว่างเปล่าหรือเซ็นเซอร์อยู่ผิดตำแหน่ง (แตะเพื่อดูเพิ่มเติม)</string>
     <string name="quality_warning_fair">คุณภาพปานกลาง: สัญญาณอาจอ่อน ตรวจสอบตำแหน่งเซ็นเซอร์</string>
-    <string name="additional_info">ข้อมูลเพิ่มเติม</string>
+    <string name="additional_info">ข้อมูลเซ็นเซอร์</string>
     <string name="update_rate">อัตราการอัปเดต</string>
     <string name="sensor_type">ชนิดเซ็นเซอร์</string>
     <string name="device_address">ที่อยู่อุปกรณ์</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">อุปกรณ์นี้ไม่รองรับ BLE</string>
     <string name="ble_register_error_other">ข้อผิดพลาดสแกน BLE (รหัส %1$d)</string>
     <string name="tank_state_empty">ว่าง</string>
+    <string name="offline">ออฟไลน์</string>
+    <string name="format_offline_subtitle">%1$s · ออฟไลน์</string>
+    <string name="offline_cause_scanner_stalled">การสแกนบนโทรศัพท์หยุดทำงาน — รีสตาร์ตแอป</string>
+    <string name="offline_cause_sensor_not_responding">เซนเซอร์ไม่ตอบสนอง — ตรวจสอบแบตเตอรี่หรือระยะ</string>
 </resources>

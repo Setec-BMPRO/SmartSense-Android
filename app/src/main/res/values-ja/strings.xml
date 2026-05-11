@@ -42,7 +42,7 @@
     <string name="quality_poor">不良</string>
     <string name="quality_warning_poor">品質低下: タンクが空かセンサーの位置が不適切です。(タップで詳細)</string>
     <string name="quality_warning_fair">品質普通: 信号が弱い可能性があります。センサーの位置を確認してください。</string>
-    <string name="additional_info">詳細情報</string>
+    <string name="additional_info">センサー情報</string>
     <string name="update_rate">更新間隔</string>
     <string name="sensor_type">センサータイプ</string>
     <string name="device_address">デバイスアドレス</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">この端末は BLE に対応していません</string>
     <string name="ble_register_error_other">BLE スキャンエラー (コード %1$d)</string>
     <string name="tank_state_empty">空</string>
+    <string name="offline">オフライン</string>
+    <string name="format_offline_subtitle">%1$s · オフライン</string>
+    <string name="offline_cause_scanner_stalled">スキャンが停止しました — アプリを再起動してください</string>
+    <string name="offline_cause_sensor_not_responding">センサーが応答しません — 電池や通信範囲を確認してください</string>
 </resources>

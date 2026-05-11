@@ -42,7 +42,7 @@
     <string name="quality_poor">ख़राब</string>
     <string name="quality_warning_poor">गुणवत्ता कम: टैंक खाली है या सेंसर ग़लत स्थान पर है। (और जानकारी के लिए टैप करें)</string>
     <string name="quality_warning_fair">गुणवत्ता ठीक-ठाक: सिग्नल कमज़ोर हो सकता है। सेंसर की स्थिति जाँचें।</string>
-    <string name="additional_info">अतिरिक्त जानकारी</string>
+    <string name="additional_info">सेंसर जानकारी</string>
     <string name="update_rate">अपडेट दर</string>
     <string name="sensor_type">सेंसर प्रकार</string>
     <string name="device_address">डिवाइस का पता</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">यह डिवाइस BLE सपोर्ट नहीं करता</string>
     <string name="ble_register_error_other">BLE स्कैन त्रुटि (कोड %1$d)</string>
     <string name="tank_state_empty">खाली</string>
+    <string name="offline">ऑफ़लाइन</string>
+    <string name="format_offline_subtitle">%1$s · ऑफ़लाइन</string>
+    <string name="offline_cause_scanner_stalled">फ़ोन स्कैन रुक गया — ऐप पुनः प्रारंभ करें</string>
+    <string name="offline_cause_sensor_not_responding">सेंसर प्रतिक्रिया नहीं दे रहा — बैटरी या रेंज जाँचें</string>
 </resources>

@@ -62,6 +62,15 @@ class ReadingQualityCalculator @Inject constructor() {
     private val reportingIntervalSeconds = ConcurrentHashMap<String, Int>()
 
     /**
+     * Wall-clock of the most recent sample we've recorded for each address — kept
+     * independently of the buffer so we can still detect "gone silent" even after every
+     * sample has aged out of the window. Without this, computeLocked() would see an empty
+     * buffer for a freshly-paired sensor (correctly → GOOD) and an empty buffer for a
+     * long-silent sensor (incorrectly → GOOD too).
+     */
+    private val lastSampleAtMillis = ConcurrentHashMap<String, Long>()
+
+    /**
      * Record a new height reading for [address] and return the freshly-computed quality.
      *
      * Returns the same value `compute(address)` would — exposed as a single call so callers
@@ -82,6 +91,7 @@ class ReadingQualityCalculator @Inject constructor() {
         val buffer = buffers.getOrPut(address) { ArrayDeque() }
         synchronized(buffer) {
             val now = System.currentTimeMillis()
+            lastSampleAtMillis[address] = now
             buffer.addLast(Sample(now, heightMeters))
             evict(buffer, now, address)
             return computeLocked(address, buffer)
@@ -101,6 +111,7 @@ class ReadingQualityCalculator @Inject constructor() {
     fun clear(address: String) {
         buffers.remove(address)
         reportingIntervalSeconds.remove(address)
+        lastSampleAtMillis.remove(address)
     }
 
     /**
@@ -113,7 +124,13 @@ class ReadingQualityCalculator @Inject constructor() {
         val buffer = buffers[address] ?: return QualitySnapshot.EMPTY
         synchronized(buffer) {
             evict(buffer, System.currentTimeMillis(), address)
-            if (buffer.isEmpty()) return QualitySnapshot.EMPTY
+            if (buffer.isEmpty()) {
+                // No live samples — but if we *have* seen this address recently it just
+                // means we're inside the warm-up window or the sensor has gone silent.
+                // Either way the debug card should reflect the quality computeLocked()
+                // would return for those situations (DEFAULT_QUALITY or STALE_QUALITY).
+                return QualitySnapshot.EMPTY.copy(quality = computeLocked(address, buffer))
+            }
             val heights = buffer.map { it.heightMeters }
             val mean = heights.average()
             val variance = heights.map { (it - mean).pow(2) }.average()
@@ -189,6 +206,25 @@ class ReadingQualityCalculator @Inject constructor() {
 
     /** Caller must hold the buffer monitor. */
     private fun computeLocked(address: String, buffer: ArrayDeque<Sample>): Int {
+        // Quality fall-through, in order:
+        // 1. Never seen this address → DEFAULT_QUALITY (no penalty for new pairings).
+        // 2. Seen before but silent for too long → STALE_QUALITY (= POOR). Without this
+        //    check, a sensor whose entire buffer has aged out would still return
+        //    DEFAULT_QUALITY via the size<MIN_SAMPLES branch below — misleading.
+        // 3. Warming up (a couple of samples in) → DEFAULT_QUALITY.
+        // 4. Enough samples → map stddev to 3 / 2 / 1.
+        val lastSeen = lastSampleAtMillis[address] ?: return DEFAULT_QUALITY
+        val staleThresholdMs = SensorFreshness.staleThresholdMs(
+            reportingIntervalSeconds[address] ?: 0
+        )
+        if (System.currentTimeMillis() - lastSeen > staleThresholdMs) {
+            Timber.tag(TAG).v(
+                "%s STALE (silent for %ds, threshold %ds) → q=%d",
+                address, (System.currentTimeMillis() - lastSeen) / 1000,
+                staleThresholdMs / 1000, STALE_QUALITY
+            )
+            return STALE_QUALITY
+        }
         if (buffer.size < MIN_SAMPLES) return DEFAULT_QUALITY
         val heights = buffer.map { it.heightMeters }
         val mean = heights.average()
@@ -223,6 +259,13 @@ class ReadingQualityCalculator @Inject constructor() {
 
         /** Minimum samples before we trust the computed quality. Until then, default GOOD. */
         const val MIN_SAMPLES = 3
+
+        /**
+         * Quality assigned when [SensorFreshness] says the sensor has gone silent. POOR (1)
+         * rather than UNKNOWN/0 so it flows through the existing 1-3 mapping and triggers
+         * the existing low-quality warnings.
+         */
+        const val STALE_QUALITY = 1
 
         /**
          * Placeholder thresholds — to be replaced with values derived from real bottle tests.

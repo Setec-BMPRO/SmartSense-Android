@@ -57,7 +57,7 @@
     <string name="quality_warning_fair">质量一般:信号可能较弱。检查传感器位置。</string>
 
     <!-- Additional Info -->
-    <string name="additional_info">附加信息</string>
+    <string name="additional_info">传感器信息</string>
     <string name="update_rate">更新速率</string>
     <string name="sensor_type">传感器类型</string>
     <string name="device_address">设备地址</string>
@@ -261,4 +261,8 @@
     <string name="press_back_again_to_exit">再次按下返回键退出</string>
 
     <string name="tank_state_empty">空</string>
+    <string name="offline">离线</string>
+    <string name="format_offline_subtitle">%1$s · 离线</string>
+    <string name="offline_cause_scanner_stalled">手机扫描停滞 — 请重启应用</string>
+    <string name="offline_cause_sensor_not_responding">传感器无响应 — 请检查电池或信号范围</string>
 </resources>

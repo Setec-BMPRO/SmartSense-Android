@@ -42,7 +42,7 @@
     <string name="quality_poor">Ruim</string>
     <string name="quality_warning_poor">Qualidade baixa: tanque vazio ou sensor mal posicionado. (Toque para mais)</string>
     <string name="quality_warning_fair">Qualidade razoável: sinal pode estar fraco. Confira a posição do sensor.</string>
-    <string name="additional_info">Informações adicionais</string>
+    <string name="additional_info">Informações do sensor</string>
     <string name="update_rate">Taxa de atualização</string>
     <string name="sensor_type">Tipo de sensor</string>
     <string name="device_address">Endereço do dispositivo</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE não suportado neste dispositivo</string>
     <string name="ble_register_error_other">Erro de busca BLE (código %1$d)</string>
     <string name="tank_state_empty">Vazio</string>
+    <string name="offline">Off-line</string>
+    <string name="format_offline_subtitle">%1$s · OFF-LINE</string>
+    <string name="offline_cause_scanner_stalled">Varredura travada no telefone — reinicie o app</string>
+    <string name="offline_cause_sensor_not_responding">Sensor sem resposta — verifique bateria ou alcance</string>
 </resources>

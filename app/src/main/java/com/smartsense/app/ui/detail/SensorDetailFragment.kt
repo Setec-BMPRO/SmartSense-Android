@@ -54,6 +54,15 @@ class SensorDetailFragment : Fragment() {
     /** In-flight highlight-clear coroutine — cancelled if a newer reading lands first. */
     private var qualityHighlightJob: kotlinx.coroutines.Job? = null
 
+    /** Edge-trigger state for the OfflineEvent logger / auto-recovery hook. `null` means we
+     *  haven't observed a tick yet; otherwise it's the last (isStale, cause) we logged. We
+     *  only emit on edges so logcat doesn't get one line per second. */
+    private var lastOfflineState: Pair<Boolean, com.smartsense.app.domain.model.OfflineCause?>? = null
+
+    /** Wall-clock when the sensor most recently transitioned to offline; used to compute
+     *  "offline for Xs" in the come-back-online log line. */
+    private var offlineSinceMs: Long = 0L
+
     // --------------------------------------
     // 🧱 LIFECYCLE
     // --------------------------------------
@@ -196,7 +205,23 @@ class SensorDetailFragment : Fragment() {
 
     private fun bindSensor(sensor: Sensor) = with(binding) {
         toolbar.title = getString(R.string.tank_info)
-        toolbar.subtitle = sensor.name
+        toolbar.subtitle = if (sensor.isStale)
+            getString(R.string.format_offline_subtitle, sensor.name ?: "")
+        else
+            sensor.name
+        offlineBadge.isVisible = sensor.isStale
+        // Surface the auto-classified offline cause underneath the pill so the user can tell
+        // a phone-side scan stall (restart the app) apart from a sensor-side issue (check the
+        // sensor itself). Cause is `null` when the sensor is healthy → caption is hidden.
+        val cause = sensor.offlineCause
+        offlineCause.isVisible = cause != null
+        cause?.let { offlineCause.setText(it.labelRes) }
+        Timber.tag("StaleCheck").d(
+            "bindSensor %s isStale=%s cause=%s ts=%d now=%d Δ=%dms",
+            sensor.address, sensor.isStale, cause, sensor.reading?.timestampMillis ?: 0,
+            System.currentTimeMillis(),
+            sensor.reading?.timestampMillis?.let { System.currentTimeMillis() - it } ?: -1
+        )
         // Set text IMMEDIATELY so it's "Just now" without waiting for the timer
         lastUpdated.text = if (sensor.reading != null) {
             TimeUtils.getLastUpdatedText(requireContext(), sensor.reading.timestampMillis)
@@ -317,13 +342,62 @@ class SensorDetailFragment : Fragment() {
         val hasReading = sensor.reading != null
         detailBattery.text = if (hasReading) getString(R.string.format_battery, sensor.batteryPercent) else "--"
         detailSignal.text = if (hasReading) getString(R.string.format_rssi, sensor.reading?.rssi) else "--"
-        detailQuality.text = when (sensor.readQuality) {
+        // Quality readout reflects live freshness — if the sensor has gone silent past
+        // SensorFreshness.staleThresholdMs we display POOR regardless of the cached
+        // reading.quality value (which only updates when a fresh BLE adv lands).
+        val effectiveQuality = if (sensor.isStale) ReadQuality.POOR else sensor.readQuality
+        detailQuality.text = when (effectiveQuality) {
             ReadQuality.GOOD -> getString(R.string.quality_good)
             ReadQuality.FAIR -> getString(R.string.quality_fair)
             ReadQuality.POOR -> getString(R.string.quality_poor)
             else -> if (hasReading) "" else "--"
         }
+        // Color code each readout. Matches the colour logic in `ScanAdapter` so the same
+        // sensor renders consistently green/yellow/red across the list and detail screens.
+        // When there's no reading yet, fall back to a neutral theme colour rather than
+        // mis-signalling green on a "--" placeholder.
+        val neutralColor = com.google.android.material.color.MaterialColors.getColor(
+            detailBattery, com.google.android.material.R.attr.colorOnSurfaceVariant
+        )
+        detailBattery.setTextColor(
+            if (hasReading) batteryColor(sensor.batteryPercent) else neutralColor
+        )
+        detailSignal.setTextColor(
+            if (hasReading) signalColor(sensor.signalStrength) else neutralColor
+        )
+        detailQuality.setTextColor(
+            if (hasReading && effectiveQuality != null) qualityColor(effectiveQuality) else neutralColor
+        )
     }
+
+    /** Same thresholds as `ScanAdapter`: ≤15% red, ≤40% yellow, otherwise green. */
+    private fun batteryColor(batteryPercent: Int): Int = androidx.core.content.ContextCompat.getColor(
+        requireContext(), when {
+            batteryPercent <= 15 -> R.color.level_red
+            batteryPercent <= 40 -> R.color.level_yellow
+            else -> R.color.level_green
+        }
+    )
+
+    /** EXCELLENT / GOOD → green, FAIR → yellow, WEAK → red. */
+    private fun signalColor(signal: com.smartsense.app.domain.model.SignalStrength): Int =
+        androidx.core.content.ContextCompat.getColor(
+            requireContext(), when (signal) {
+                com.smartsense.app.domain.model.SignalStrength.EXCELLENT,
+                com.smartsense.app.domain.model.SignalStrength.GOOD -> R.color.level_green
+                com.smartsense.app.domain.model.SignalStrength.FAIR -> R.color.level_yellow
+                com.smartsense.app.domain.model.SignalStrength.WEAK -> R.color.level_red
+            }
+        )
+
+    /** GOOD → green, FAIR → yellow, POOR → red. Matches the level/battery palette. */
+    private fun qualityColor(quality: ReadQuality): Int = androidx.core.content.ContextCompat.getColor(
+        requireContext(), when (quality) {
+            ReadQuality.GOOD -> R.color.level_green
+            ReadQuality.FAIR -> R.color.level_yellow
+            ReadQuality.POOR -> R.color.level_red
+        }
+    )
 
     private fun FragmentSensorDetailBinding.setupQualityWarning(quality: ReadQuality?) {
         qualityWarning.visibility = when (quality) {
@@ -406,8 +480,146 @@ class SensorDetailFragment : Fragment() {
                 binding.lastUpdated.text =
                     TimeUtils.getLastUpdatedText(requireContext(), timestamp)
                 refreshQualityBufferAges(binding)
+                // Re-evaluate the toolbar's OFFLINE marker from the current sensor —
+                // staleness only depends on (now - timestamp), so it can flip during a
+                // tick where no new BLE adv has arrived.
+                val current = viewModel.uiState.value.sensor
+                if (current != null) {
+                    val stale = current.isStale
+                    binding.offlineBadge.isVisible = stale
+                    binding.toolbar.subtitle = if (stale)
+                        getString(R.string.format_offline_subtitle, current.name ?: "")
+                    else
+                        current.name
+                    // Refresh the offline-cause caption on every tick — the classification
+                    // depends on `BleScanHealth.lastAnyCallbackAt()`, so it can flip from
+                    // SENSOR_QUIET to SCANNER_STALLED (or vice-versa) without a new BLE adv
+                    // for *this* sensor.
+                    val cause = current.offlineCause
+                    binding.offlineCause.isVisible = cause != null
+                    cause?.let { binding.offlineCause.setText(it.labelRes) }
+                    // Edge-trigger offline-event log + auto-recovery. Both are gated on
+                    // (stale, cause) transitioning across a tick so logcat stays readable
+                    // and we don't repeatedly fire restart requests at the watchdog.
+                    handleOfflineTransition(current, stale, cause)
+                    // Re-evaluate the Read Quality readout AND the Quality Buffer summary
+                    // every tick. These were previously frozen at "last BLE adv" values, so
+                    // they kept showing GOOD / q=3 while the OFFLINE pill was already up.
+                    // Both call into qualityCalculator which knows about staleness, so the
+                    // values flip in sync with the pill.
+                    binding.setupStatusRow(current)
+                    refreshQualityBufferSummary(binding)
+                    Timber.tag("StaleCheck").v(
+                        "tick %s isStale=%s cause=%s Δ=%dms",
+                        current.address, stale, cause,
+                        current.reading?.timestampMillis?.let { System.currentTimeMillis() - it } ?: -1
+                    )
+                }
             }
         }
+    }
+
+    /**
+     * Watch the (stale, cause) tuple across heartbeat ticks and emit a structured log
+     * line whenever it transitions. Two flavours of log:
+     *
+     * - **OfflineEvent SENSOR_OFFLINE** — the moment the sensor flips from healthy to
+     *   stale. Includes the auto-classified cause, the global last-callback gap, the
+     *   watchdog restart counter, and the device's own callback count. This is what
+     *   you grep post-incident to learn what was happening on the radio at the precise
+     *   moment the offline state took hold.
+     * - **OfflineEvent SENSOR_BACK_ONLINE** — when the sensor recovers. Includes how
+     *   long the outage lasted and how many watchdog restarts occurred during it, so we
+     *   can tell "the watchdog fixed it" apart from "the sensor came back on its own".
+     *
+     * Also fires [com.smartsense.app.data.ble.BleScanHealth.requestScanRestart] when the
+     * cause flips to SCANNER_STALLED — that's a free signal back to the BleManager
+     * watchdog that the UI sees the problem and the scanner should be kicked even if
+     * the watchdog's own time threshold hasn't fired yet.
+     */
+    private fun handleOfflineTransition(
+        sensor: Sensor,
+        stale: Boolean,
+        cause: com.smartsense.app.domain.model.OfflineCause?
+    ) {
+        val previous = lastOfflineState
+        lastOfflineState = stale to cause
+        if (previous == null) {
+            // First tick after attach — establish baseline only. If we attached *while*
+            // the sensor was already stale, seed offlineSinceMs from its last reading so a
+            // later recovery log has a meaningful duration instead of "-1s".
+            if (stale) {
+                offlineSinceMs = sensor.reading?.timestampMillis ?: System.currentTimeMillis()
+            }
+            return
+        }
+        val (prevStale, prevCause) = previous
+        val now = System.currentTimeMillis()
+
+        // 1. Healthy → stale: record the transition wall-clock for the recovery log later
+        //    and dump a snapshot so the user can grep for the exact moment.
+        if (!prevStale && stale) {
+            offlineSinceMs = now
+            val snap = com.smartsense.app.data.ble.BleScanHealth.snapshot()
+            val anyGapS = if (snap.lastAnyCallbackMs > 0) (now - snap.lastAnyCallbackMs) / 1000 else -1
+            val deviceCallbacks = snap.deviceCallbackCounts[sensor.address] ?: 0L
+            val deviceLastGapS = snap.deviceLastSeen[sensor.address]?.let { (now - it) / 1000 } ?: -1
+            Timber.tag("OfflineEvent").w(
+                "SENSOR_OFFLINE address=%s cause=%s anyGap=%ds deviceCallbacks=%d deviceGap=%ds restarts=%d",
+                sensor.address, cause, anyGapS, deviceCallbacks, deviceLastGapS, snap.watchdogRestarts
+            )
+        }
+
+        // 2. Stale → healthy: derive the outage duration from the timestamp we stashed
+        //    above. Tells us how many watchdog restarts overlapped this outage.
+        if (prevStale && !stale) {
+            val outageS = if (offlineSinceMs > 0) (now - offlineSinceMs) / 1000 else -1
+            val restartsDuringOutage = com.smartsense.app.data.ble.BleScanHealth.watchdogRestarts()
+            Timber.tag("OfflineEvent").i(
+                "SENSOR_BACK_ONLINE address=%s outage=%ds totalRestarts=%d",
+                sensor.address, outageS, restartsDuringOutage
+            )
+            offlineSinceMs = 0L
+        }
+
+        // 3. Cause flip while still stale (e.g. SENSOR_QUIET → SCANNER_STALLED as the
+        //    global silence threshold trips). Worth logging to see misclassifications.
+        if (prevStale && stale && prevCause != cause) {
+            Timber.tag("OfflineEvent").i(
+                "OFFLINE_CAUSE_FLIP address=%s %s → %s",
+                sensor.address, prevCause, cause
+            )
+        }
+
+        // 4. Auto-recovery hook: if the auto-classifier currently blames the phone-side
+        //    scanner, ask the BleManager watchdog to restart the scan on its next tick.
+        //    The flag is idempotent (CAS-set in BleScanHealth) so calling this every
+        //    heartbeat while SCANNER_STALLED holds doesn't fire repeated restarts — the
+        //    watchdog consumes the flag and clears it.
+        if (cause == com.smartsense.app.domain.model.OfflineCause.SCANNER_STALLED) {
+            com.smartsense.app.data.ble.BleScanHealth.requestScanRestart()
+        }
+    }
+
+    /**
+     * Refresh only the "n=… mean=… σ=… q=…" line of the Quality Buffer card. The full
+     * row table is rebuilt by [setupDebugQuality] when a new BLE adv lands; this is what
+     * keeps `q` flipping to POOR live, the moment [SensorFreshness] declares staleness,
+     * without waiting for the next adv (which by definition isn't coming if we've gone
+     * silent).
+     */
+    private fun refreshQualityBufferSummary(binding: FragmentSensorDetailBinding) {
+        val snapshot = viewModel.qualitySnapshot()
+        val meanMm = snapshot.meanMeters * 1000.0
+        val stdDevMm = snapshot.stdDevMeters * 1000.0
+        binding.debugQualitySummary.text = String.format(
+            java.util.Locale.US,
+            "n=%d  mean=%.1fmm  σ=%.2fmm  q=%d",
+            snapshot.samples.size,
+            meanMm,
+            stdDevMm,
+            snapshot.quality
+        )
     }
 
     /**

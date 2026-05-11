@@ -42,7 +42,7 @@
     <string name="quality_poor">Buruk</string>
     <string name="quality_warning_poor">Kualitas rendah: tangki kosong atau sensor salah posisi. (Ketuk untuk info)</string>
     <string name="quality_warning_fair">Kualitas cukup: sinyal mungkin lemah. Periksa posisi sensor.</string>
-    <string name="additional_info">Info tambahan</string>
+    <string name="additional_info">Info sensor</string>
     <string name="update_rate">Frekuensi pembaruan</string>
     <string name="sensor_type">Jenis sensor</string>
     <string name="device_address">Alamat perangkat</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE tidak didukung pada perangkat ini</string>
     <string name="ble_register_error_other">Kesalahan pemindaian BLE (kode %1$d)</string>
     <string name="tank_state_empty">Kosong</string>
+    <string name="offline">Luring</string>
+    <string name="format_offline_subtitle">%1$s · LURING</string>
+    <string name="offline_cause_scanner_stalled">Pemindaian ponsel terhenti — mulai ulang aplikasi</string>
+    <string name="offline_cause_sensor_not_responding">Sensor tidak merespons — periksa baterai atau jangkauan</string>
 </resources>

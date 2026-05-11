@@ -42,7 +42,7 @@
     <string name="quality_poor">Schlecht</string>
     <string name="quality_warning_poor">Schlechte Qualität: Tank leer oder Sensor falsch positioniert. (Tippe für mehr Infos)</string>
     <string name="quality_warning_fair">Mittlere Qualität: Signal ggf. schwach. Sensorposition prüfen.</string>
-    <string name="additional_info">Weitere Infos</string>
+    <string name="additional_info">Sensorinfo</string>
     <string name="update_rate">Aktualisierungsrate</string>
     <string name="sensor_type">Sensortyp</string>
     <string name="device_address">Geräteadresse</string>
@@ -230,4 +230,8 @@
     <string name="ble_register_error_unsupported">BLE wird auf diesem Gerät nicht unterstützt</string>
     <string name="ble_register_error_other">BLE-Scan-Fehler (Code %1$d)</string>
     <string name="tank_state_empty">Leer</string>
+    <string name="offline">Offline</string>
+    <string name="format_offline_subtitle">%1$s · OFFLINE</string>
+    <string name="offline_cause_scanner_stalled">Telefon-Scan blockiert — App neu starten</string>
+    <string name="offline_cause_sensor_not_responding">Sensor antwortet nicht — Batterie oder Reichweite prüfen</string>
 </resources>

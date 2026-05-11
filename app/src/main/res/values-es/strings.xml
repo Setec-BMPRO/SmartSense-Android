@@ -57,7 +57,7 @@
     <string name="quality_warning_fair">Calidad regular: la señal puede ser débil. Comprueba la posición del sensor.</string>
 
     <!-- Additional Info -->
-    <string name="additional_info">Información adicional</string>
+    <string name="additional_info">Información del sensor</string>
     <string name="update_rate">Frecuencia de actualización</string>
     <string name="sensor_type">Tipo de sensor</string>
     <string name="device_address">Dirección del dispositivo</string>
@@ -261,4 +261,8 @@
     <string name="ble_register_error_other">Error de escaneo BLE (código %1$d)</string>
 
     <string name="tank_state_empty">Vacío</string>
+    <string name="offline">Sin conexión</string>
+    <string name="format_offline_subtitle">%1$s · SIN CONEXIÓN</string>
+    <string name="offline_cause_scanner_stalled">Escaneo del teléfono detenido — reinicia la app</string>
+    <string name="offline_cause_sensor_not_responding">Sensor sin respuesta — revisa la batería o el alcance</string>
 </resources>
