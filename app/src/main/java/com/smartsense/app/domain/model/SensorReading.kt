@@ -20,5 +20,16 @@ data class SensorReading(
      * Reporting interval in seconds, decoded from the Setec/Sigmawit reporting-interval byte.
      * 0 means the sensor doesn't expose this field.
      */
-    val reportingIntervalSeconds: Int = 0
+    val reportingIntervalSeconds: Int = 0,
+    /**
+     * "Data serial number" rolling counter from the broadcast (Setec spec byte 15). The sensor
+     * increments this only when it takes a **new measurement**; identical adverts keep the same
+     * value, so it's the right signal for "is this packet a re-broadcast of the previous reading
+     * or genuinely new data?" Used by `ReadingQualityCalculator` to dedupe the rolling-window
+     * buffer (without dedup, 10 identical re-broadcasts produce stddev=0 and a false "GOOD"
+     * even when the sensor isn't actually measuring anything).
+     *
+     * `null` when the protocol doesn't expose one (CC2540 / NRF52).
+     */
+    val dataSerial: Int? = null
 )

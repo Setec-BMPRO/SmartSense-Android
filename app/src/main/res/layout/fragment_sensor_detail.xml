@@ -512,8 +512,23 @@
                             android:fontFamily="monospace"
                             android:textAppearance="?attr/textAppearanceBodyMedium"
                             android:textColor="?attr/colorOnSurfaceVariant"
-                            android:paddingVertical="@dimen/spacing_sm"
+                            android:paddingTop="@dimen/spacing_sm"
                             tools:text="n=10  mean=141.3mm  σ=2.3mm  q=3"/>
+
+                        <!-- Setec rolling counter — separate line so it doesn't push the
+                             aggregate stats above onto two rows on narrow screens. Hidden
+                             when the protocol doesn't expose a serial (CC2540 / NRF52). -->
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/debug_quality_serial"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="monospace"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:paddingBottom="@dimen/spacing_sm"
+                            android:visibility="gone"
+                            tools:visibility="visible"
+                            tools:text="serial=42"/>
 
                         <View
                             android:layout_width="match_parent"

@@ -71,6 +71,18 @@ class ReadingQualityCalculator @Inject constructor() {
     private val lastSampleAtMillis = ConcurrentHashMap<String, Long>()
 
     /**
+     * Most recent "data serial number" (Setec spec byte 15) per sensor. The sensor only
+     * increments this on a genuinely new measurement; identical re-broadcasts share the
+     * same value. Used by [addSample] to skip pushing duplicate samples into the rolling
+     * buffer — without this, a sensor sitting on the same reading for a minute would fill
+     * the buffer with 10 identical heights, drive stddev to 0, and report GOOD even when
+     * the sensor wasn't actually doing anything. A null serial means the broadcast
+     * protocol doesn't expose one (CC2540 / NRF52) → behave as before, every adv is a
+     * new sample.
+     */
+    private val lastSerialPerAddress = ConcurrentHashMap<String, Int>()
+
+    /**
      * Record a new height reading for [address] and return the freshly-computed quality.
      *
      * Returns the same value `compute(address)` would — exposed as a single call so callers
@@ -83,15 +95,56 @@ class ReadingQualityCalculator @Inject constructor() {
      * The most recent value is cached and used to size the sliding-window eviction for this
      * sensor. Pass 0 if unknown — the previously cached value (or
      * [DEFAULT_REPORTING_INTERVAL_S] when nothing has ever been reported) is then used.
+     *
+     * Pass [dataSerial] from `SensorReading.dataSerial` (Setec spec byte 15) when available.
+     * The sensor only bumps this on a genuinely new measurement, so we use it to dedupe:
+     * an adv with the same serial as the previous one is a re-broadcast of the previous
+     * reading — we refresh [lastSampleAtMillis] (the sensor is still alive) but don't push
+     * a duplicate sample into the rolling buffer. Pass `null` to disable dedup (CC2540 /
+     * NRF52 don't have a serial; for those, every adv counts as a fresh sample).
      */
-    fun addSample(address: String, heightMeters: Double, reportingIntervalSeconds: Int = 0): Int {
+    fun addSample(
+        address: String,
+        heightMeters: Double,
+        reportingIntervalSeconds: Int = 0,
+        dataSerial: Int? = null
+    ): Int {
         if (reportingIntervalSeconds > 0) {
             this.reportingIntervalSeconds[address] = reportingIntervalSeconds
         }
         val buffer = buffers.getOrPut(address) { ArrayDeque() }
         synchronized(buffer) {
             val now = System.currentTimeMillis()
+            // Always update the last-seen wall-clock — even a re-broadcast means the sensor
+            // is currently online. SensorFreshness.isStale depends on this, so dedup must
+            // NOT make a healthy sensor look offline.
             lastSampleAtMillis[address] = now
+
+            val previousSerial = lastSerialPerAddress[address]
+            val isDuplicate = dataSerial != null && previousSerial == dataSerial
+            if (isDuplicate) {
+                Timber.tag(TAG).v(
+                    "%s rebroadcast serial=%d height=%.4fm — refreshing timestamp",
+                    address, dataSerial, heightMeters
+                )
+                // Refresh the most-recent sample's timestamp so the sliding-window
+                // eviction doesn't drop it while the sensor is actively re-broadcasting.
+                // Without this, a sensor whose serial is "stuck" (no new measurement
+                // — common for an empty tank that the ultrasonic can't measure) would
+                // have its sole sample age out of the window after `windowMsFor(...)`
+                // and the buffer would stay at n=0 forever (dedup blocks future adds
+                // with the same serial). Refreshing keeps the latest distinct
+                // measurement visible in the debug card for as long as the sensor is
+                // alive — staleness still falls back to STALE_QUALITY via
+                // `lastSampleAtMillis` (set just above) when broadcasts actually stop.
+                if (buffer.isNotEmpty()) {
+                    val last = buffer.removeLast()
+                    buffer.addLast(last.copy(timestampMillis = now))
+                }
+                evict(buffer, now, address)
+                return computeLocked(address, buffer)
+            }
+            if (dataSerial != null) lastSerialPerAddress[address] = dataSerial
             buffer.addLast(Sample(now, heightMeters))
             evict(buffer, now, address)
             return computeLocked(address, buffer)
@@ -112,6 +165,7 @@ class ReadingQualityCalculator @Inject constructor() {
         buffers.remove(address)
         reportingIntervalSeconds.remove(address)
         lastSampleAtMillis.remove(address)
+        lastSerialPerAddress.remove(address)
     }
 
     /**
@@ -124,12 +178,16 @@ class ReadingQualityCalculator @Inject constructor() {
         val buffer = buffers[address] ?: return QualitySnapshot.EMPTY
         synchronized(buffer) {
             evict(buffer, System.currentTimeMillis(), address)
+            val latestSerial = lastSerialPerAddress[address]
             if (buffer.isEmpty()) {
                 // No live samples — but if we *have* seen this address recently it just
                 // means we're inside the warm-up window or the sensor has gone silent.
                 // Either way the debug card should reflect the quality computeLocked()
                 // would return for those situations (DEFAULT_QUALITY or STALE_QUALITY).
-                return QualitySnapshot.EMPTY.copy(quality = computeLocked(address, buffer))
+                return QualitySnapshot.EMPTY.copy(
+                    quality = computeLocked(address, buffer),
+                    latestSerial = latestSerial
+                )
             }
             val heights = buffer.map { it.heightMeters }
             val mean = heights.average()
@@ -148,7 +206,8 @@ class ReadingQualityCalculator @Inject constructor() {
                 samples = entries,
                 meanMeters = mean,
                 stdDevMeters = stddev,
-                quality = quality
+                quality = quality,
+                latestSerial = latestSerial
             )
         }
     }
@@ -165,14 +224,18 @@ class ReadingQualityCalculator @Inject constructor() {
         val samples: List<SampleEntry>,
         val meanMeters: Double,
         val stdDevMeters: Double,
-        val quality: Int
+        val quality: Int,
+        /** Latest "data serial number" we recorded for this address. `null` if the protocol
+         *  doesn't expose one (CC2540 / NRF52) or we haven't ingested any samples yet. */
+        val latestSerial: Int? = null
     ) {
         companion object {
             val EMPTY = QualitySnapshot(
                 samples = emptyList(),
                 meanMeters = 0.0,
                 stdDevMeters = 0.0,
-                quality = DEFAULT_QUALITY
+                quality = DEFAULT_QUALITY,
+                latestSerial = null
             )
         }
     }

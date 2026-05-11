@@ -33,9 +33,37 @@ data class Sensor(
      * the sensor's own reported cadence — see [com.smartsense.app.data.quality.SensorFreshness].
      * Drives the "Offline" badge on the list + detail screens. Getter only; data class
      * equality is unaffected.
+     *
+     * **Cold-start grace.** Persisted [reading.timestampMillis] is whatever we wrote on the
+     * last app run, often hours/days old. Naively running [SensorFreshness.isStale] against
+     * that on launch would flash the OFFLINE badge for every paired sensor until the first
+     * fresh adv arrived — confusing for the user. The grace window suppresses staleness
+     * until either:
+     *  1. We've heard from this specific address in the current process (best case — clears
+     *     immediately when the first adv lands), or
+     *  2. The BLE scanner has been receiving callbacks for *at least one freshness window*
+     *     without ever hearing from this sensor (fallback — covers a paired sensor that
+     *     genuinely won't broadcast). The window-since-first-callback is the right proxy
+     *     because it measures "scanner time" not "wall-clock time", so a delayed permission
+     *     prompt or a Bluetooth-off start doesn't artificially extend the grace.
      */
     val isStale: Boolean
-        get() = com.smartsense.app.data.quality.SensorFreshness.isStale(reading)
+        get() {
+            val seenThisSession = com.smartsense.app.data.ble.BleScanHealth
+                .lastSeenForDevice(address) > 0L
+            if (seenThisSession) {
+                return com.smartsense.app.data.quality.SensorFreshness.isStale(reading)
+            }
+            // Never heard from this address since process start. Don't trust the persisted
+            // timestamp on its own.
+            val anyAt = com.smartsense.app.data.ble.BleScanHealth.lastAnyCallbackAt()
+            if (anyAt == 0L) return false // Scanner hasn't received anything yet — still warming up.
+            val scannerUptimeMs = System.currentTimeMillis() - anyAt
+            val staleThresholdMs = com.smartsense.app.data.quality.SensorFreshness.staleThresholdMs(
+                reading?.reportingIntervalSeconds ?: 0
+            )
+            return scannerUptimeMs > staleThresholdMs
+        }
 
     /**
      * Why the sensor is offline, when [isStale] is `true`. `null` when the sensor is healthy.

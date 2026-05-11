@@ -243,16 +243,7 @@ class SensorDetailFragment : Fragment() {
      */
     private fun FragmentSensorDetailBinding.setupDebugQuality() {
         val snapshot = viewModel.qualitySnapshot()
-        val meanMm = snapshot.meanMeters * 1000.0
-        val stdDevMm = snapshot.stdDevMeters * 1000.0
-        debugQualitySummary.text = String.format(
-            java.util.Locale.US,
-            "n=%d  mean=%.1fmm  σ=%.2fmm  q=%d",
-            snapshot.samples.size,
-            meanMm,
-            stdDevMm,
-            snapshot.quality
-        )
+        applyQualitySummary(this, snapshot)
 
         debugQualitySamples.removeAllViews()
         val now = System.currentTimeMillis()
@@ -609,17 +600,33 @@ class SensorDetailFragment : Fragment() {
      * silent).
      */
     private fun refreshQualityBufferSummary(binding: FragmentSensorDetailBinding) {
-        val snapshot = viewModel.qualitySnapshot()
+        applyQualitySummary(binding, viewModel.qualitySnapshot())
+    }
+
+    /**
+     * Render the Quality Buffer summary header from a snapshot. The aggregate stats line
+     * (n / mean / σ / q) sits on its own row in monospace; the Setec rolling counter
+     * lives in a smaller separate row below so adding it doesn't push the main line off
+     * the right edge of narrow screens. Serial row is hidden when the protocol doesn't
+     * expose one (CC2540 / NRF52 broadcasts).
+     */
+    private fun applyQualitySummary(
+        binding: FragmentSensorDetailBinding,
+        snapshot: com.smartsense.app.data.quality.ReadingQualityCalculator.QualitySnapshot
+    ) {
         val meanMm = snapshot.meanMeters * 1000.0
         val stdDevMm = snapshot.stdDevMeters * 1000.0
         binding.debugQualitySummary.text = String.format(
             java.util.Locale.US,
             "n=%d  mean=%.1fmm  σ=%.2fmm  q=%d",
-            snapshot.samples.size,
-            meanMm,
-            stdDevMm,
-            snapshot.quality
+            snapshot.samples.size, meanMm, stdDevMm, snapshot.quality
         )
+        val serial = snapshot.latestSerial
+        binding.debugQualitySerial.isVisible = serial != null
+        if (serial != null) {
+            binding.debugQualitySerial.text =
+                String.format(java.util.Locale.US, "serial=%d", serial)
+        }
     }
 
     /**

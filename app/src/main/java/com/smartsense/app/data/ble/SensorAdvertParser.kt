@@ -322,6 +322,13 @@ object SensorAdvertParser {
             val heightMm = ((data[13].toInt() and 0xFF) shl 8) or (data[14].toInt() and 0xFF)
             val heightMeters = heightMm / 1000.0
 
+            // Data serial number (byte 15). Sensor increments this on each new measurement;
+            // identical re-broadcasts of the same measurement keep the same value. Surfaced
+            // on SensorReading.dataSerial and consumed by ReadingQualityCalculator to dedupe
+            // the rolling buffer — without it, 10 identical re-broadcasts would yield
+            // stddev=0 and a false "GOOD" rating even when no real measurement happened.
+            val dataSerial = data[15].toInt() and 0xFF
+
             val mopekaSensorType = when (sensorType) {
                 BleConstants.SensorType.GAS_SENSOR -> MopekaSensorType.SETEC_GAS
                 else -> MopekaSensorType.UNKNOWN
@@ -341,6 +348,7 @@ object SensorAdvertParser {
                     "battery=${"%.2f".format(batteryVoltage)}V, " +
                     "height=${heightMm}mm, sync=$syncPressed, " +
                     "proto=$protoMajor.$protoMinor, sw=$swMajor.$swMinor, " +
+                    "serial=$dataSerial, " +
                     "reportingInterval=${reportingIntervalSeconds}s (raw=0x${"%02X".format(reportingIntervalRaw)})")
 
             ParsedSensor(
@@ -354,7 +362,8 @@ object SensorAdvertParser {
                     deviceMAC = macBytes.joinToString(":") { byte -> "%02X".format(byte) },
                     protocolVersion = "$protoMajor.$protoMinor",
                     sensorTypeCode = sensorType,
-                    reportingIntervalSeconds = reportingIntervalSeconds
+                    reportingIntervalSeconds = reportingIntervalSeconds,
+                    dataSerial = dataSerial
                 ),
                 sensorType = mopekaSensorType,
                 syncPressed = syncPressed,

@@ -119,13 +119,19 @@ class SensorRepository @Inject constructor(
      * We also pass the broadcast's reporting-interval (G300 reports it; CC2540/NRF52 don't
      * and will send 0). The calculator caches the most recent non-zero value per address and
      * uses it to size the per-sensor sliding-window eviction.
+     *
+     * The Setec/Sigmawit "data serial number" (byte 15) is forwarded so the calculator can
+     * dedupe re-broadcasts — a sensor sitting on the same measurement for multiple adverts
+     * shouldn't pad the rolling buffer with copies of the same height (that would make
+     * stddev=0 and falsely report GOOD quality).
      */
     private fun applyDerivedQuality(scanned: ScannedSensor): ScannedSensor {
         val reading = scanned.parsed?.reading ?: return scanned
         val q = qualityCalculator.addSample(
             address = scanned.address,
             heightMeters = reading.rawHeightMeters,
-            reportingIntervalSeconds = reading.reportingIntervalSeconds
+            reportingIntervalSeconds = reading.reportingIntervalSeconds,
+            dataSerial = reading.dataSerial
         )
         reading.quality = q
         return scanned
