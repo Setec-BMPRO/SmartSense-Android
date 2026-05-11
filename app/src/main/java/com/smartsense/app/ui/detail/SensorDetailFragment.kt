@@ -269,8 +269,8 @@ class SensorDetailFragment : Fragment() {
                 String.format(java.util.Locale.US, "%+.2f", sample.deviationFromMeanMeters * 1000.0)
             debugQualitySamples.addView(row)
         }
-        // Per-second age refresh is driven by startLastUpdatedTimer's shared heartbeat
-        // (see refreshQualityBufferAges) — no per-table timer needed here.
+        // Per-second cell refresh is driven by startLastUpdatedTimer's shared heartbeat
+        // (see refreshQualityBufferLive) — no per-table timer needed here.
 
         // Flash the top row whenever it represents a genuinely new sample. We compare the
         // newest sample's calculator-recorded timestamp (not the BLE-reading timestamp, which
@@ -478,7 +478,7 @@ class SensorDetailFragment : Fragment() {
                 val binding = _binding ?: break
                 binding.lastUpdated.text =
                     TimeUtils.getLastUpdatedText(requireContext(), timestamp)
-                refreshQualityBufferAges(binding)
+                refreshQualityBufferLive(binding)
                 // Re-evaluate the toolbar's OFFLINE marker from the current sensor —
                 // staleness only depends on (now - timestamp), so it can flip during a
                 // tick where no new BLE adv has arrived.
@@ -507,7 +507,6 @@ class SensorDetailFragment : Fragment() {
                     // Both call into qualityCalculator which knows about staleness, so the
                     // values flip in sync with the pill.
                     binding.setupStatusRow(current)
-                    refreshQualityBufferSummary(binding)
                     Timber.tag("StaleCheck").v(
                         "tick %s isStale=%s cause=%s Δ=%dms",
                         current.address, stale, cause,
@@ -607,8 +606,44 @@ class SensorDetailFragment : Fragment() {
      * without waiting for the next adv (which by definition isn't coming if we've gone
      * silent).
      */
-    private fun refreshQualityBufferSummary(binding: FragmentSensorDetailBinding) {
-        applyQualitySummary(binding, viewModel.qualitySnapshot())
+    /**
+     * Per-second live refresh of the Quality Buffer card: takes one snapshot of the
+     * calculator and pushes its contents into both the summary line and every cell of
+     * the sample table without rebuilding any views.
+     *
+     * Replaces the older separate refreshQualityBufferAges + refreshQualityBufferSummary.
+     * The old version only refreshed the summary text and the age cells — height /
+     * deviation / row.tag stayed at whatever values [setupDebugQuality] last wrote on the
+     * previous bindSensor. With the Setec rolling-counter dedup keeping the buffer at
+     * `n=1` for long stretches (no new measurement → no new sample added), bindSensor
+     * rebuilds got rare and the table appeared frozen even though the underlying sample
+     * timestamp was being refreshed by the calculator. Doing the cell updates in place
+     * here keeps the displayed data tied to the latest snapshot every second.
+     *
+     * Topology changes (sample count diverges from the table's child count) are handled
+     * by [setupDebugQuality]'s next run — we just skip the in-place update on that tick.
+     */
+    private fun refreshQualityBufferLive(binding: FragmentSensorDetailBinding) {
+        val snapshot = viewModel.qualitySnapshot()
+        applyQualitySummary(binding, snapshot)
+
+        val container = binding.debugQualitySamples
+        val samples = snapshot.samples
+        if (container.childCount != samples.size) return // bindSensor will rebuild.
+
+        val now = System.currentTimeMillis()
+        samples.forEachIndexed { index, sample ->
+            val row = container.getChildAt(index) ?: return@forEachIndexed
+            row.tag = sample.timestampMillis
+            row.findViewById<android.widget.TextView>(R.id.cell_age)
+                ?.text = "${(now - sample.timestampMillis) / 1000}s"
+            row.findViewById<android.widget.TextView>(R.id.cell_height)
+                ?.text = String.format(java.util.Locale.US, "%.1f", sample.heightMeters * 1000.0)
+            row.findViewById<android.widget.TextView>(R.id.cell_deviation)
+                ?.text = String.format(
+                    java.util.Locale.US, "%+.2f", sample.deviationFromMeanMeters * 1000.0
+                )
+        }
     }
 
     /**
@@ -637,19 +672,4 @@ class SensorDetailFragment : Fragment() {
         }
     }
 
-    /**
-     * Walk the rows of the Quality Buffer table and update only their "age" cell from the
-     * per-row timestamp stashed on `View.tag` by [setupDebugQuality]. Called from the
-     * shared heartbeat above so the ages tick between BLE adverts.
-     */
-    private fun refreshQualityBufferAges(binding: FragmentSensorDetailBinding) {
-        val container = binding.debugQualitySamples
-        val now = System.currentTimeMillis()
-        for (i in 0 until container.childCount) {
-            val row = container.getChildAt(i)
-            val ts = row.tag as? Long ?: continue
-            row.findViewById<android.widget.TextView>(R.id.cell_age)
-                ?.text = "${(now - ts) / 1000}s"
-        }
-    }
 }
