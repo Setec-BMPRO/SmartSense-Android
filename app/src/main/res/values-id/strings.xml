@@ -240,4 +240,9 @@
     <string name="developer_mode_already_enabled">Fitur pengembang sudah aktif</string>
     <string name="app_version_developer">Versi %1$s · Mode pengembang</string>
     <string name="developer_mode_disabled">Fitur pengembang dinonaktifkan</string>
+    <string name="developer_section">Pengembang</string>
+    <string name="developer_thresholds_caption">Ambang kualitas (stddev dalam mm)</string>
+    <string name="developer_threshold_good">Baik ≤</string>
+    <string name="developer_threshold_fair">Cukup ≤</string>
+    <string name="developer_reset_defaults">Reset ke default</string>
 </resources>

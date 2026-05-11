@@ -240,4 +240,9 @@
     <string name="developer_mode_already_enabled">डेवलपर सुविधाएँ पहले से सक्षम हैं</string>
     <string name="app_version_developer">संस्करण %1$s · डेवलपर मोड</string>
     <string name="developer_mode_disabled">डेवलपर सुविधाएँ बंद कर दी गईं</string>
+    <string name="developer_section">डेवलपर</string>
+    <string name="developer_thresholds_caption">क्वालिटी थ्रेशोल्ड (मिमी में स्टैंडर्ड डेविएशन)</string>
+    <string name="developer_threshold_good">अच्छी ≤</string>
+    <string name="developer_threshold_fair">ठीक ≤</string>
+    <string name="developer_reset_defaults">डिफ़ॉल्ट पर रीसेट करें</string>
 </resources>

@@ -240,4 +240,9 @@
     <string name="developer_mode_already_enabled">Le funzioni sviluppatore sono già attive</string>
     <string name="app_version_developer">Versione %1$s · Modalità sviluppatore</string>
     <string name="developer_mode_disabled">Funzioni sviluppatore disattivate</string>
+    <string name="developer_section">Sviluppatore</string>
+    <string name="developer_thresholds_caption">Soglie di qualità (dev. std. in mm)</string>
+    <string name="developer_threshold_good">Buona ≤</string>
+    <string name="developer_threshold_fair">Discreta ≤</string>
+    <string name="developer_reset_defaults">Ripristina valori predefiniti</string>
 </resources>

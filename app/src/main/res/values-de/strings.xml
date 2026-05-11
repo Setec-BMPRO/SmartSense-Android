@@ -240,4 +240,9 @@
     <string name="developer_mode_already_enabled">Entwickler-Funktionen sind bereits aktiviert</string>
     <string name="app_version_developer">Version %1$s · Entwicklermodus</string>
     <string name="developer_mode_disabled">Entwickler-Funktionen deaktiviert</string>
+    <string name="developer_section">Entwickler</string>
+    <string name="developer_thresholds_caption">Qualitäts-Schwellen (Standardabw. in mm)</string>
+    <string name="developer_threshold_good">Gut ≤</string>
+    <string name="developer_threshold_fair">Mittel ≤</string>
+    <string name="developer_reset_defaults">Auf Standardwerte zurücksetzen</string>
 </resources>

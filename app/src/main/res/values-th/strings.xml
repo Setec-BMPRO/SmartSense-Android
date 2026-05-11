@@ -240,4 +240,9 @@
     <string name="developer_mode_already_enabled">เปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
     <string name="app_version_developer">เวอร์ชัน %1$s · โหมดนักพัฒนา</string>
     <string name="developer_mode_disabled">ปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
+    <string name="developer_section">นักพัฒนา</string>
+    <string name="developer_thresholds_caption">เกณฑ์คุณภาพ (ส่วนเบี่ยงเบนมาตรฐาน หน่วยมม.)</string>
+    <string name="developer_threshold_good">ดี ≤</string>
+    <string name="developer_threshold_fair">พอใช้ ≤</string>
+    <string name="developer_reset_defaults">รีเซ็ตเป็นค่าเริ่มต้น</string>
 </resources>

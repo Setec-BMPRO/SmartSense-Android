@@ -271,4 +271,9 @@
     <string name="developer_mode_already_enabled">开发者功能已启用</string>
     <string name="app_version_developer">版本 %1$s · 开发者模式</string>
     <string name="developer_mode_disabled">开发者功能已禁用</string>
+    <string name="developer_section">开发者</string>
+    <string name="developer_thresholds_caption">质量阈值 (标准差，mm)</string>
+    <string name="developer_threshold_good">良好 ≤</string>
+    <string name="developer_threshold_fair">一般 ≤</string>
+    <string name="developer_reset_defaults">恢复默认值</string>
 </resources>

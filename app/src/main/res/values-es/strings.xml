@@ -271,4 +271,9 @@
     <string name="developer_mode_already_enabled">Las funciones de desarrollador ya están activadas</string>
     <string name="app_version_developer">Versión %1$s · Modo desarrollador</string>
     <string name="developer_mode_disabled">Funciones de desarrollador desactivadas</string>
+    <string name="developer_section">Desarrollador</string>
+    <string name="developer_thresholds_caption">Umbrales de calidad (desviación estándar en mm)</string>
+    <string name="developer_threshold_good">Buena ≤</string>
+    <string name="developer_threshold_fair">Regular ≤</string>
+    <string name="developer_reset_defaults">Restablecer valores por defecto</string>
 </resources>

@@ -1,5 +1,11 @@
 package com.smartsense.app.data.quality
 
+import com.smartsense.app.data.preferences.UserPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -47,7 +53,37 @@ import kotlin.math.sqrt
  * `STDDEV_FAIR_M` tuned without redeploying the data model.
  */
 @Singleton
-class ReadingQualityCalculator @Inject constructor() {
+class ReadingQualityCalculator @Inject constructor(
+    userPreferences: UserPreferences
+) {
+    /** Long-lived scope tied to the singleton's process lifetime so we can collect the
+     *  developer-tunable threshold flows from [UserPreferences] into local caches without
+     *  blocking each [compute] call on a `first()`. SupervisorJob keeps the scope alive if
+     *  one collector fails. */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** Cached cutoff (meters) for q=3 GOOD — updated by the flow collector in [init].
+     *  `@Volatile` so the calculator thread reading from a non-synchronized path sees the
+     *  freshest value the Settings UI just wrote. */
+    @Volatile
+    private var stddevGoodMeters: Double = UserPreferences.DEFAULT_STDDEV_GOOD_MM.toDouble() / 1000.0
+
+    /** Cached cutoff (meters) for q=2 FAIR. Above this → q=1 POOR. */
+    @Volatile
+    private var stddevFairMeters: Double = UserPreferences.DEFAULT_STDDEV_FAIR_MM.toDouble() / 1000.0
+
+    init {
+        // Hydrate the cached thresholds from DataStore and keep them in sync with whatever
+        // the developer-mode Settings UI writes. UserPreferences stores values in mm; we
+        // cache them in meters to match the calculator's existing units and avoid a div
+        // on every compute() call.
+        userPreferences.stddevGoodMm
+            .onEach { stddevGoodMeters = it.toDouble() / 1000.0 }
+            .launchIn(scope)
+        userPreferences.stddevFairMm
+            .onEach { stddevFairMeters = it.toDouble() / 1000.0 }
+            .launchIn(scope)
+    }
 
     private data class Sample(val timestampMillis: Long, val heightMeters: Double)
 
@@ -293,14 +329,19 @@ class ReadingQualityCalculator @Inject constructor() {
         val mean = heights.average()
         val variance = heights.map { (it - mean).pow(2) }.average()
         val stddev = sqrt(variance)
+        // Thresholds are read from the @Volatile caches (init-collected from
+        // UserPreferences). Mutating them via the developer-mode Settings UI takes effect
+        // on the very next compute call, no app restart required.
+        val good = stddevGoodMeters
+        val fair = stddevFairMeters
         val quality = when {
-            stddev <= STDDEV_GOOD_M -> 3
-            stddev <= STDDEV_FAIR_M -> 2
+            stddev <= good -> 3
+            stddev <= fair -> 2
             else -> 1
         }
         Timber.tag(TAG).v(
-            "%s n=%d mean=%.4fm stddev=%.4fm → q=%d",
-            address, buffer.size, mean, stddev, quality
+            "%s n=%d mean=%.4fm stddev=%.4fm good=%.4fm fair=%.4fm → q=%d",
+            address, buffer.size, mean, stddev, good, fair, quality
         )
         return quality
     }
@@ -331,15 +372,15 @@ class ReadingQualityCalculator @Inject constructor() {
         const val STALE_QUALITY = 1
 
         /**
-         * Placeholder thresholds — to be replaced with values derived from real bottle tests.
-         * Per the spec: "we will need to sample typical readings on a gas bottle and determine
-         * ourselves how the amount of deviation and deviation frequency correlates to quality."
-         *
-         * Initial guesses, in metres (raw height is reported in m by the parsers):
-         * - 5 mm ≈ tightly stable signal on a sealed bottle
-         * - 15 mm ≈ moderate jitter (worth flagging)
+         * Legacy fixed cutoffs (metres) — kept for documentation of where the runtime
+         * defaults originated, but no longer read at compute time. The live thresholds
+         * are sourced from [UserPreferences.stddevGoodMm] / [UserPreferences.stddevFairMm]
+         * via the volatile caches above, with the same numeric values seeded as defaults.
          */
+        @Deprecated("Use UserPreferences.stddevGoodMm / stddevFairMm — runtime-tunable.")
         const val STDDEV_GOOD_M = 0.005   // 5 mm
+
+        @Deprecated("Use UserPreferences.stddevGoodMm / stddevFairMm — runtime-tunable.")
         const val STDDEV_FAIR_M = 0.015   // 15 mm
 
         const val DEFAULT_QUALITY = 3

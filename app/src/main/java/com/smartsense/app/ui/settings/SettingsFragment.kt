@@ -4,7 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -88,6 +91,101 @@ class SettingsFragment : Fragment() {
         observeState()
         setupButtons()
         setupAppVersion()
+        setupDeveloperSection()
+    }
+
+    /**
+     * Wire the hidden Developer-mode section: visibility tracks
+     * [SettingsViewModel.developerModeEnabled], inputs are live-saved on focus loss /
+     * keyboard "Done" so each keystroke during typing doesn't persist intermediate values,
+     * and the reset button restores the shipped defaults via [SettingsViewModel.resetQualityThresholds].
+     *
+     * The "updating from flow" guards mirror [isUpdatingThemeToggle] elsewhere in this
+     * file: when the flow re-emits (initial hydrate, or after the reset button writes
+     * fresh defaults) we set the input text, but only if the user isn't actively focused
+     * on that field — avoids stomping mid-edit and stops a save→emit→setText feedback
+     * loop.
+     */
+    private fun setupDeveloperSection() {
+        // Visibility follows developer mode. flowWithLifecycle keeps the observer scoped
+        // to STARTED so we don't accidentally repopulate inputs while the screen is paused.
+        viewModel.developerModeEnabled
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { binding.developerSection.isVisible = it }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewModel.stddevGoodMm
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { mm ->
+                if (!binding.stddevGoodInput.isFocused) {
+                    binding.stddevGoodInput.setText(formatThresholdMm(mm))
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        viewModel.stddevFairMm
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { mm ->
+                if (!binding.stddevFairInput.isFocused) {
+                    binding.stddevFairInput.setText(formatThresholdMm(mm))
+                }
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        bindThresholdInput(binding.stddevGoodInput) { viewModel.setStddevGoodMm(it) }
+        bindThresholdInput(binding.stddevFairInput) { viewModel.setStddevFairMm(it) }
+
+        binding.btnResetThresholds.setOnClickListener {
+            // Clear any in-flight focus so the flow-observer can repopulate the inputs
+            // after the reset writes new values to DataStore.
+            binding.stddevGoodInput.clearFocus()
+            binding.stddevFairInput.clearFocus()
+            viewModel.resetQualityThresholds()
+        }
+    }
+
+    /**
+     * Persist the parsed value on (a) keyboard "Done", and (b) focus loss. We intentionally
+     * don't save on every keystroke — a user typing "12.5" would otherwise flush "1", "12",
+     * "12." through DataStore before the real value lands. `doAfterTextChanged` clears the
+     * field's error indicator inline as they edit so the input doesn't stay red after a
+     * bad-then-good correction.
+     */
+    private fun bindThresholdInput(
+        input: com.google.android.material.textfield.TextInputEditText,
+        save: (Float) -> Unit
+    ) {
+        input.doAfterTextChanged { input.error = null }
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                commitThresholdInput(input, save)
+                input.clearFocus()
+                true
+            } else false
+        }
+        input.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) commitThresholdInput(input, save)
+        }
+    }
+
+    private fun commitThresholdInput(
+        input: com.google.android.material.textfield.TextInputEditText,
+        save: (Float) -> Unit
+    ) {
+        val parsed = input.text?.toString()?.trim()?.toFloatOrNull()
+        if (parsed == null || parsed < 0f) {
+            // Bad input — flag it and don't persist. The next viewModel emission will
+            // re-populate the field from the last good value when focus changes back.
+            input.error = "?"
+            return
+        }
+        save(parsed)
+    }
+
+    /** Trim trailing zeros so a value of 5.0 renders as "5" and 5.5 stays "5.5". */
+    private fun formatThresholdMm(mm: Float): String {
+        return if (mm == mm.toInt().toFloat()) mm.toInt().toString()
+        else String.format(java.util.Locale.US, "%.2f", mm).trimEnd('0').trimEnd('.')
     }
 
     private fun setupAppVersion() {

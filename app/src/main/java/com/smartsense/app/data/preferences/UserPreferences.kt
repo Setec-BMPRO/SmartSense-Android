@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -43,6 +44,17 @@ class UserPreferences @Inject constructor(
         const val DEFAULT_IS_SIGNED_IN = false
         const val DEFAULT_FIRST_RUN_COMPLETED = false
         const val DEFAULT_DEVELOPER_MODE_ENABLED = false
+
+        // ---- Quality thresholds (developer-tunable, in millimetres of stddev) ----------
+        // These bake into `ReadingQualityCalculator`'s stddev → 1/2/3 mapping. Initial
+        // values mirror the original hardcoded constants the calculator shipped with:
+        //   stddev ≤ DEFAULT_STDDEV_GOOD_MM  → GOOD (3)
+        //   stddev ≤ DEFAULT_STDDEV_FAIR_MM  → FAIR (2)
+        //   stddev >  DEFAULT_STDDEV_FAIR_MM → POOR (1)
+        // Exposed in Settings under Developer mode so QA can tune against real LPG bottle
+        // measurements without redeploying.
+        const val DEFAULT_STDDEV_GOOD_MM = 5.0f
+        const val DEFAULT_STDDEV_FAIR_MM = 15.0f
     }
 
     private object Keys {
@@ -59,6 +71,8 @@ class UserPreferences @Inject constructor(
         val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
         val USER_EMAIL = stringPreferencesKey("user_email")
         val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
+        val STDDEV_GOOD_MM = floatPreferencesKey("quality_stddev_good_mm")
+        val STDDEV_FAIR_MM = floatPreferencesKey("quality_stddev_fair_mm")
 
         // Keys for Tank Alert States
         fun lastLevelKey(address: String) = intPreferencesKey("last_level_$address")
@@ -118,6 +132,18 @@ class UserPreferences @Inject constructor(
      */
     val developerModeEnabled: Flow<Boolean> = context.dataStore.data.map {
         it[Keys.DEVELOPER_MODE_ENABLED] ?: DEFAULT_DEVELOPER_MODE_ENABLED
+    }
+
+    /** Stddev cutoff (mm) at-or-below which the calculator returns GOOD (q=3). */
+    val stddevGoodMm: Flow<Float> = context.dataStore.data.map {
+        it[Keys.STDDEV_GOOD_MM] ?: DEFAULT_STDDEV_GOOD_MM
+    }
+
+    /** Stddev cutoff (mm) at-or-below which the calculator returns FAIR (q=2). Anything
+     *  above this and the calculator returns POOR (q=1). Must remain ≥ [stddevGoodMm];
+     *  the Settings UI enforces this at write time. */
+    val stddevFairMm: Flow<Float> = context.dataStore.data.map {
+        it[Keys.STDDEV_FAIR_MM] ?: DEFAULT_STDDEV_FAIR_MM
     }
 
     // -------------------------------------------------------------------------
@@ -181,6 +207,16 @@ class UserPreferences @Inject constructor(
     suspend fun setDeveloperModeEnabled(enabled: Boolean) {
         Timber.tag(TAG).i("Setting DeveloperModeEnabled: $enabled")
         context.dataStore.edit { it[Keys.DEVELOPER_MODE_ENABLED] = enabled }
+    }
+
+    suspend fun setStddevGoodMm(valueMm: Float) {
+        Timber.tag(TAG).i("Setting StddevGoodMm: $valueMm")
+        context.dataStore.edit { it[Keys.STDDEV_GOOD_MM] = valueMm.coerceAtLeast(0f) }
+    }
+
+    suspend fun setStddevFairMm(valueMm: Float) {
+        Timber.tag(TAG).i("Setting StddevFairMm: $valueMm")
+        context.dataStore.edit { it[Keys.STDDEV_FAIR_MM] = valueMm.coerceAtLeast(0f) }
     }
 
     suspend fun setUserEmail(email: String?) {

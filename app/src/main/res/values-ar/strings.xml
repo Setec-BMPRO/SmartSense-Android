@@ -240,4 +240,9 @@
     <string name="developer_mode_already_enabled">ميزات المطوّر مفعّلة بالفعل</string>
     <string name="app_version_developer">الإصدار %1$s · وضع المطوّر</string>
     <string name="developer_mode_disabled">تم إيقاف ميزات المطوّر</string>
+    <string name="developer_section">المطوّر</string>
+    <string name="developer_thresholds_caption">حدود الجودة (الانحراف المعياري بالملم)</string>
+    <string name="developer_threshold_good">جيد ≤</string>
+    <string name="developer_threshold_fair">متوسط ≤</string>
+    <string name="developer_reset_defaults">إعادة التعيين إلى الافتراضي</string>
 </resources>

@@ -285,4 +285,13 @@
     <!-- Long-press feedback when developer mode is turned back off. -->
     <string name="developer_mode_disabled">Developer features disabled</string>
 
+    <!-- Developer-mode Settings section. Header + two numeric inputs that drive
+         ReadingQualityCalculator's stddev→GOOD/FAIR/POOR thresholds at runtime, plus a
+         reset button so QA can get back to the shipped defaults after a calibration run. -->
+    <string name="developer_section">Developer</string>
+    <string name="developer_thresholds_caption">Quality thresholds (stddev in mm)</string>
+    <string name="developer_threshold_good">Good ≤</string>
+    <string name="developer_threshold_fair">Fair ≤</string>
+    <string name="developer_reset_defaults">Reset to defaults</string>
+
 </resources>
