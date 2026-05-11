@@ -268,4 +268,6 @@
     <string name="developer_mode_steps_away">Te faltan %1$d paso(s) para ser desarrollador</string>
     <string name="developer_mode_enabled">¡Ya eres desarrollador!</string>
     <string name="developer_mode_already_enabled">Las funciones de desarrollador ya están activadas</string>
+    <string name="app_version_developer">Versión %1$s · Modo desarrollador</string>
+    <string name="developer_mode_disabled">Funciones de desarrollador desactivadas</string>
 </resources>

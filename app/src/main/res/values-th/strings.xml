@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">อีก %1$d ครั้งเพื่อเป็นนักพัฒนา</string>
     <string name="developer_mode_enabled">คุณเป็นนักพัฒนาแล้ว!</string>
     <string name="developer_mode_already_enabled">เปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
+    <string name="app_version_developer">เวอร์ชัน %1$s · โหมดนักพัฒนา</string>
+    <string name="developer_mode_disabled">ปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
 </resources>

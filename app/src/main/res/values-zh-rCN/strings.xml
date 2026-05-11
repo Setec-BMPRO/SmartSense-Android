@@ -268,4 +268,6 @@
     <string name="developer_mode_steps_away">距离成为开发者还差 %1$d 步</string>
     <string name="developer_mode_enabled">您现在是开发者了!</string>
     <string name="developer_mode_already_enabled">开发者功能已启用</string>
+    <string name="app_version_developer">版本 %1$s · 开发者模式</string>
+    <string name="developer_mode_disabled">开发者功能已禁用</string>
 </resources>

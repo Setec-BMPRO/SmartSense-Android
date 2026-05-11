@@ -18,6 +18,7 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/action_seed_mock"
+        android:icon="@drawable/ic_flask"
         android:title="@string/load_mock_data"
         app:showAsAction="never" />
 </menu>

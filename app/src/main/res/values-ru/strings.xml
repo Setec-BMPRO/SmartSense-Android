@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">До статуса разработчика осталось шагов: %1$d</string>
     <string name="developer_mode_enabled">Теперь вы разработчик!</string>
     <string name="developer_mode_already_enabled">Функции разработчика уже включены</string>
+    <string name="app_version_developer">Версия %1$s · Режим разработчика</string>
+    <string name="developer_mode_disabled">Функции разработчика отключены</string>
 </resources>

@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -45,9 +47,10 @@ class SettingsFragment : Fragment() {
     private var versionTapCount = 0
     private var lastVersionTapMs = 0L
 
-    /** Currently-displayed countdown toast, kept around so a rapid tap sequence can cancel
-     *  the previous one before showing the next — prevents the queue from piling up. */
-    private var versionTapToast: Toast? = null
+    /** Pending "revert label back to version string" coroutine. Cancelled and replaced on
+     *  every tap so a fresh feedback line stays visible for its own window instead of
+     *  being clobbered by a stale revert from a previous tap. */
+    private var versionLabelRevertJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -88,8 +91,27 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupAppVersion() {
-        binding.appVersion.text = getString(R.string.app_version, com.smartsense.app.BuildConfig.VERSION_NAME)
         binding.appVersion.setOnClickListener { handleVersionTap() }
+        binding.appVersion.setOnLongClickListener { handleVersionLongPress() }
+        // Live-render the label from the current developerModeEnabled value. Persistent
+        // "· Developer mode" suffix when on so the user can confirm the state at a glance
+        // without going to another screen — addresses the "I enabled dev mode but didn't
+        // see anything change" feedback.
+        viewModel.developerModeEnabled
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { renderVersionLabel(it) }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    /**
+     * Render the version label according to the current developer-mode state. Called from
+     * the developerModeEnabled flow observer AND from the feedback-revert coroutine so the
+     * label always returns to the right baseline when transient toast-style messages clear.
+     */
+    private fun renderVersionLabel(devMode: Boolean) {
+        val binding = _binding ?: return
+        val res = if (devMode) R.string.app_version_developer else R.string.app_version
+        binding.appVersion.text = getString(res, com.smartsense.app.BuildConfig.VERSION_NAME)
     }
 
     /**
@@ -111,7 +133,7 @@ class SettingsFragment : Fragment() {
 
         if (viewModel.developerModeEnabled.value) {
             if (versionTapCount >= 3) {
-                showVersionTapToast(getString(R.string.developer_mode_already_enabled))
+                showVersionTapFeedback(getString(R.string.developer_mode_already_enabled))
                 versionTapCount = 0
             }
             return
@@ -121,23 +143,50 @@ class SettingsFragment : Fragment() {
         when {
             tapsRemaining <= 0 -> {
                 viewModel.setDeveloperModeEnabled(true)
-                showVersionTapToast(getString(R.string.developer_mode_enabled), longToast = true)
+                showVersionTapFeedback(getString(R.string.developer_mode_enabled), durationMs = 3_000L)
                 versionTapCount = 0
             }
             // Stay silent for the first couple of taps to avoid harassing the user about an
             // accidental brush. Start counting down once they're obviously trying.
             versionTapCount >= 3 ->
-                showVersionTapToast(getString(R.string.developer_mode_steps_away, tapsRemaining))
+                showVersionTapFeedback(getString(R.string.developer_mode_steps_away, tapsRemaining))
         }
     }
 
-    private fun showVersionTapToast(text: CharSequence, longToast: Boolean = false) {
-        versionTapToast?.cancel()
-        versionTapToast = Toast.makeText(
-            requireContext(),
-            text,
-            if (longToast) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-        ).also { it.show() }
+    /**
+     * Long-press on the version label is the "off switch" for developer mode. Toast-style
+     * overlay alternatives blocked subsequent taps on the label, so we re-use the label as
+     * its own feedback surface — same pattern as [showVersionTapFeedback]. Returns `true`
+     * only when we actually consumed the gesture; while developer mode is already off we
+     * let any default long-press behaviour fire.
+     */
+    private fun handleVersionLongPress(): Boolean {
+        if (!viewModel.developerModeEnabled.value) return false
+        viewModel.setDeveloperModeEnabled(false)
+        versionTapCount = 0
+        showVersionTapFeedback(getString(R.string.developer_mode_disabled))
+        return true
+    }
+
+    /**
+     * Show feedback for the version-tap gesture inline on the version label itself. Earlier
+     * implementations used a Toast / Snackbar overlay at screen bottom — both ended up
+     * intercepting subsequent taps on the label even when anchored above, breaking the
+     * "tap 7 times" gesture. Reusing the label as its own feedback surface means the tap
+     * target never moves and never gets covered. The label reverts to whatever the current
+     * dev-mode state dictates after [durationMs] (or earlier if a new feedback overrides
+     * it) — so an enable-confirmation message correctly reveals the "· Developer mode"
+     * suffix when it clears, and a disable-confirmation correctly drops back to the plain
+     * version string.
+     */
+    private fun showVersionTapFeedback(text: CharSequence, durationMs: Long = 1_500L) {
+        val binding = _binding ?: return
+        binding.appVersion.text = text
+        versionLabelRevertJob?.cancel()
+        versionLabelRevertJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(durationMs)
+            renderVersionLabel(viewModel.developerModeEnabled.value)
+        }
     }
 
     companion object {

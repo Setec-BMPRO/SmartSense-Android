@@ -268,4 +268,6 @@
     <string name="developer_mode_steps_away">Bạn còn %1$d bước nữa để trở thành nhà phát triển</string>
     <string name="developer_mode_enabled">Bây giờ bạn là nhà phát triển!</string>
     <string name="developer_mode_already_enabled">Tính năng nhà phát triển đã được bật</string>
+    <string name="app_version_developer">Phiên bản %1$s · Chế độ nhà phát triển</string>
+    <string name="developer_mode_disabled">Đã tắt tính năng nhà phát triển</string>
 </resources>

@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">デベロッパーになるまであと %1$d 回</string>
     <string name="developer_mode_enabled">デベロッパーになりました!</string>
     <string name="developer_mode_already_enabled">デベロッパー機能はすでに有効です</string>
+    <string name="app_version_developer">バージョン %1$s · デベロッパーモード</string>
+    <string name="developer_mode_disabled">デベロッパー機能を無効にしました</string>
 </resources>

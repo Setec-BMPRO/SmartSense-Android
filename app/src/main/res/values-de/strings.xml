@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">Noch %1$d Schritt(e), bis Sie Entwickler sind</string>
     <string name="developer_mode_enabled">Sie sind jetzt Entwickler!</string>
     <string name="developer_mode_already_enabled">Entwickler-Funktionen sind bereits aktiviert</string>
+    <string name="app_version_developer">Version %1$s · Entwicklermodus</string>
+    <string name="developer_mode_disabled">Entwickler-Funktionen deaktiviert</string>
 </resources>

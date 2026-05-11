@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">أنت على بُعد %1$d خطوة من أن تصبح مطوّرًا</string>
     <string name="developer_mode_enabled">أصبحت الآن مطوّرًا!</string>
     <string name="developer_mode_already_enabled">ميزات المطوّر مفعّلة بالفعل</string>
+    <string name="app_version_developer">الإصدار %1$s · وضع المطوّر</string>
+    <string name="developer_mode_disabled">تم إيقاف ميزات المطوّر</string>
 </resources>

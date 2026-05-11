@@ -279,5 +279,9 @@
     <string name="developer_mode_steps_away">You are %1$d step(s) away from being a developer</string>
     <string name="developer_mode_enabled">You are now a developer!</string>
     <string name="developer_mode_already_enabled">Developer features are already enabled</string>
+    <!-- Persistent label decoration when developer mode is on; %1$s = version string. -->
+    <string name="app_version_developer">Version %1$s · Developer mode</string>
+    <!-- Long-press feedback when developer mode is turned back off. -->
+    <string name="developer_mode_disabled">Developer features disabled</string>
 
 </resources>

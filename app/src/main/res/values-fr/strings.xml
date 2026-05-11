@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">Plus que %1$d étape(s) pour devenir développeur</string>
     <string name="developer_mode_enabled">Vous êtes maintenant développeur !</string>
     <string name="developer_mode_already_enabled">Les fonctions développeur sont déjà activées</string>
+    <string name="app_version_developer">Version %1$s · Mode développeur</string>
+    <string name="developer_mode_disabled">Fonctions développeur désactivées</string>
 </resources>

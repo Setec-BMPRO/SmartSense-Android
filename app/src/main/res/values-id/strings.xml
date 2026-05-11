@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">Anda %1$d langkah lagi menjadi pengembang</string>
     <string name="developer_mode_enabled">Anda sekarang seorang pengembang!</string>
     <string name="developer_mode_already_enabled">Fitur pengembang sudah aktif</string>
+    <string name="app_version_developer">Versi %1$s · Mode pengembang</string>
+    <string name="developer_mode_disabled">Fitur pengembang dinonaktifkan</string>
 </resources>

@@ -237,4 +237,6 @@
     <string name="developer_mode_steps_away">डेवलपर बनने में %1$d कदम और बाकी हैं</string>
     <string name="developer_mode_enabled">अब आप डेवलपर हैं!</string>
     <string name="developer_mode_already_enabled">डेवलपर सुविधाएँ पहले से सक्षम हैं</string>
+    <string name="app_version_developer">संस्करण %1$s · डेवलपर मोड</string>
+    <string name="developer_mode_disabled">डेवलपर सुविधाएँ बंद कर दी गईं</string>
 </resources>
