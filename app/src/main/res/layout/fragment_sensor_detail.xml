@@ -448,13 +448,17 @@
 
             <!-- Debug · Quality buffer
                  Shows the rolling window the ReadingQualityCalculator uses (mean, stddev,
-                 sample list with per-sample deviation). Always visible — flip to gone if
-                 you want to hide it in release builds. -->
+                 sample list with per-sample deviation). Gated by the hidden Developer
+                 Mode flag (Settings → tap version 7×) — `android:visibility="gone"` is the
+                 default; SensorDetailFragment.observeViewModel flips it to VISIBLE while
+                 the flag is on. -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/debug_quality_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_md"
+                android:visibility="gone"
+                tools:visibility="visible"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
                 app:strokeWidth="1dp"

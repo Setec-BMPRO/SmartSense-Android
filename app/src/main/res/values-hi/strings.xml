@@ -234,4 +234,7 @@
     <string name="format_offline_subtitle">%1$s · ऑफ़लाइन</string>
     <string name="offline_cause_scanner_stalled">फ़ोन स्कैन रुक गया — ऐप पुनः प्रारंभ करें</string>
     <string name="offline_cause_sensor_not_responding">सेंसर प्रतिक्रिया नहीं दे रहा — बैटरी या रेंज जाँचें</string>
+    <string name="developer_mode_steps_away">डेवलपर बनने में %1$d कदम और बाकी हैं</string>
+    <string name="developer_mode_enabled">अब आप डेवलपर हैं!</string>
+    <string name="developer_mode_already_enabled">डेवलपर सुविधाएँ पहले से सक्षम हैं</string>
 </resources>

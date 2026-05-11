@@ -161,6 +161,14 @@ class SensorDetailFragment : Fragment() {
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .launchIn(viewLifecycleOwner.lifecycleScope)
+        // Quality Buffer card is a developer-only diagnostic — hidden by default in the
+        // layout, flipped visible only while the Developer Mode flag is on (Settings →
+        // tap app version 7 times). Observe the flag live so toggling it in Settings
+        // updates an already-open detail screen on the next emission.
+        viewModel.developerModeEnabled
+            .onEach { binding.debugQualityCard.isVisible = it }
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .launchIn(viewLifecycleOwner.lifecycleScope)
     }
 
     // --------------------------------------

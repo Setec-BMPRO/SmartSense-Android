@@ -265,4 +265,7 @@
     <string name="format_offline_subtitle">%1$s · NGOẠI TUYẾN</string>
     <string name="offline_cause_scanner_stalled">Quét trên điện thoại bị treo — khởi động lại ứng dụng</string>
     <string name="offline_cause_sensor_not_responding">Cảm biến không phản hồi — kiểm tra pin hoặc khoảng cách</string>
+    <string name="developer_mode_steps_away">Bạn còn %1$d bước nữa để trở thành nhà phát triển</string>
+    <string name="developer_mode_enabled">Bây giờ bạn là nhà phát triển!</string>
+    <string name="developer_mode_already_enabled">Tính năng nhà phát triển đã được bật</string>
 </resources>

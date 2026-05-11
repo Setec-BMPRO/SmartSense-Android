@@ -42,6 +42,7 @@ class UserPreferences @Inject constructor(
         const val DEFAULT_DEVICE_SEARCH_FILTER_ENABLED = false
         const val DEFAULT_IS_SIGNED_IN = false
         const val DEFAULT_FIRST_RUN_COMPLETED = false
+        const val DEFAULT_DEVELOPER_MODE_ENABLED = false
     }
 
     private object Keys {
@@ -57,6 +58,7 @@ class UserPreferences @Inject constructor(
         val DEVICE_SEARCH_FILTER_ENABLED = booleanPreferencesKey("device_search_filter_enabled")
         val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
         val USER_EMAIL = stringPreferencesKey("user_email")
+        val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
 
         // Keys for Tank Alert States
         fun lastLevelKey(address: String) = intPreferencesKey("last_level_$address")
@@ -106,6 +108,17 @@ class UserPreferences @Inject constructor(
     val isSignedIn: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_SIGNED_IN] ?: DEFAULT_IS_SIGNED_IN }
 
     val userEmail: Flow<String?> = context.dataStore.data.map { it[Keys.USER_EMAIL] }
+
+    /**
+     * Hidden developer-mode flag. Toggled on by tapping the app-version label in Settings
+     * seven times (Android-style "tap Build number 7 times" gesture). Gates diagnostic
+     * surfaces that would otherwise clutter the end-user UI — currently only the Quality
+     * Buffer card on the sensor detail screen, but anything else internal can hook in
+     * here too.
+     */
+    val developerModeEnabled: Flow<Boolean> = context.dataStore.data.map {
+        it[Keys.DEVELOPER_MODE_ENABLED] ?: DEFAULT_DEVELOPER_MODE_ENABLED
+    }
 
     // -------------------------------------------------------------------------
     // ✍️ Update Functions (Setters)
@@ -163,6 +176,11 @@ class UserPreferences @Inject constructor(
     suspend fun setIsSignedIn(isSignedIn: Boolean) {
         Timber.tag(TAG).i("Setting IsSignedIn status: $isSignedIn")
         context.dataStore.edit { it[Keys.IS_SIGNED_IN] = isSignedIn }
+    }
+
+    suspend fun setDeveloperModeEnabled(enabled: Boolean) {
+        Timber.tag(TAG).i("Setting DeveloperModeEnabled: $enabled")
+        context.dataStore.edit { it[Keys.DEVELOPER_MODE_ENABLED] = enabled }
     }
 
     suspend fun setUserEmail(email: String?) {

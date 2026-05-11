@@ -234,4 +234,7 @@
     <string name="format_offline_subtitle">%1$s · オフライン</string>
     <string name="offline_cause_scanner_stalled">スキャンが停止しました — アプリを再起動してください</string>
     <string name="offline_cause_sensor_not_responding">センサーが応答しません — 電池や通信範囲を確認してください</string>
+    <string name="developer_mode_steps_away">デベロッパーになるまであと %1$d 回</string>
+    <string name="developer_mode_enabled">デベロッパーになりました!</string>
+    <string name="developer_mode_already_enabled">デベロッパー機能はすでに有効です</string>
 </resources>

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -36,6 +37,17 @@ class SettingsFragment : Fragment() {
 
     private var isUpdatingThemeToggle = false
     private var scrollY = 0
+
+    /** Android-style "tap Build number 7 times" gesture state. Each tap on the app-version
+     *  label bumps the counter; once it reaches [TAPS_TO_UNLOCK] developer features turn
+     *  on. A gap of more than [TAP_RESET_GAP_MS] between taps resets the counter so an
+     *  accidental tap days later doesn't carry over. */
+    private var versionTapCount = 0
+    private var lastVersionTapMs = 0L
+
+    /** Currently-displayed countdown toast, kept around so a rapid tap sequence can cancel
+     *  the previous one before showing the next — prevents the queue from piling up. */
+    private var versionTapToast: Toast? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,6 +89,60 @@ class SettingsFragment : Fragment() {
 
     private fun setupAppVersion() {
         binding.appVersion.text = getString(R.string.app_version, com.smartsense.app.BuildConfig.VERSION_NAME)
+        binding.appVersion.setOnClickListener { handleVersionTap() }
+    }
+
+    /**
+     * Android-style developer-mode unlock. Tap the version label seven times in quick
+     * succession to flip [SettingsViewModel.developerModeEnabled] on. Mirrors the AOSP
+     * gesture:
+     * - Taps 1-2: silent (avoid noise from accidental taps).
+     * - Taps 3-6: toast counts down the remaining taps.
+     * - Tap 7: persist the flag, show "You are now a developer!" toast.
+     * - Subsequent taps once enabled: brief "already a developer" hint.
+     * - >[TAP_RESET_GAP_MS] between consecutive taps resets the counter, so the gesture
+     *   has to be deliberate.
+     */
+    private fun handleVersionTap() {
+        val now = System.currentTimeMillis()
+        if (now - lastVersionTapMs > TAP_RESET_GAP_MS) versionTapCount = 0
+        lastVersionTapMs = now
+        versionTapCount++
+
+        if (viewModel.developerModeEnabled.value) {
+            if (versionTapCount >= 3) {
+                showVersionTapToast(getString(R.string.developer_mode_already_enabled))
+                versionTapCount = 0
+            }
+            return
+        }
+
+        val tapsRemaining = TAPS_TO_UNLOCK - versionTapCount
+        when {
+            tapsRemaining <= 0 -> {
+                viewModel.setDeveloperModeEnabled(true)
+                showVersionTapToast(getString(R.string.developer_mode_enabled), longToast = true)
+                versionTapCount = 0
+            }
+            // Stay silent for the first couple of taps to avoid harassing the user about an
+            // accidental brush. Start counting down once they're obviously trying.
+            versionTapCount >= 3 ->
+                showVersionTapToast(getString(R.string.developer_mode_steps_away, tapsRemaining))
+        }
+    }
+
+    private fun showVersionTapToast(text: CharSequence, longToast: Boolean = false) {
+        versionTapToast?.cancel()
+        versionTapToast = Toast.makeText(
+            requireContext(),
+            text,
+            if (longToast) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+        ).also { it.show() }
+    }
+
+    companion object {
+        private const val TAPS_TO_UNLOCK = 7
+        private const val TAP_RESET_GAP_MS = 3_000L
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

@@ -64,6 +64,10 @@ class SettingsViewModel @Inject constructor(
     val deviceSearchFilterEnabled: StateFlow<Boolean> = userPreferences.deviceSearchFilterEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    /** Hidden developer-mode flag (see UserPreferences.developerModeEnabled). */
+    val developerModeEnabled: StateFlow<Boolean> = userPreferences.developerModeEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     // -------------------------------------------------------------------------
     // ✍️ Update Functions
     // -------------------------------------------------------------------------
@@ -94,6 +98,9 @@ class SettingsViewModel @Inject constructor(
 
     fun setDeviceSearchFilterEnabled(enabled: Boolean) =
         viewModelScope.launch { userPreferences.setDeviceSearchFilterEnabled(enabled) }
+
+    fun setDeveloperModeEnabled(enabled: Boolean) =
+        viewModelScope.launch { userPreferences.setDeveloperModeEnabled(enabled) }
 
 
     // -------------------------------------------------------------------------

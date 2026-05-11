@@ -234,4 +234,7 @@
     <string name="format_offline_subtitle">%1$s · ออฟไลน์</string>
     <string name="offline_cause_scanner_stalled">การสแกนบนโทรศัพท์หยุดทำงาน — รีสตาร์ตแอป</string>
     <string name="offline_cause_sensor_not_responding">เซนเซอร์ไม่ตอบสนอง — ตรวจสอบแบตเตอรี่หรือระยะ</string>
+    <string name="developer_mode_steps_away">อีก %1$d ครั้งเพื่อเป็นนักพัฒนา</string>
+    <string name="developer_mode_enabled">คุณเป็นนักพัฒนาแล้ว!</string>
+    <string name="developer_mode_already_enabled">เปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
 </resources>

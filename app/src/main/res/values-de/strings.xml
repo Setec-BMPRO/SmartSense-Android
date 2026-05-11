@@ -234,4 +234,7 @@
     <string name="format_offline_subtitle">%1$s · OFFLINE</string>
     <string name="offline_cause_scanner_stalled">Telefon-Scan blockiert — App neu starten</string>
     <string name="offline_cause_sensor_not_responding">Sensor antwortet nicht — Batterie oder Reichweite prüfen</string>
+    <string name="developer_mode_steps_away">Noch %1$d Schritt(e), bis Sie Entwickler sind</string>
+    <string name="developer_mode_enabled">Sie sind jetzt Entwickler!</string>
+    <string name="developer_mode_already_enabled">Entwickler-Funktionen sind bereits aktiviert</string>
 </resources>

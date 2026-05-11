@@ -265,4 +265,7 @@
     <string name="format_offline_subtitle">%1$s · SIN CONEXIÓN</string>
     <string name="offline_cause_scanner_stalled">Escaneo del teléfono detenido — reinicia la app</string>
     <string name="offline_cause_sensor_not_responding">Sensor sin respuesta — revisa la batería o el alcance</string>
+    <string name="developer_mode_steps_away">Te faltan %1$d paso(s) para ser desarrollador</string>
+    <string name="developer_mode_enabled">¡Ya eres desarrollador!</string>
+    <string name="developer_mode_already_enabled">Las funciones de desarrollador ya están activadas</string>
 </resources>

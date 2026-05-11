@@ -70,6 +70,13 @@ class ScanViewModel @Inject constructor(
     val deviceSearchFilterEnabled = userPreferences.deviceSearchFilterEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    /** Hidden developer-mode flag (Settings → tap version 7×). Gates internal-only menu
+     *  entries (Load/Unload mock data) so they're not surfaced to end users on release
+     *  builds. Eagerly collected so the toolbar menu setup at view creation sees the
+     *  correct value without waiting for a coroutine to fire. */
+    val developerModeEnabled = userPreferences.developerModeEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     init {
         _uiState.update { it.copy(isBluetoothEnabled = useCase.isBluetoothEnabled) }
     }

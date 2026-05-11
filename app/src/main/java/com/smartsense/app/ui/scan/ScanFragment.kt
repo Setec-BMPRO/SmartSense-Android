@@ -128,7 +128,12 @@ class ScanFragment : Fragment() {
         }
         binding.smartsenseLogo.logoText.text = logoText
         binding.toolbar.forceShowMenuIcons()
-        binding.toolbar.menu.findItem(R.id.action_seed_mock)?.isVisible = com.smartsense.app.BuildConfig.DEBUG
+        // Mock-data menu entry is a developer feature — hidden by default, surfaced only
+        // while DeveloperMode is on (Settings → tap version 7×). Live observer is wired in
+        // observeViewModel() so toggling DeveloperMode while this screen is foregrounded
+        // updates the menu without a screen reopen. Initial visibility set to false to
+        // avoid a flash before the first emission lands.
+        binding.toolbar.menu.findItem(R.id.action_seed_mock)?.isVisible = false
 
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -274,6 +279,15 @@ class ScanFragment : Fragment() {
                 binding.toolbar.menu.findItem(R.id.action_seed_mock)?.setTitle(
                     if (loaded) R.string.unload_mock_data else R.string.load_mock_data
                 )
+            }
+            .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        // Mock-data menu entry follows the hidden DeveloperMode flag — invisible to end
+        // users by default, revealed only once they've used the 7-tap gesture in Settings.
+        viewModel.developerModeEnabled
+            .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
+            .onEach { enabled ->
+                binding.toolbar.menu.findItem(R.id.action_seed_mock)?.isVisible = enabled
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }

@@ -20,8 +20,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -58,6 +60,12 @@ class Sensor1DetailViewModel @Inject constructor(
     val unitSystem: UnitSystem = runBlocking {
         userPreferences.unitSystem.first()
     }
+
+    /** Live flag for the hidden Developer Mode toggle (Settings → tap version 7×).
+     *  Drives the Quality Buffer card's visibility on the detail screen. Eagerly
+     *  collected so the first render after [bindSensor] already has the right value. */
+    val developerModeEnabled: StateFlow<Boolean> = userPreferences.developerModeEnabled
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     // The Update-Rate setting was retired — the detail screen now ticks at the
     // sensor's own broadcast cadence (or the AUTO fallback before the first
