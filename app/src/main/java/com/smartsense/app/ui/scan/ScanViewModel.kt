@@ -77,6 +77,14 @@ class ScanViewModel @Inject constructor(
     val developerModeEnabled = userPreferences.developerModeEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    /** User has dismissed the footer pair-hint banner. Persisted across launches. */
+    val pairHintDismissed = userPreferences.pairHintDismissed
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun dismissPairHint() = viewModelScope.launch {
+        userPreferences.setPairHintDismissed(true)
+    }
+
     init {
         _uiState.update { it.copy(isBluetoothEnabled = useCase.isBluetoothEnabled) }
     }

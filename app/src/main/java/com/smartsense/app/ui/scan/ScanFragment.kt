@@ -162,7 +162,15 @@ class ScanFragment : Fragment() {
         }
 
         binding.btnPairHelp.setOnClickListener { showPairingHelp() }
-        binding.pairHintBanner.setOnClickListener { showPairingHelp() }
+        // Tap on the text body opens the pairing help dialog; tap on the trailing X
+        // persists `pairHintDismissed` so the banner stays gone across launches. We hide
+        // the banner inline as well so it disappears immediately rather than waiting for
+        // DataStore → StateFlow → next updateUI to propagate (would otherwise flicker).
+        binding.pairHintText.setOnClickListener { showPairingHelp() }
+        binding.pairHintDismiss.setOnClickListener {
+            binding.pairHintBanner.isVisible = false
+            viewModel.dismissPairHint()
+        }
 
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
@@ -340,8 +348,11 @@ class ScanFragment : Fragment() {
             layoutSensor.isVisible = totalInSystem > 0
             sensorList.isVisible = filteredCount > 0
             sensorCount.isVisible = filteredCount > 0
-            // Footer reminder is only relevant once at least one sensor is paired.
-            pairHintBanner.isVisible = totalInSystem > 0
+            // Footer reminder is only relevant once at least one sensor is paired AND
+            // the user hasn't dismissed it via the X. Reads the latest value from the
+            // eagerly-collected StateFlow so a freshly-tapped dismiss hides the banner
+            // immediately, even though the displayGroups recomposition isn't tied to it.
+            pairHintBanner.isVisible = totalInSystem > 0 && !viewModel.pairHintDismissed.value
 
             if (filteredCount > 0) {
                 sensorCount.text = getString(R.string.sensor_count_label, filteredCount)

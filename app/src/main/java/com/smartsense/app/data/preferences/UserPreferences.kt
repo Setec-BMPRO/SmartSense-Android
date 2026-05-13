@@ -44,6 +44,7 @@ class UserPreferences @Inject constructor(
         const val DEFAULT_IS_SIGNED_IN = false
         const val DEFAULT_FIRST_RUN_COMPLETED = false
         const val DEFAULT_DEVELOPER_MODE_ENABLED = false
+        const val DEFAULT_PAIR_HINT_DISMISSED = false
 
         // ---- Quality thresholds (developer-tunable, in millimetres of stddev) ----------
         // These bake into `ReadingQualityCalculator`'s stddev → 1/2/3 mapping. Initial
@@ -84,6 +85,7 @@ class UserPreferences @Inject constructor(
         val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
         val STDDEV_GOOD_MM = floatPreferencesKey("quality_stddev_good_mm")
         val STDDEV_FAIR_MM = floatPreferencesKey("quality_stddev_fair_mm")
+        val PAIR_HINT_DISMISSED = booleanPreferencesKey("scan_pair_hint_dismissed")
         val MAX_SAMPLES = intPreferencesKey("quality_max_samples")
 
         // Keys for Tank Alert States
@@ -156,6 +158,14 @@ class UserPreferences @Inject constructor(
      *  the Settings UI enforces this at write time. */
     val stddevFairMm: Flow<Float> = context.dataStore.data.map {
         it[Keys.STDDEV_FAIR_MM] ?: DEFAULT_STDDEV_FAIR_MM
+    }
+
+    /** User has tapped the X on the scan-screen "Press the pair button..." footer banner.
+     *  Persists across launches so a long-time user doesn't keep getting reminded — the
+     *  Help menu entry remains as a re-entry point if they ever want the pairing dialog
+     *  again. */
+    val pairHintDismissed: Flow<Boolean> = context.dataStore.data.map {
+        it[Keys.PAIR_HINT_DISMISSED] ?: DEFAULT_PAIR_HINT_DISMISSED
     }
 
     /** Rolling-window cap (`n`) the calculator uses for its eviction logic. Surfaced on
@@ -235,6 +245,11 @@ class UserPreferences @Inject constructor(
     suspend fun setStddevFairMm(valueMm: Float) {
         Timber.tag(TAG).i("Setting StddevFairMm: $valueMm")
         context.dataStore.edit { it[Keys.STDDEV_FAIR_MM] = valueMm.coerceAtLeast(0f) }
+    }
+
+    suspend fun setPairHintDismissed(dismissed: Boolean) {
+        Timber.tag(TAG).i("Setting PairHintDismissed: $dismissed")
+        context.dataStore.edit { it[Keys.PAIR_HINT_DISMISSED] = dismissed }
     }
 
     suspend fun setMaxSamples(n: Int) {
