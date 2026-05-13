@@ -198,7 +198,7 @@ class ReadingQualityCalculator @Inject constructor(
 
     /** Read the current quality for [address] without recording a new sample. */
     fun compute(address: String): Int {
-        val buffer = buffers[address] ?: return DEFAULT_QUALITY
+        val buffer = buffers[address] ?: return UNKNOWN_QUALITY
         synchronized(buffer) {
             evict(buffer, System.currentTimeMillis(), address)
             return computeLocked(address, buffer)
@@ -228,7 +228,7 @@ class ReadingQualityCalculator @Inject constructor(
                 // No live samples — but if we *have* seen this address recently it just
                 // means we're inside the warm-up window or the sensor has gone silent.
                 // Either way the debug card should reflect the quality computeLocked()
-                // would return for those situations (DEFAULT_QUALITY or STALE_QUALITY).
+                // would return for those situations (UNKNOWN_QUALITY or STALE_QUALITY).
                 return QualitySnapshot.EMPTY.copy(
                     quality = computeLocked(address, buffer),
                     latestSerial = latestSerial
@@ -279,7 +279,7 @@ class ReadingQualityCalculator @Inject constructor(
                 samples = emptyList(),
                 meanMeters = 0.0,
                 stdDevMeters = 0.0,
-                quality = DEFAULT_QUALITY,
+                quality = UNKNOWN_QUALITY,
                 latestSerial = null
             )
         }
@@ -319,13 +319,16 @@ class ReadingQualityCalculator @Inject constructor(
     /** Caller must hold the buffer monitor. */
     private fun computeLocked(address: String, buffer: ArrayDeque<Sample>): Int {
         // Quality fall-through, in order:
-        // 1. Never seen this address → DEFAULT_QUALITY (no penalty for new pairings).
+        // 1. Never seen this address → UNKNOWN_QUALITY (no data to assess, UI renders "—"
+        //    rather than misleadingly claiming GOOD).
         // 2. Seen before but silent for too long → STALE_QUALITY (= POOR). Without this
         //    check, a sensor whose entire buffer has aged out would still return
-        //    DEFAULT_QUALITY via the size<MIN_SAMPLES branch below — misleading.
-        // 3. Warming up (a couple of samples in) → DEFAULT_QUALITY.
+        //    UNKNOWN via the size<MIN_SAMPLES branch below — and "—" hides that the
+        //    sensor's gone offline, where POOR is the more useful signal.
+        // 3. Warming up (fewer than MIN_SAMPLES so far) → UNKNOWN_QUALITY. Stddev
+        //    derived from 1-2 points isn't meaningful; treat as no rating yet.
         // 4. Enough samples → map stddev to 3 / 2 / 1.
-        val lastSeen = lastSampleAtMillis[address] ?: return DEFAULT_QUALITY
+        val lastSeen = lastSampleAtMillis[address] ?: return UNKNOWN_QUALITY
         val staleThresholdMs = SensorFreshness.staleThresholdMs(
             reportingIntervalSeconds[address] ?: 0
         )
@@ -337,7 +340,7 @@ class ReadingQualityCalculator @Inject constructor(
             )
             return STALE_QUALITY
         }
-        if (buffer.size < MIN_SAMPLES) return DEFAULT_QUALITY
+        if (buffer.size < MIN_SAMPLES) return UNKNOWN_QUALITY
         val heights = buffer.map { it.heightMeters }
         val mean = heights.average()
         val variance = heights.map { (it - mean).pow(2) }.average()
@@ -379,7 +382,7 @@ class ReadingQualityCalculator @Inject constructor(
         /** Allowance, in seconds, for the broadcast slot to slip slightly without dropping. */
         const val MARGIN_S = 1
 
-        /** Minimum samples before we trust the computed quality. Until then, default GOOD. */
+        /** Minimum samples before we trust the computed quality. Until then, UNKNOWN. */
         const val MIN_SAMPLES = 3
 
         /**
@@ -388,6 +391,15 @@ class ReadingQualityCalculator @Inject constructor(
          * the existing low-quality warnings.
          */
         const val STALE_QUALITY = 1
+
+        /**
+         * Returned when we have no basis to compute quality — either we've never seen this
+         * sensor or the buffer is below [MIN_SAMPLES]. The UI maps `0` to "—" rather than
+         * GOOD so a freshly-paired sensor doesn't claim a quality rating it can't yet
+         * substantiate. Distinct from [STALE_QUALITY], which means "we had data but the
+         * sensor has gone silent".
+         */
+        const val UNKNOWN_QUALITY = 0
 
         /**
          * Legacy fixed cutoffs (metres) — kept for documentation of where the runtime
@@ -401,6 +413,10 @@ class ReadingQualityCalculator @Inject constructor(
         @Deprecated("Use UserPreferences.stddevGoodMm / stddevFairMm — runtime-tunable.")
         const val STDDEV_FAIR_M = 0.015   // 15 mm
 
-        const val DEFAULT_QUALITY = 3
+        @Deprecated(
+            "Replaced by UNKNOWN_QUALITY (0). The original 3=GOOD fallback was misleading " +
+                "for sensors with no samples yet; we now render those as '—' in the UI."
+        )
+        const val DEFAULT_QUALITY = 0
     }
 }

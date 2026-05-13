@@ -345,11 +345,14 @@ class SensorDetailFragment : Fragment() {
         // SensorFreshness.staleThresholdMs we display POOR regardless of the cached
         // reading.quality value (which only updates when a fresh BLE adv lands).
         val effectiveQuality = if (sensor.isStale) ReadQuality.POOR else sensor.readQuality
+        // null effectiveQuality = no rating yet (no samples / warming up). Render as "—"
+        // rather than empty or "Good" — "Good" was misleading because we hadn't seen any
+        // data to substantiate it.
         detailQuality.text = when (effectiveQuality) {
             ReadQuality.GOOD -> getString(R.string.quality_good)
             ReadQuality.FAIR -> getString(R.string.quality_fair)
             ReadQuality.POOR -> getString(R.string.quality_poor)
-            else -> if (hasReading) "" else "--"
+            else -> "—"
         }
         // Color code each readout. Matches the colour logic in `ScanAdapter` so the same
         // sensor renders consistently green/yellow/red across the list and detail screens.
@@ -659,10 +662,13 @@ class SensorDetailFragment : Fragment() {
     ) {
         val meanMm = snapshot.meanMeters * 1000.0
         val stdDevMm = snapshot.stdDevMeters * 1000.0
+        // Render q=0 (UNKNOWN_QUALITY — no samples yet or warming up) as "-" to match the
+        // detail-row "—" rather than display a misleading numeric zero.
+        val qDisplay = if (snapshot.quality == 0) "-" else snapshot.quality.toString()
         binding.debugQualitySummary.text = String.format(
             java.util.Locale.US,
-            "n=%d  mean=%.1fmm  σ=%.2fmm  q=%d",
-            snapshot.samples.size, meanMm, stdDevMm, snapshot.quality
+            "n=%d  mean=%.1fmm  σ=%.2fmm  q=%s",
+            snapshot.samples.size, meanMm, stdDevMm, qDisplay
         )
         val serial = snapshot.latestSerial
         binding.debugQualitySerial.isVisible = serial != null

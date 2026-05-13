@@ -761,10 +761,20 @@ class SensorRepository @Inject constructor(
         )
     }
 
-    private fun Int?.toReadQuality(): ReadQuality = when (this) {
+    /**
+     * Map the calculator's integer quality to the UI enum. `null` means **unknown** —
+     * either we have no samples yet for this sensor or the buffer is below
+     * [ReadingQualityCalculator.MIN_SAMPLES] (`UNKNOWN_QUALITY = 0`). Surfaced as a `?`
+     * here rather than a synthetic enum value because the UI already handles `null` as
+     * "—" in `setupStatusRow`, and that path needs to be distinct from the broadcast
+     * branches (GOOD/FAIR/POOR all warrant a colour and a label; UNKNOWN warrants
+     * neither).
+     */
+    private fun Int?.toReadQuality(): ReadQuality? = when (this) {
         3 -> ReadQuality.GOOD
         2 -> ReadQuality.FAIR
-        else -> ReadQuality.POOR
+        1 -> ReadQuality.POOR
+        else -> null // 0 = UNKNOWN_QUALITY, or any unexpected value
     }
 
 
