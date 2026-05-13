@@ -9,6 +9,7 @@ import com.smartsense.app.databinding.ItemSensorCardBinding
 import com.smartsense.app.databinding.LayoutGroupHeaderBinding
 import com.smartsense.app.domain.model.LevelStatus
 import com.smartsense.app.domain.model.MopekaSensorType
+import com.smartsense.app.domain.model.ReadQuality
 import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.domain.model.SignalStrength
 import com.smartsense.app.domain.model.TankOrientation
@@ -142,29 +143,45 @@ class SensorItem(
         ImageViewCompat.setImageTintList(binding.sensorTempIcon, ColorStateList.valueOf(tempColor))
         binding.sensorTemperature.setTextColor(tempColor)
 
-        // Signal
+        // Read Quality — shows the last-known rating, same pattern as Battery and Signal
+        // in this row. When the sensor goes stale we keep displaying the last value the
+        // calculator computed; the offline badge below is the canonical "this is stale"
+        // signal. `null` means no rating yet (no samples or warming up) — render "—" in
+        // the theme's neutral colour rather than tint a star green for an unsubstantiated
+        // GOOD.
+        val effectiveQuality = sensor.readQuality
+        val (qualityLabel, qualityColorRes) = when (effectiveQuality) {
+            ReadQuality.GOOD -> binding.root.context.getString(R.string.quality_good) to R.color.level_green
+            ReadQuality.FAIR -> binding.root.context.getString(R.string.quality_fair) to R.color.level_yellow
+            ReadQuality.POOR -> binding.root.context.getString(R.string.quality_poor) to R.color.level_red
+            null -> "—" to null
+        }
+        binding.sensorQuality.text = qualityLabel
+        val neutralQualityColor = com.google.android.material.color.MaterialColors.getColor(
+            binding.sensorQuality, com.google.android.material.R.attr.colorOnSurfaceVariant
+        )
+        val qualityColor = qualityColorRes
+            ?.let { ContextCompat.getColor(binding.root.context, it) }
+            ?: neutralQualityColor
+        ImageViewCompat.setImageTintList(binding.sensorQualityIcon, ColorStateList.valueOf(qualityColor))
+        binding.sensorQuality.setTextColor(qualityColor)
+
+        // Signal. Icon (bars) + color tier still come from the SignalStrength bucket so the
+        // list keeps the at-a-glance signal-bars cue, but the text shows the raw RSSI in
+        // dBm — same format as the detail screen's signal cell. Word labels (Excellent /
+        // Good / Fair / Weak) were redundant with the bars and inconsistent with detail.
         val signalInfo = when (sensor.signalStrength) {
-            SignalStrength.EXCELLENT -> SignalInfo(
-                R.drawable.ic_signal_excellent,
-                "Excellent",
-                R.color.level_green
-            )
-            SignalStrength.GOOD -> SignalInfo(
-                R.drawable.ic_signal_good,
-                "Good",
-                R.color.level_green
-            )
-            SignalStrength.FAIR -> SignalInfo(
-                R.drawable.ic_signal_fair,
-                "Fair",
-                R.color.level_yellow
-            )
-            SignalStrength.WEAK -> SignalInfo(R.drawable.ic_signal_weak, "Weak", R.color.level_red)
+            SignalStrength.EXCELLENT -> SignalInfo(R.drawable.ic_signal_excellent, R.color.level_green)
+            SignalStrength.GOOD -> SignalInfo(R.drawable.ic_signal_good, R.color.level_green)
+            SignalStrength.FAIR -> SignalInfo(R.drawable.ic_signal_fair, R.color.level_yellow)
+            SignalStrength.WEAK -> SignalInfo(R.drawable.ic_signal_weak, R.color.level_red)
         }
         binding.sensorSignalIcon.setImageResource(signalInfo.iconRes)
         val signalColor = ContextCompat.getColor(binding.root.context, signalInfo.colorRes)
         ImageViewCompat.setImageTintList(binding.sensorSignalIcon, ColorStateList.valueOf(signalColor))
-        binding.sensorSignal.text = signalInfo.text
+        binding.sensorSignal.text = sensor.reading?.rssi?.let {
+            binding.root.context.getString(R.string.format_rssi, it)
+        } ?: "—"
         binding.sensorSignal.setTextColor(signalColor)
 
         binding.sensorLastUpdated.text = TimeUtils.getLastUpdatedText(binding.root.context, sensor.reading?.timestampMillis)

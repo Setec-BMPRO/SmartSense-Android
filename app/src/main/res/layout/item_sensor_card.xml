@@ -104,6 +104,37 @@
                     android:textAppearance="?attr/textAppearanceLabelSmall"
                     android:textColor="?attr/colorOnSurfaceVariant"/>
 
+                <!-- Read Quality. Mirrors the ICON + text pattern of the surrounding rows
+                     (battery, signal) instead of the bare label the detail screen uses,
+                     so the info row stays visually consistent. Star icon + text are
+                     tinted to the same green/yellow/red palette ScanAdapter uses for
+                     battery and signal, and fall back to the neutral on-surface-variant
+                     colour when quality is unknown ("—"). -->
+                <ImageView
+                    android:id="@+id/sensor_quality_icon"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_quality"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="@string/read_quality"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_quality"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:layout_marginStart="2dp"
+                    tools:text="Good"/>
+
+                <!-- Divider -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" · "
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textColor="?attr/colorOnSurfaceVariant"/>
+
                 <!-- Temperature -->
                 <ImageView
                     android:id="@+id/sensor_temp_icon"

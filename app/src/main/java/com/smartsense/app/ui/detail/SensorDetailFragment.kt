@@ -341,13 +341,14 @@ class SensorDetailFragment : Fragment() {
         val hasReading = sensor.reading != null
         detailBattery.text = if (hasReading) getString(R.string.format_battery, sensor.batteryPercent) else "--"
         detailSignal.text = if (hasReading) getString(R.string.format_rssi, sensor.reading?.rssi) else "--"
-        // Quality readout reflects live freshness — if the sensor has gone silent past
-        // SensorFreshness.staleThresholdMs we display POOR regardless of the cached
-        // reading.quality value (which only updates when a fresh BLE adv lands).
-        val effectiveQuality = if (sensor.isStale) ReadQuality.POOR else sensor.readQuality
-        // null effectiveQuality = no rating yet (no samples / warming up). Render as "—"
-        // rather than empty or "Good" — "Good" was misleading because we hadn't seen any
-        // data to substantiate it.
+        // Quality readout shows the **last known** rating, mirroring how Battery and
+        // Signal in the same row show last-known values when the sensor is offline. The
+        // OFFLINE pill is the canonical signal that this data is stale — overriding
+        // quality here to POOR was inconsistent (we don't override battery to 0% or
+        // signal to "Weak" when stale) and could falsely re-classify a sensor that was
+        // genuinely GOOD up until the moment it went silent. null effectiveQuality = no
+        // rating yet (no samples / warming up), rendered as "—".
+        val effectiveQuality = sensor.readQuality
         detailQuality.text = when (effectiveQuality) {
             ReadQuality.GOOD -> getString(R.string.quality_good)
             ReadQuality.FAIR -> getString(R.string.quality_fair)

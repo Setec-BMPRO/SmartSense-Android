@@ -712,7 +712,7 @@ class SensorRepository @Inject constructor(
             sensorType = sensorType,
             reading = reading,
             tankLevel = tankLevel,
-            readQuality = if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL && hasReading)
+            readQuality = if (mapToSensorEnum != MapToSensorEnum.DISCOVER && hasReading)
                 entity.lastQuality.toReadQuality() else null,
             tankType = tankTypeDisplay
         )
@@ -738,7 +738,12 @@ class SensorRepository @Inject constructor(
             )
             //    .apply { percentage = Random.nextFloat() * 100f }
         } else null
-        val readQuality=if (mapToSensorEnum == MapToSensorEnum.OBSERVE_DETAIL) reading?.quality?.toReadQuality() else null
+        // Populate readQuality on both the list (OBSERVE_REGISTERED) and detail (OBSERVE_DETAIL)
+        // paths so the list view's info row can render the same colour-coded Good/Fair/Poor/—
+        // affordance the detail screen shows. DISCOVER stays null — pre-pair sensors haven't
+        // had any quality computed yet and the discovery card doesn't surface it.
+        val readQuality = if (mapToSensorEnum != MapToSensorEnum.DISCOVER)
+            reading?.quality?.toReadQuality() else null
         return Sensor(
             address = scanned.address,
             name = calculateTankUseCase.calculateName(scanned.parsed?.sensorType, tank?.name),

@@ -395,4 +395,7 @@ class ScanFragment : Fragment() {
     }
 }
 
-data class SignalInfo(val iconRes: Int, val text: String, val colorRes: Int)
+/** Visual bundle for the list card's signal cell. Text is set separately from
+ *  [Sensor.reading.rssi] so the list matches the detail screen's "-XX dBm" format
+ *  rather than the EXCELLENT/GOOD/FAIR/WEAK word labels. */
+data class SignalInfo(val iconRes: Int, val colorRes: Int)
