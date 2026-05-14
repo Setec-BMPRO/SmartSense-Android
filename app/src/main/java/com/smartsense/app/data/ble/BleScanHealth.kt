@@ -26,6 +26,15 @@ object BleScanHealth {
 
     private val lastAnyCallbackMs = AtomicLong(0)
 
+    /** Wall-clock of the **first** scan callback this process saw — set once, never
+     *  refreshed. Read by `Sensor.isStale`'s cold-start grace path to ask "has the
+     *  scanner been alive long enough for this sensor to have broadcasted by now?"
+     *  Using `lastAnyCallbackMs` for that check is wrong: while another sensor is
+     *  broadcasting healthily, `lastAnyCallbackMs` keeps refreshing and `(now - last)`
+     *  stays small forever — the grace would never elapse and a genuinely-silent
+     *  sensor would never get an OFFLINE pill while a healthy neighbour was streaming. */
+    private val firstAnyCallbackMs = AtomicLong(0)
+
     /** Per-device callback counters since process start. */
     private val callbackCounts = ConcurrentHashMap<String, AtomicLong>()
 
@@ -48,6 +57,7 @@ object BleScanHealth {
     fun recordDeviceCallback(address: String) {
         val now = System.currentTimeMillis()
         lastAnyCallbackMs.set(now)
+        firstAnyCallbackMs.compareAndSet(0L, now)
         callbackCounts.getOrPut(address) { AtomicLong(0) }.incrementAndGet()
         lastSeenPerDeviceMs.getOrPut(address) { AtomicLong(0) }.set(now)
     }
@@ -55,7 +65,9 @@ object BleScanHealth {
     /** Legacy "I got a callback but don't have an address handy" entrypoint. Prefer
      *  [recordDeviceCallback]. */
     fun recordCallback() {
-        lastAnyCallbackMs.set(System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        lastAnyCallbackMs.set(now)
+        firstAnyCallbackMs.compareAndSet(0L, now)
     }
 
     /** Called by BleManager whenever its watchdog stops + restarts the scanner so
@@ -80,6 +92,10 @@ object BleScanHealth {
 
     /** 0 until the first callback arrives. */
     fun lastAnyCallbackAt(): Long = lastAnyCallbackMs.get()
+
+    /** Wall-clock of the very first scan callback this process saw — does not refresh.
+     *  0 if the scanner hasn't received anything yet. */
+    fun firstAnyCallbackAt(): Long = firstAnyCallbackMs.get()
 
     fun lastWatchdogRestartAt(): Long = lastWatchdogRestartMs.get()
 

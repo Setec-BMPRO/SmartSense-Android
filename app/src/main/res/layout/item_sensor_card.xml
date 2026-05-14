@@ -192,17 +192,23 @@
                 android:layout_marginTop="@dimen/spacing_xs"
                 tools:text="Updated 5s ago"/>
 
-            <!-- Stale badge — visible when SensorFreshness says we haven't heard from
-                 the sensor for a while. Visibility is controlled in ScanAdapter. -->
+            <!-- Stale badge — same red pill the detail screen shows (bg_offline_pill +
+                 white bold uppercase text) so the OFFLINE affordance reads the same on
+                 the list and detail. Slightly smaller text + tighter padding here vs.
+                 the detail screen because the list card has less room. Visibility is
+                 controlled in ScanAdapter from sensor.isStale. -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/sensor_offline_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:paddingHorizontal="@dimen/spacing_sm"
+                android:paddingVertical="2dp"
+                android:background="@drawable/bg_offline_pill"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textStyle="bold"
-                android:textColor="@color/level_red"
+                android:textColor="@android:color/white"
                 android:textAllCaps="true"
-                android:layout_marginTop="@dimen/spacing_xs"
                 android:visibility="gone"
                 android:text="@string/offline"
                 tools:visibility="visible"/>

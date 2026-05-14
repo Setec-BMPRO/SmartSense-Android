@@ -55,10 +55,15 @@ data class Sensor(
                 return com.smartsense.app.data.quality.SensorFreshness.isStale(reading)
             }
             // Never heard from this address since process start. Don't trust the persisted
-            // timestamp on its own.
-            val anyAt = com.smartsense.app.data.ble.BleScanHealth.lastAnyCallbackAt()
-            if (anyAt == 0L) return false // Scanner hasn't received anything yet — still warming up.
-            val scannerUptimeMs = System.currentTimeMillis() - anyAt
+            // timestamp on its own. Use the **first** any-callback timestamp (not the
+            // *last* — which keeps refreshing while a neighbouring sensor broadcasts, so
+            // the diff stays small forever and the grace never elapses). The right
+            // question is "has the scanner been alive long enough for this specific
+            // sensor to have broadcasted by now?", which is measured from when the
+            // scanner first started hearing anything.
+            val firstAt = com.smartsense.app.data.ble.BleScanHealth.firstAnyCallbackAt()
+            if (firstAt == 0L) return false // Scanner hasn't received anything yet — still warming up.
+            val scannerUptimeMs = System.currentTimeMillis() - firstAt
             val staleThresholdMs = com.smartsense.app.data.quality.SensorFreshness.staleThresholdMs(
                 reading?.reportingIntervalSeconds ?: 0
             )
