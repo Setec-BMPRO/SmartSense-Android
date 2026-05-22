@@ -401,6 +401,26 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingVertical="@dimen/spacing_sm">
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/height"
+                                android:textAppearance="?attr/textAppearanceTitleSmall"
+                                android:textStyle="bold"/>
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/detail_height"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                tools:text="141.3 mm"/>
+                        </LinearLayout>
+
+                        <LinearLayout
                             android:visibility="gone"
                             android:id="@+id/detail_temperature_container"
                             android:layout_width="match_parent"

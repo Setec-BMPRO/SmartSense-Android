@@ -61,6 +61,8 @@
     <string name="update_rate">Update Rate</string>
     <string name="sensor_type">Sensor Type</string>
     <string name="device_address">Device Address</string>
+    <string name="height">Height</string>
+    <string name="height_mm_format">%1$.1f mm</string>
     <string name="format_seconds">%1$.1f seconds</string>
     <string name="protocol_version">Protocol Version</string>
     <string name="software_version">Software Version</string>

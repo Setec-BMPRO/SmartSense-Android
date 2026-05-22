@@ -414,6 +414,9 @@ class SensorDetailFragment : Fragment() {
     private fun FragmentSensorDetailBinding.setupAdditionalInfo(sensor: Sensor) {
         detailSensorType.text = sensor.sensorType?.displayName?.ifEmpty { "--" }
         detailDeviceAddress.text = formatShortAddress(sensor.address)
+        detailHeight.text = sensor.reading?.rawHeightMeters
+            ?.let { getString(R.string.height_mm_format, it * 1000.0) }
+            ?: "--"
         detailTemperature.text = sensor.temperatureFormatted(viewModel.unitSystem)
         detailTankType.text = sensor.tankType
         // Hide temperature for Setec gas sensors (no temperature in protocol)
