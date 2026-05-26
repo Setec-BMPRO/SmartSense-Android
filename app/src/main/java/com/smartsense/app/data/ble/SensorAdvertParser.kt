@@ -284,7 +284,7 @@ object SensorAdvertParser {
      *  Byte 12:  Sensor type (6 = gas sensor)
      *  Bytes 13-14: Gas tank height in mm (big-endian)
      *  Byte 15:  Data serial number
-     *  Byte 16:  Reporting interval (seconds)
+     *  Byte 16:  Bits[3-0] = Reporting Interval (coded), Bits[7-4] = Measurement Quality
      */
     fun parseSetec(data: ByteArray, rssi: Int, bleAddress: String): ParsedSensor? {
         if (data.size < BleConstants.SETEC_PAYLOAD_SIZE) return null
@@ -334,8 +334,13 @@ object SensorAdvertParser {
                 else -> MopekaSensorType.UNKNOWN
             }
 
-            // Reporting interval (Setec spec byte 30 → data[16]) is a coded value, not raw seconds.
-            val reportingIntervalRaw = if (data.size > 16) data[16].toInt() and 0xFF else 0
+            // Byte 16 (Setec spec byte 30) is split into 2 nibbles:
+            //   Bits[3-0] = Reporting Interval (coded, not raw seconds)
+            //   Bits[7-4] = Measurement Quality
+            val byte16 = if (data.size > 16) data[16].toInt() and 0xFF else 0
+            val reportingIntervalRaw = byte16 and 0x0F
+            val measurementQualityRaw = (byte16 shr 4) and 0x0F
+
             val reportingIntervalSeconds = when (reportingIntervalRaw) {
                 0x01 -> 3
                 0x02 -> 10
@@ -349,14 +354,15 @@ object SensorAdvertParser {
                     "height=${heightMm}mm, sync=$syncPressed, " +
                     "proto=$protoMajor.$protoMinor, sw=$swMajor.$swMinor, " +
                     "serial=$dataSerial, " +
-                    "reportingInterval=${reportingIntervalSeconds}s (raw=0x${"%02X".format(reportingIntervalRaw)})")
+                    "reportingInterval=${reportingIntervalSeconds}s (raw=0x${"%02X".format(reportingIntervalRaw)}), " +
+                    "quality=$measurementQualityRaw")
 
             ParsedSensor(
                 reading = SensorReading(
                     rawHeightMeters = heightMeters,
                     batteryVoltage = batteryVoltage,
                     rssi = rssi,
-                    quality = 3, // No quality field in Setec protocol; default to good
+                    quality = measurementQualityRaw, // Upper nibble of byte 16
                     temperatureCelsius = 0f, // No temperature field in Setec protocol
                     firmwareVersion = "$swMajor.$swMinor",
                     deviceMAC = macBytes.joinToString(":") { byte -> "%02X".format(byte) },
