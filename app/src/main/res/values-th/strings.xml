@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">ต้องการลบเซ็นเซอร์ทั้งหมดหรือไม่ จะถูกลบจากอุปกรณ์และคลาวด์</string>
     <string name="cancel">ยกเลิก</string>
     <string name="remove">ลบ</string>
+    <string name="quality_excellent">ดีเยี่ยม</string>
     <string name="quality_good">ดี</string>
-    <string name="quality_fair">ปานกลาง</string>
     <string name="quality_poor">แย่</string>
     <string name="quality_warning_poor">คุณภาพต่ำ: ถังว่างเปล่าหรือเซ็นเซอร์อยู่ผิดตำแหน่ง (แตะเพื่อดูเพิ่มเติม)</string>
-    <string name="quality_warning_fair">คุณภาพปานกลาง: สัญญาณอาจอ่อน ตรวจสอบตำแหน่งเซ็นเซอร์</string>
     <string name="additional_info">ข้อมูลเซ็นเซอร์</string>
     <string name="update_rate">อัตราการอัปเดต</string>
     <string name="sensor_type">ชนิดเซ็นเซอร์</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">เปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
     <string name="app_version_developer">เวอร์ชัน %1$s · โหมดนักพัฒนา</string>
     <string name="developer_mode_disabled">ปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
-    <string name="developer_section">นักพัฒนา</string>
-    <string name="developer_thresholds_caption">เกณฑ์คุณภาพ (ส่วนเบี่ยงเบนมาตรฐาน หน่วยมม.)</string>
-    <string name="developer_threshold_good">ดี ≤</string>
-    <string name="developer_threshold_fair">พอใช้ ≤</string>
-    <string name="developer_buffer_size">ขนาดบัฟเฟอร์ (n)</string>
-    <string name="developer_reset_defaults">รีเซ็ตเป็นค่าเริ่มต้น</string>
+    <string name="debug_raw_data_title">ข้อมูลดิบ</string>
 </resources>

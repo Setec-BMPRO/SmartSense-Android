@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">Yakin ingin menghapus semua sensor? Akan dihapus dari perangkat dan cloud.</string>
     <string name="cancel">Batal</string>
     <string name="remove">Hapus</string>
+    <string name="quality_excellent">Sangat Baik</string>
     <string name="quality_good">Baik</string>
-    <string name="quality_fair">Cukup</string>
     <string name="quality_poor">Buruk</string>
     <string name="quality_warning_poor">Kualitas rendah: tangki kosong atau sensor salah posisi. (Ketuk untuk info)</string>
-    <string name="quality_warning_fair">Kualitas cukup: sinyal mungkin lemah. Periksa posisi sensor.</string>
     <string name="additional_info">Info sensor</string>
     <string name="update_rate">Frekuensi pembaruan</string>
     <string name="sensor_type">Jenis sensor</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">Fitur pengembang sudah aktif</string>
     <string name="app_version_developer">Versi %1$s · Mode pengembang</string>
     <string name="developer_mode_disabled">Fitur pengembang dinonaktifkan</string>
-    <string name="developer_section">Pengembang</string>
-    <string name="developer_thresholds_caption">Ambang kualitas (stddev dalam mm)</string>
-    <string name="developer_threshold_good">Baik ≤</string>
-    <string name="developer_threshold_fair">Cukup ≤</string>
-    <string name="developer_buffer_size">Ukuran buffer (n)</string>
-    <string name="developer_reset_defaults">Reset ke default</string>
+    <string name="debug_raw_data_title">Data Mentah</string>
 </resources>

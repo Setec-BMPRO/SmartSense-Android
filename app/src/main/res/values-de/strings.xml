@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">Alle Sensoren wirklich entfernen? Sie werden vom Gerät und aus der Cloud gelöscht.</string>
     <string name="cancel">Abbrechen</string>
     <string name="remove">Entfernen</string>
+    <string name="quality_excellent">Ausgezeichnet</string>
     <string name="quality_good">Gut</string>
-    <string name="quality_fair">Mittel</string>
     <string name="quality_poor">Schlecht</string>
     <string name="quality_warning_poor">Schlechte Qualität: Tank leer oder Sensor falsch positioniert. (Tippe für mehr Infos)</string>
-    <string name="quality_warning_fair">Mittlere Qualität: Signal ggf. schwach. Sensorposition prüfen.</string>
     <string name="additional_info">Sensorinfo</string>
     <string name="update_rate">Aktualisierungsrate</string>
     <string name="sensor_type">Sensortyp</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">Entwickler-Funktionen sind bereits aktiviert</string>
     <string name="app_version_developer">Version %1$s · Entwicklermodus</string>
     <string name="developer_mode_disabled">Entwickler-Funktionen deaktiviert</string>
-    <string name="developer_section">Entwickler</string>
-    <string name="developer_thresholds_caption">Qualitäts-Schwellen (Standardabw. in mm)</string>
-    <string name="developer_threshold_good">Gut ≤</string>
-    <string name="developer_threshold_fair">Mittel ≤</string>
-    <string name="developer_buffer_size">Puffergröße (n)</string>
-    <string name="developer_reset_defaults">Auf Standardwerte zurücksetzen</string>
+    <string name="debug_raw_data_title">Rohdaten</string>
 </resources>

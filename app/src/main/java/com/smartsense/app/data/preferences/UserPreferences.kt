@@ -5,7 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -45,28 +44,6 @@ class UserPreferences @Inject constructor(
         const val DEFAULT_FIRST_RUN_COMPLETED = false
         const val DEFAULT_DEVELOPER_MODE_ENABLED = false
         const val DEFAULT_PAIR_HINT_DISMISSED = false
-
-        // ---- Quality thresholds (developer-tunable, in millimetres of stddev) ----------
-        // These bake into `ReadingQualityCalculator`'s stddev → 1/2/3 mapping. Initial
-        // values mirror the original hardcoded constants the calculator shipped with:
-        //   stddev ≤ DEFAULT_STDDEV_GOOD_MM  → GOOD (3)
-        //   stddev ≤ DEFAULT_STDDEV_FAIR_MM  → FAIR (2)
-        //   stddev >  DEFAULT_STDDEV_FAIR_MM → POOR (1)
-        // Exposed in Settings under Developer mode so QA can tune against real LPG bottle
-        // measurements without redeploying.
-        const val DEFAULT_STDDEV_GOOD_MM = 5.0f
-        const val DEFAULT_STDDEV_FAIR_MM = 15.0f
-
-        /** Default cap on the rolling-window buffer in [ReadingQualityCalculator]. Matches
-         *  the original hardcoded MAX_SAMPLES so existing users keep the same behaviour
-         *  until they change it. Spec: "store the last 10 readings". */
-        const val DEFAULT_MAX_SAMPLES = 10
-
-        /** Lower bound for [DEFAULT_MAX_SAMPLES] — keep at least the calculator's
-         *  MIN_SAMPLES (3) so deviation-based quality can still trigger. Anything below
-         *  this is clamped at write time so a typo can't lock the buffer below the
-         *  warm-up threshold. */
-        const val MIN_ALLOWED_MAX_SAMPLES = 3
     }
 
     private object Keys {
@@ -83,10 +60,7 @@ class UserPreferences @Inject constructor(
         val IS_SIGNED_IN = booleanPreferencesKey("is_signed_in")
         val USER_EMAIL = stringPreferencesKey("user_email")
         val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
-        val STDDEV_GOOD_MM = floatPreferencesKey("quality_stddev_good_mm")
-        val STDDEV_FAIR_MM = floatPreferencesKey("quality_stddev_fair_mm")
         val PAIR_HINT_DISMISSED = booleanPreferencesKey("scan_pair_hint_dismissed")
-        val MAX_SAMPLES = intPreferencesKey("quality_max_samples")
 
         // Keys for Tank Alert States
         fun lastLevelKey(address: String) = intPreferencesKey("last_level_$address")
@@ -140,24 +114,12 @@ class UserPreferences @Inject constructor(
     /**
      * Hidden developer-mode flag. Toggled on by tapping the app-version label in Settings
      * seven times (Android-style "tap Build number 7 times" gesture). Gates diagnostic
-     * surfaces that would otherwise clutter the end-user UI — currently only the Quality
-     * Buffer card on the sensor detail screen, but anything else internal can hook in
-     * here too.
+     * surfaces that would otherwise clutter the end-user UI — currently the Raw Data
+     * card on the sensor detail screen and the "Load mock data" overflow menu on the
+     * scan screen.
      */
     val developerModeEnabled: Flow<Boolean> = context.dataStore.data.map {
         it[Keys.DEVELOPER_MODE_ENABLED] ?: DEFAULT_DEVELOPER_MODE_ENABLED
-    }
-
-    /** Stddev cutoff (mm) at-or-below which the calculator returns GOOD (q=3). */
-    val stddevGoodMm: Flow<Float> = context.dataStore.data.map {
-        it[Keys.STDDEV_GOOD_MM] ?: DEFAULT_STDDEV_GOOD_MM
-    }
-
-    /** Stddev cutoff (mm) at-or-below which the calculator returns FAIR (q=2). Anything
-     *  above this and the calculator returns POOR (q=1). Must remain ≥ [stddevGoodMm];
-     *  the Settings UI enforces this at write time. */
-    val stddevFairMm: Flow<Float> = context.dataStore.data.map {
-        it[Keys.STDDEV_FAIR_MM] ?: DEFAULT_STDDEV_FAIR_MM
     }
 
     /** User has tapped the X on the scan-screen "Press the pair button..." footer banner.
@@ -166,12 +128,6 @@ class UserPreferences @Inject constructor(
      *  again. */
     val pairHintDismissed: Flow<Boolean> = context.dataStore.data.map {
         it[Keys.PAIR_HINT_DISMISSED] ?: DEFAULT_PAIR_HINT_DISMISSED
-    }
-
-    /** Rolling-window cap (`n`) the calculator uses for its eviction logic. Surfaced on
-     *  the Quality Buffer card as the displayed `n=` value once the buffer fills up. */
-    val maxSamples: Flow<Int> = context.dataStore.data.map {
-        it[Keys.MAX_SAMPLES] ?: DEFAULT_MAX_SAMPLES
     }
 
     // -------------------------------------------------------------------------
@@ -237,27 +193,9 @@ class UserPreferences @Inject constructor(
         context.dataStore.edit { it[Keys.DEVELOPER_MODE_ENABLED] = enabled }
     }
 
-    suspend fun setStddevGoodMm(valueMm: Float) {
-        Timber.tag(TAG).i("Setting StddevGoodMm: $valueMm")
-        context.dataStore.edit { it[Keys.STDDEV_GOOD_MM] = valueMm.coerceAtLeast(0f) }
-    }
-
-    suspend fun setStddevFairMm(valueMm: Float) {
-        Timber.tag(TAG).i("Setting StddevFairMm: $valueMm")
-        context.dataStore.edit { it[Keys.STDDEV_FAIR_MM] = valueMm.coerceAtLeast(0f) }
-    }
-
     suspend fun setPairHintDismissed(dismissed: Boolean) {
         Timber.tag(TAG).i("Setting PairHintDismissed: $dismissed")
         context.dataStore.edit { it[Keys.PAIR_HINT_DISMISSED] = dismissed }
-    }
-
-    suspend fun setMaxSamples(n: Int) {
-        // Coerce to at least MIN_ALLOWED_MAX_SAMPLES so the calculator can still leave
-        // the n<MIN_SAMPLES warm-up branch and compute deviation-based quality.
-        val clamped = n.coerceAtLeast(MIN_ALLOWED_MAX_SAMPLES)
-        Timber.tag(TAG).i("Setting MaxSamples: $n (clamped to $clamped)")
-        context.dataStore.edit { it[Keys.MAX_SAMPLES] = clamped }
     }
 
     suspend fun setUserEmail(email: String?) {

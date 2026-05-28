@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">모든 센서를 제거하시겠습니까? 기기와 클라우드에서 삭제됩니다.</string>
     <string name="cancel">취소</string>
     <string name="remove">제거</string>
+    <string name="quality_excellent">우수</string>
     <string name="quality_good">좋음</string>
-    <string name="quality_fair">보통</string>
     <string name="quality_poor">나쁨</string>
     <string name="quality_warning_poor">품질 낮음: 탱크가 비었거나 센서 위치가 부적절합니다. (자세한 내용을 보려면 탭)</string>
-    <string name="quality_warning_fair">품질 보통: 신호가 약할 수 있습니다. 센서 위치를 확인하세요.</string>
     <string name="additional_info">센서 정보</string>
     <string name="update_rate">업데이트 주기</string>
     <string name="sensor_type">센서 유형</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">개발자 기능이 이미 활성화되어 있습니다</string>
     <string name="app_version_developer">버전 %1$s · 개발자 모드</string>
     <string name="developer_mode_disabled">개발자 기능 비활성화됨</string>
-    <string name="developer_section">개발자</string>
-    <string name="developer_thresholds_caption">품질 임계값 (표준편차, mm)</string>
-    <string name="developer_threshold_good">좋음 ≤</string>
-    <string name="developer_threshold_fair">보통 ≤</string>
-    <string name="developer_buffer_size">버퍼 크기 (n)</string>
-    <string name="developer_reset_defaults">기본값으로 재설정</string>
+    <string name="debug_raw_data_title">원본 데이터</string>
 </resources>

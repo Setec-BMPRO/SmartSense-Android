@@ -50,11 +50,10 @@
     <string name="remove">移除</string>
 
     <!-- Quality -->
+    <string name="quality_excellent">优秀</string>
     <string name="quality_good">良好</string>
-    <string name="quality_fair">一般</string>
     <string name="quality_poor">差</string>
     <string name="quality_warning_poor">质量低:罐为空或传感器位置不正确。(点击了解详情)</string>
-    <string name="quality_warning_fair">质量一般:信号可能较弱。检查传感器位置。</string>
 
     <!-- Additional Info -->
     <string name="additional_info">传感器信息</string>
@@ -271,10 +270,5 @@
     <string name="developer_mode_already_enabled">开发者功能已启用</string>
     <string name="app_version_developer">版本 %1$s · 开发者模式</string>
     <string name="developer_mode_disabled">开发者功能已禁用</string>
-    <string name="developer_section">开发者</string>
-    <string name="developer_thresholds_caption">质量阈值 (标准差，mm)</string>
-    <string name="developer_threshold_good">良好 ≤</string>
-    <string name="developer_threshold_fair">一般 ≤</string>
-    <string name="developer_buffer_size">缓冲区大小 (n)</string>
-    <string name="developer_reset_defaults">恢复默认值</string>
+    <string name="debug_raw_data_title">原始数据</string>
 </resources>

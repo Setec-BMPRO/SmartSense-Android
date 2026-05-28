@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">Voulez-vous supprimer tous les capteurs ? Ils seront supprimés de votre appareil et du cloud.</string>
     <string name="cancel">Annuler</string>
     <string name="remove">Supprimer</string>
+    <string name="quality_excellent">Excellente</string>
     <string name="quality_good">Bonne</string>
-    <string name="quality_fair">Moyenne</string>
     <string name="quality_poor">Mauvaise</string>
     <string name="quality_warning_poor">Qualité faible : réservoir vide ou capteur mal positionné. (Touchez pour plus d\'infos)</string>
-    <string name="quality_warning_fair">Qualité moyenne : signal possiblement faible. Vérifiez la position du capteur.</string>
     <string name="additional_info">Infos du capteur</string>
     <string name="update_rate">Fréquence d\'actualisation</string>
     <string name="sensor_type">Type de capteur</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">Les fonctions développeur sont déjà activées</string>
     <string name="app_version_developer">Version %1$s · Mode développeur</string>
     <string name="developer_mode_disabled">Fonctions développeur désactivées</string>
-    <string name="developer_section">Développeur</string>
-    <string name="developer_thresholds_caption">Seuils de qualité (écart-type en mm)</string>
-    <string name="developer_threshold_good">Bonne ≤</string>
-    <string name="developer_threshold_fair">Moyenne ≤</string>
-    <string name="developer_buffer_size">Taille du tampon (n)</string>
-    <string name="developer_reset_defaults">Restaurer les valeurs par défaut</string>
+    <string name="debug_raw_data_title">Données brutes</string>
 </resources>

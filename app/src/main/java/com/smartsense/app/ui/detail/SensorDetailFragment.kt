@@ -48,12 +48,6 @@ class SensorDetailFragment : Fragment() {
 
     private var timerJob: kotlinx.coroutines.Job? = null
 
-    /** Timestamp of the most recent sample we've already flashed in the Quality buffer table. */
-    private var lastQualityHighlightTs: Long = 0L
-
-    /** In-flight highlight-clear coroutine — cancelled if a newer reading lands first. */
-    private var qualityHighlightJob: kotlinx.coroutines.Job? = null
-
     /** Edge-trigger state for the OfflineEvent logger / auto-recovery hook. `null` means we
      *  haven't observed a tick yet; otherwise it's the last (isStale, cause) we logged. We
      *  only emit on edges so logcat doesn't get one line per second. */
@@ -122,7 +116,6 @@ class SensorDetailFragment : Fragment() {
 
     override fun onStop() {
         viewModel.stopObserveDetailSensor()
-        qualityHighlightJob?.cancel()
         super.onStop()
 
     }
@@ -161,12 +154,12 @@ class SensorDetailFragment : Fragment() {
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .launchIn(viewLifecycleOwner.lifecycleScope)
-        // Quality Buffer card is a developer-only diagnostic — hidden by default in the
+        // Raw Data card is a developer-only diagnostic — hidden by default in the
         // layout, flipped visible only while the Developer Mode flag is on (Settings →
         // tap app version 7 times). Observe the flag live so toggling it in Settings
         // updates an already-open detail screen on the next emission.
         viewModel.developerModeEnabled
-            .onEach { binding.debugQualityCard.isVisible = it }
+            .onEach { binding.debugRawDataCard.isVisible = it }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
             .launchIn(viewLifecycleOwner.lifecycleScope)
     }
@@ -180,13 +173,13 @@ class SensorDetailFragment : Fragment() {
 
         qualityWarning.setOnClickListener { showQualityDialog() }
 
-        debugQualityHeader.setOnClickListener { toggleDebugQuality() }
+        debugRawDataHeader.setOnClickListener { toggleDebugRawData() }
     }
 
-    private fun toggleDebugQuality() = with(binding) {
-        val isVisible = debugQualityContent.isVisible
-        debugQualityContent.visibility = if (isVisible) View.GONE else View.VISIBLE
-        debugQualityArrow.animate()
+    private fun toggleDebugRawData() = with(binding) {
+        val isVisible = debugRawDataContent.isVisible
+        debugRawDataContent.visibility = if (isVisible) View.GONE else View.VISIBLE
+        debugRawDataArrow.animate()
             .rotation(if (isVisible) 180f else 0f)
             .setDuration(200)
             .start()
@@ -240,60 +233,145 @@ class SensorDetailFragment : Fragment() {
         setupStatusRow(sensor)
         setupQualityWarning(sensor.readQuality)
         setupAdditionalInfo(sensor)
-        setupDebugQuality()
+        setupDebugRawData(sensor)
 
     }
 
     /**
-     * Populate the "Debug · Quality buffer" card with the calculator's current rolling
-     * window so the user can correlate displayed quality with the underlying readings
-     * and tune the stddev thresholds.
+     * Populate the developer-mode Raw Data card from the latest BLE advertisement bytes
+     * on [sensor]. Replaces the older Quality Buffer card — quality now comes straight
+     * from the firmware (Setec spec byte 30 high nibble) so the rolling buffer + stddev
+     * approach is dead, and a labeled byte dump is more useful for diagnosing the wire
+     * format. Falls back to a single placeholder row when we don't have raw bytes (no
+     * live broadcast yet, e.g. a freshly-loaded persisted entity).
+     *
+     * Each row is a 3-column horizontal LinearLayout (label / hex / decoded) with
+     * weighted child TextViews so columns line up exactly across all rows — earlier
+     * single-TextView attempts relied on `padEnd` against the monospace font, but
+     * non-letter glyphs like "—" and ":" don't always have the same advance width even
+     * in "monospace" faces, so the columns drifted. Weighted views are immune to that.
      */
-    private fun FragmentSensorDetailBinding.setupDebugQuality() {
-        val snapshot = viewModel.qualitySnapshot()
-        applyQualitySummary(this, snapshot)
-
-        debugQualitySamples.removeAllViews()
-        val now = System.currentTimeMillis()
-        val inflater = LayoutInflater.from(requireContext())
-        snapshot.samples.forEach { sample ->
-            val row = inflater.inflate(R.layout.item_debug_quality_sample, debugQualitySamples, false)
-            // Stash the sample timestamp on the row so qualityAgeTimerJob can refresh the
-            // "age" cell every second without rebuilding the whole table.
-            row.tag = sample.timestampMillis
-            row.findViewById<android.widget.TextView>(R.id.cell_age).text =
-                "${(now - sample.timestampMillis) / 1000}s"
-            row.findViewById<android.widget.TextView>(R.id.cell_height).text =
-                String.format(java.util.Locale.US, "%.1f", sample.heightMeters * 1000.0)
-            row.findViewById<android.widget.TextView>(R.id.cell_deviation).text =
-                String.format(java.util.Locale.US, "%+.2f", sample.deviationFromMeanMeters * 1000.0)
-            debugQualitySamples.addView(row)
+    private fun FragmentSensorDetailBinding.setupDebugRawData(sensor: Sensor) {
+        val rows = parseRawDataRows(sensor)
+        debugRawDataRows.removeAllViews()
+        if (rows.isEmpty()) {
+            debugRawDataRows.addView(buildRawDataRow(
+                RawDataRow(getString(R.string.no_data), "", ""), alt = false
+            ))
+            return
         }
-        // Per-second cell refresh is driven by startLastUpdatedTimer's shared heartbeat
-        // (see refreshQualityBufferLive) — no per-table timer needed here.
+        rows.forEachIndexed { index, row ->
+            debugRawDataRows.addView(buildRawDataRow(row, alt = index % 2 == 1))
+        }
+    }
 
-        // Flash the top row whenever it represents a genuinely new sample. We compare the
-        // newest sample's calculator-recorded timestamp (not the BLE-reading timestamp, which
-        // is overwritten on every ticker tick) against the last one we flashed — so the row
-        // only highlights when an actual broadcast lands, not on idle re-binds.
-        val newestTs = snapshot.samples.firstOrNull()?.timestampMillis ?: 0L
-        if (newestTs > lastQualityHighlightTs && debugQualitySamples.childCount > 0) {
-            lastQualityHighlightTs = newestTs
-            qualityHighlightJob?.cancel()
-            val row = debugQualitySamples.getChildAt(0)
-            val highlight = com.google.android.material.color.MaterialColors.getColor(
-                row,
-                com.google.android.material.R.attr.colorPrimaryContainer,
-                android.graphics.Color.TRANSPARENT
+    /** Single row of the Raw Data table — three weighted TextViews under a horizontal
+     *  LinearLayout. The "alt" flag tints the row's background with
+     *  [com.google.android.material.R.attr.colorSurfaceVariant] for zebra striping. */
+    private fun buildRawDataRow(row: RawDataRow, alt: Boolean): android.view.View {
+        val ctx = requireContext()
+        val rowPaddingV = resources.getDimensionPixelSize(R.dimen.spacing_xs)
+        val rowPaddingH = resources.getDimensionPixelSize(R.dimen.spacing_sm)
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
             )
-            row.setBackgroundColor(highlight)
-            qualityHighlightJob = viewLifecycleOwner.lifecycleScope.launch {
-                delay(1000L)
-                // The row may have been replaced if the table re-populated meanwhile; that's
-                // fine — setting the background on a detached view is harmless.
-                row.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            setPadding(rowPaddingH, rowPaddingV, rowPaddingH, rowPaddingV)
+            if (alt) {
+                // Soft 25%-alpha tint over the card surface for zebra striping. Full
+                // `colorSurfaceVariant` was harsh enough to read as a "real" band rather
+                // than a subtle alternation; the alpha-blend keeps the cue without
+                // grabbing attention.
+                val base = com.google.android.material.color.MaterialColors.getColor(
+                    this, com.google.android.material.R.attr.colorSurfaceVariant
+                )
+                setBackgroundColor(
+                    androidx.core.graphics.ColorUtils.setAlphaComponent(base, 64)
+                )
             }
         }
+        fun cell(text: String, weight: Float): com.google.android.material.textview.MaterialTextView {
+            return com.google.android.material.textview.MaterialTextView(ctx).apply {
+                this.text = text
+                typeface = android.graphics.Typeface.MONOSPACE
+                setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodySmall)
+                layoutParams = android.widget.LinearLayout.LayoutParams(0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, weight)
+            }
+        }
+        // Weights: label gets the most room (3), hex the least (2), decoded matches
+        // label (3). Tweak here if a particular column needs more breathing room.
+        container.addView(cell(row.label, 3f))
+        container.addView(cell(row.hex, 2f))
+        container.addView(cell(row.decoded, 3f))
+        return container
+    }
+
+    /** One labeled row in the Raw Data table: protocol field name, raw hex value, and
+     *  the human-readable decoded value. Any column may be blank (e.g. MAC has no hex
+     *  byte in its own row, just a multi-byte decoded value). */
+    private data class RawDataRow(val label: String, val hex: String, val decoded: String)
+
+    /** Decode the raw manufacturer-data bytes into labeled rows. Returns an empty list
+     *  when there's no broadcast data, which [setupDebugRawData] renders as a single
+     *  "No data" row. */
+    private fun parseRawDataRows(sensor: Sensor): List<RawDataRow> {
+        val data = sensor.rawData ?: return emptyList()
+        val out = mutableListOf<RawDataRow>()
+        fun add(label: String, hex: String, decoded: String) {
+            out += RawDataRow(label, hex, decoded)
+        }
+        val isSetec = sensor.sensorType == MopekaSensorType.SETEC_GAS && data.size >= 17
+        if (isSetec) {
+            // Setec advert byte numbers in the spec doc start at 14 (data type) — the
+            // mfg-data index this code uses is `advert byte − 14`.
+            val b1 = data[1].toInt() and 0xFF
+            val companyId = b1 and 0x7F
+            val syncFlag = (b1 and 0x80) != 0
+            val proto = data[2].toInt() and 0xFF
+            val sw = data[3].toInt() and 0xFF
+            val mac = (4..9).joinToString(":") { i -> "%02X".format(data[i]) }
+            val batteryRaw = data[10].toInt() and 0xFF
+            val batteryV = batteryRaw * 0.01f + 1.22f
+            val sensorTypeRaw = data[12].toInt() and 0xFF
+            val heightMm = ((data[13].toInt() and 0xFF) shl 8) or (data[14].toInt() and 0xFF)
+            val rolling = data[15].toInt() and 0xFF
+            val b16 = data[16].toInt() and 0xFF
+            val intervalRaw = b16 and 0x0F
+            val qualityRaw = (b16 shr 4) and 0x0F
+            val intervalDecoded = when (intervalRaw) {
+                0x1 -> "3 s"; 0x2 -> "10 s"; 0x4 -> "60 s"; 0x5 -> "1 h"; else -> "—"
+            }
+            val qualityDecoded = when (qualityRaw) {
+                0x1 -> "Poor"; 0x2 -> "Good"; 0x3 -> "Excellent"; else -> "—"
+            }
+            add("Data Type", "0x%02X".format(data[0]), "3rd-party sensor")
+            add("Company ID", "0x%02X".format(b1),
+                "0x%02X (sync: %s)".format(companyId, if (syncFlag) "YES" else "NO"))
+            add("Protocol Ver", "0x%02X".format(proto),
+                "%d.%d".format((proto shr 4) and 0xF, proto and 0xF))
+            add("Software Ver", "0x%02X".format(sw),
+                "%d.%d".format((sw shr 4) and 0xF, sw and 0xF))
+            add("MAC", "", mac)
+            add("Battery", "0x%02X".format(batteryRaw), "%.2f V".format(batteryV))
+            add("Reserved", "0x%02X".format(data[11]), "—")
+            add("Sensor Type", "0x%02X".format(sensorTypeRaw),
+                if (sensorTypeRaw == 0x06) "Gas Sensor" else "0x%02X".format(sensorTypeRaw))
+            add("Tank Height", "0x%02X%02X".format(data[13], data[14]), "%d mm".format(heightMm))
+            add("Rolling Counter", "0x%02X".format(rolling), rolling.toString())
+            add("Interval (lo nibble)", "0x%X".format(intervalRaw), intervalDecoded)
+            add("Quality (hi nibble)", "0x%X".format(qualityRaw), qualityDecoded)
+        } else {
+            // Generic fallback: just a hex dump per index. No semantic labels because
+            // CC2540 / NRF52 layouts differ enough that they'd need their own decoders.
+            add("Sensor Type", "", sensor.sensorType?.name ?: "UNKNOWN")
+            add("Length", "", "%d bytes".format(data.size))
+            data.forEachIndexed { i, b ->
+                add("byte[%02d]".format(i), "0x%02X".format(b.toInt() and 0xFF), "")
+            }
+        }
+        return out
     }
 
     private fun FragmentSensorDetailBinding.bindTank(tank: Tank) {
@@ -350,8 +428,8 @@ class SensorDetailFragment : Fragment() {
         // rating yet (no samples / warming up), rendered as "—".
         val effectiveQuality = sensor.readQuality
         detailQuality.text = when (effectiveQuality) {
+            ReadQuality.EXCELLENT -> getString(R.string.quality_excellent)
             ReadQuality.GOOD -> getString(R.string.quality_good)
-            ReadQuality.FAIR -> getString(R.string.quality_fair)
             ReadQuality.POOR -> getString(R.string.quality_poor)
             else -> "—"
         }
@@ -393,11 +471,12 @@ class SensorDetailFragment : Fragment() {
             }
         )
 
-    /** GOOD → green, FAIR → yellow, POOR → red. Matches the level/battery palette. */
+    /** EXCELLENT → green, GOOD → yellow, POOR → red. Matches the level/battery palette
+     *  using the canonical traffic-light coding for a 3-tier rating. */
     private fun qualityColor(quality: ReadQuality): Int = androidx.core.content.ContextCompat.getColor(
         requireContext(), when (quality) {
-            ReadQuality.GOOD -> R.color.level_green
-            ReadQuality.FAIR -> R.color.level_yellow
+            ReadQuality.EXCELLENT -> R.color.level_green
+            ReadQuality.GOOD -> R.color.level_yellow
             ReadQuality.POOR -> R.color.level_red
         }
     )
@@ -476,16 +555,16 @@ class SensorDetailFragment : Fragment() {
         // 1. Cancel the old timer so we don't have duplicates
         timerJob?.cancel()
 
-        // 2. Start the new heartbeat — drives both the toolbar's "Updated X ago" label
-        //    AND the Quality Buffer age column, so the UI ticks from a single coroutine
-        //    instead of two parallel timers.
+        // 2. Start the new heartbeat — currently drives the toolbar's "Updated X ago"
+        //    label and the live re-evaluation of the OFFLINE pill/cause. (The Raw Data
+        //    card rebuilds from `bindSensor` on each new broadcast, so it doesn't need
+        //    its own per-tick refresh — the bytes don't change between broadcasts.)
         timerJob = viewLifecycleOwner.lifecycleScope.launch {
             while (isActive) {
                 delay(1000L) // Wait 1 second
                 val binding = _binding ?: break
                 binding.lastUpdated.text =
                     TimeUtils.getLastUpdatedText(requireContext(), timestamp)
-                refreshQualityBufferLive(binding)
                 // Re-evaluate the toolbar's OFFLINE marker from the current sensor —
                 // staleness only depends on (now - timestamp), so it can flip during a
                 // tick where no new BLE adv has arrived.
@@ -603,82 +682,6 @@ class SensorDetailFragment : Fragment() {
         //    watchdog consumes the flag and clears it.
         if (cause == com.smartsense.app.domain.model.OfflineCause.SCANNER_STALLED) {
             com.smartsense.app.data.ble.BleScanHealth.requestScanRestart()
-        }
-    }
-
-    /**
-     * Refresh only the "n=… mean=… σ=… q=…" line of the Quality Buffer card. The full
-     * row table is rebuilt by [setupDebugQuality] when a new BLE adv lands; this is what
-     * keeps `q` flipping to POOR live, the moment [SensorFreshness] declares staleness,
-     * without waiting for the next adv (which by definition isn't coming if we've gone
-     * silent).
-     */
-    /**
-     * Per-second live refresh of the Quality Buffer card: takes one snapshot of the
-     * calculator and pushes its contents into both the summary line and every cell of
-     * the sample table without rebuilding any views.
-     *
-     * Replaces the older separate refreshQualityBufferAges + refreshQualityBufferSummary.
-     * The old version only refreshed the summary text and the age cells — height /
-     * deviation / row.tag stayed at whatever values [setupDebugQuality] last wrote on the
-     * previous bindSensor. With the Setec rolling-counter dedup keeping the buffer at
-     * `n=1` for long stretches (no new measurement → no new sample added), bindSensor
-     * rebuilds got rare and the table appeared frozen even though the underlying sample
-     * timestamp was being refreshed by the calculator. Doing the cell updates in place
-     * here keeps the displayed data tied to the latest snapshot every second.
-     *
-     * Topology changes (sample count diverges from the table's child count) are handled
-     * by [setupDebugQuality]'s next run — we just skip the in-place update on that tick.
-     */
-    private fun refreshQualityBufferLive(binding: FragmentSensorDetailBinding) {
-        val snapshot = viewModel.qualitySnapshot()
-        applyQualitySummary(binding, snapshot)
-
-        val container = binding.debugQualitySamples
-        val samples = snapshot.samples
-        if (container.childCount != samples.size) return // bindSensor will rebuild.
-
-        val now = System.currentTimeMillis()
-        samples.forEachIndexed { index, sample ->
-            val row = container.getChildAt(index) ?: return@forEachIndexed
-            row.tag = sample.timestampMillis
-            row.findViewById<android.widget.TextView>(R.id.cell_age)
-                ?.text = "${(now - sample.timestampMillis) / 1000}s"
-            row.findViewById<android.widget.TextView>(R.id.cell_height)
-                ?.text = String.format(java.util.Locale.US, "%.1f", sample.heightMeters * 1000.0)
-            row.findViewById<android.widget.TextView>(R.id.cell_deviation)
-                ?.text = String.format(
-                    java.util.Locale.US, "%+.2f", sample.deviationFromMeanMeters * 1000.0
-                )
-        }
-    }
-
-    /**
-     * Render the Quality Buffer summary header from a snapshot. The aggregate stats line
-     * (n / mean / σ / q) sits on its own row in monospace; the Setec rolling counter
-     * lives in a smaller separate row below so adding it doesn't push the main line off
-     * the right edge of narrow screens. Serial row is hidden when the protocol doesn't
-     * expose one (CC2540 / NRF52 broadcasts).
-     */
-    private fun applyQualitySummary(
-        binding: FragmentSensorDetailBinding,
-        snapshot: com.smartsense.app.data.quality.ReadingQualityCalculator.QualitySnapshot
-    ) {
-        val meanMm = snapshot.meanMeters * 1000.0
-        val stdDevMm = snapshot.stdDevMeters * 1000.0
-        // Render q=0 (UNKNOWN_QUALITY — no samples yet or warming up) as "-" to match the
-        // detail-row "—" rather than display a misleading numeric zero.
-        val qDisplay = if (snapshot.quality == 0) "-" else snapshot.quality.toString()
-        binding.debugQualitySummary.text = String.format(
-            java.util.Locale.US,
-            "n=%d  mean=%.1fmm  σ=%.2fmm  q=%s",
-            snapshot.samples.size, meanMm, stdDevMm, qDisplay
-        )
-        val serial = snapshot.latestSerial
-        binding.debugQualitySerial.isVisible = serial != null
-        if (serial != null) {
-            binding.debugQualitySerial.text =
-                String.format(java.util.Locale.US, "serial=%d", serial)
         }
     }
 

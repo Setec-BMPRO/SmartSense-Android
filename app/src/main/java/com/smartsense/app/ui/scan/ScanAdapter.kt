@@ -151,8 +151,8 @@ class SensorItem(
         // GOOD.
         val effectiveQuality = sensor.readQuality
         val (qualityLabel, qualityColorRes) = when (effectiveQuality) {
-            ReadQuality.GOOD -> binding.root.context.getString(R.string.quality_good) to R.color.level_green
-            ReadQuality.FAIR -> binding.root.context.getString(R.string.quality_fair) to R.color.level_yellow
+            ReadQuality.EXCELLENT -> binding.root.context.getString(R.string.quality_excellent) to R.color.level_green
+            ReadQuality.GOOD -> binding.root.context.getString(R.string.quality_good) to R.color.level_yellow
             ReadQuality.POOR -> binding.root.context.getString(R.string.quality_poor) to R.color.level_red
             null -> "—" to null
         }

@@ -50,11 +50,10 @@
     <string name="remove">Eliminar</string>
 
     <!-- Quality -->
+    <string name="quality_excellent">Excelente</string>
     <string name="quality_good">Buena</string>
-    <string name="quality_fair">Regular</string>
     <string name="quality_poor">Mala</string>
     <string name="quality_warning_poor">Calidad baja: tanque vacío o sensor mal colocado. (Toca para más info)</string>
-    <string name="quality_warning_fair">Calidad regular: la señal puede ser débil. Comprueba la posición del sensor.</string>
 
     <!-- Additional Info -->
     <string name="additional_info">Información del sensor</string>
@@ -271,10 +270,5 @@
     <string name="developer_mode_already_enabled">Las funciones de desarrollador ya están activadas</string>
     <string name="app_version_developer">Versión %1$s · Modo desarrollador</string>
     <string name="developer_mode_disabled">Funciones de desarrollador desactivadas</string>
-    <string name="developer_section">Desarrollador</string>
-    <string name="developer_thresholds_caption">Umbrales de calidad (desviación estándar en mm)</string>
-    <string name="developer_threshold_good">Buena ≤</string>
-    <string name="developer_threshold_fair">Regular ≤</string>
-    <string name="developer_buffer_size">Tamaño del búfer (n)</string>
-    <string name="developer_reset_defaults">Restablecer valores por defecto</string>
+    <string name="debug_raw_data_title">Datos sin procesar</string>
 </resources>

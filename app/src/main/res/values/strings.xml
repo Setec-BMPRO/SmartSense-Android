@@ -49,12 +49,15 @@
     <string name="cancel">Cancel</string>
     <string name="remove">Remove</string>
 
-    <!-- Quality -->
+    <!-- Title of the developer-mode Raw Data card on the sensor detail screen. -->
+    <string name="debug_raw_data_title">Raw Data</string>
+
+    <!-- Quality. Mirrors the Setec protocol's three tiers: byte 30 high nibble
+         0x1=POOR, 0x2=GOOD, 0x3=EXCELLENT. No FAIR — the protocol doesn't define one. -->
+    <string name="quality_excellent">Excellent</string>
     <string name="quality_good">Good</string>
-    <string name="quality_fair">Fair</string>
     <string name="quality_poor">Poor</string>
     <string name="quality_warning_poor">Low Quality: Tank empty or sensor is incorrectly positioned. (Tap for more info)</string>
-    <string name="quality_warning_fair">Fair Quality: Signal may be weak. Check sensor position.</string>
 
     <!-- Additional Info -->
     <string name="additional_info">Sensor Info</string>
@@ -286,16 +289,5 @@
     <string name="app_version_developer">Version %1$s · Developer mode</string>
     <!-- Long-press feedback when developer mode is turned back off. -->
     <string name="developer_mode_disabled">Developer features disabled</string>
-
-    <!-- Developer-mode Settings section. Header + two numeric inputs that drive
-         ReadingQualityCalculator's stddev→GOOD/FAIR/POOR thresholds at runtime, plus a
-         reset button so QA can get back to the shipped defaults after a calibration run. -->
-    <string name="developer_section">Developer</string>
-    <string name="developer_thresholds_caption">Quality thresholds (stddev in mm)</string>
-    <string name="developer_threshold_good">Good ≤</string>
-    <string name="developer_threshold_fair">Fair ≤</string>
-    <!-- Rolling-window cap on the Quality Buffer (`n` on the debug card). -->
-    <string name="developer_buffer_size">Buffer size (n)</string>
-    <string name="developer_reset_defaults">Reset to defaults</string>
 
 </resources>

@@ -41,18 +41,8 @@ class Sensor1DetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val userPreferences: UserPreferences,
     private val alertTrigger: TankAlertTrigger,
-    private val calculateTankUseCase: CalculateTankUseCase,
-    private val qualityCalculator: com.smartsense.app.data.quality.ReadingQualityCalculator
+    private val calculateTankUseCase: CalculateTankUseCase
 ) : ViewModel() {
-
-    /**
-     * Diagnostic snapshot of the quality-buffer for this sensor. The detail view's
-     * Debug section pulls this every time the bound sensor changes so the user can
-     * see the exact samples (and their deviation from the mean) that drove the
-     * currently-displayed quality rating.
-     */
-    fun qualitySnapshot(): com.smartsense.app.data.quality.ReadingQualityCalculator.QualitySnapshot =
-        qualityCalculator.snapshot(sensorAddress)
 
     val sensorAddress: String =
         savedStateHandle[EXTRA_SENSOR_ADDRESS] ?: ""
@@ -62,8 +52,8 @@ class Sensor1DetailViewModel @Inject constructor(
     }
 
     /** Live flag for the hidden Developer Mode toggle (Settings → tap version 7×).
-     *  Drives the Quality Buffer card's visibility on the detail screen. Eagerly
-     *  collected so the first render after [bindSensor] already has the right value. */
+     *  Drives the Raw Data card's visibility on the detail screen. Eagerly collected
+     *  so the first render after [bindSensor] already has the right value. */
     val developerModeEnabled: StateFlow<Boolean> = userPreferences.developerModeEnabled
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 

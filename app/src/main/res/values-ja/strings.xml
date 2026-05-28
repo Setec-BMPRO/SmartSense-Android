@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">すべてのセンサーを削除しますか? デバイスとクラウドから削除されます。</string>
     <string name="cancel">キャンセル</string>
     <string name="remove">削除</string>
+    <string name="quality_excellent">優秀</string>
     <string name="quality_good">良好</string>
-    <string name="quality_fair">普通</string>
     <string name="quality_poor">不良</string>
     <string name="quality_warning_poor">品質低下: タンクが空かセンサーの位置が不適切です。(タップで詳細)</string>
-    <string name="quality_warning_fair">品質普通: 信号が弱い可能性があります。センサーの位置を確認してください。</string>
     <string name="additional_info">センサー情報</string>
     <string name="update_rate">更新間隔</string>
     <string name="sensor_type">センサータイプ</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">デベロッパー機能はすでに有効です</string>
     <string name="app_version_developer">バージョン %1$s · デベロッパーモード</string>
     <string name="developer_mode_disabled">デベロッパー機能を無効にしました</string>
-    <string name="developer_section">デベロッパー</string>
-    <string name="developer_thresholds_caption">品質しきい値 (標準偏差・mm)</string>
-    <string name="developer_threshold_good">良好 ≤</string>
-    <string name="developer_threshold_fair">普通 ≤</string>
-    <string name="developer_buffer_size">バッファサイズ (n)</string>
-    <string name="developer_reset_defaults">デフォルトにリセット</string>
+    <string name="debug_raw_data_title">生データ</string>
 </resources>

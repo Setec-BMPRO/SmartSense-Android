@@ -466,14 +466,17 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Debug · Quality buffer
-                 Shows the rolling window the ReadingQualityCalculator uses (mean, stddev,
-                 sample list with per-sample deviation). Gated by the hidden Developer
-                 Mode flag (Settings → tap version 7×) — `android:visibility="gone"` is the
-                 default; SensorDetailFragment.observeViewModel flips it to VISIBLE while
-                 the flag is on. -->
+            <!-- Debug · Raw Data
+                 Renders the latest BLE advertisement bytes alongside their protocol-spec
+                 labels (Setec byte 14-30 → Data Type / Company ID / Protocol Version / …)
+                 so a developer can verify exactly what the firmware is broadcasting. Gated
+                 by the hidden Developer Mode flag (Settings → tap version 7×) — visibility
+                 is flipped by SensorDetailFragment.observeViewModel. Replaces the older
+                 Quality Buffer card, which derived its own quality from height stddev; the
+                 firmware now reports quality directly so the rolling buffer + stats view
+                 is no longer useful. -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/debug_quality_card"
+                android:id="@+id/debug_raw_data_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_md"
@@ -491,7 +494,7 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/debug_quality_header"
+                        android:id="@+id/debug_raw_data_header"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
@@ -505,22 +508,22 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Quality Buffer"
+                            android:text="@string/debug_raw_data_title"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold"/>
 
                         <ImageView
-                            android:id="@+id/debug_quality_arrow"
+                            android:id="@+id/debug_raw_data_arrow"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:rotation="180"
                             android:src="@drawable/ic_expand_less"
                             app:tint="?attr/colorOnSurfaceVariant"
-                            android:contentDescription="Toggle debug section"/>
+                            android:contentDescription="@string/debug_raw_data_title"/>
                     </LinearLayout>
 
                     <LinearLayout
-                        android:id="@+id/debug_quality_content"
+                        android:id="@+id/debug_raw_data_content"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -529,78 +532,10 @@
                         android:visibility="gone"
                         tools:visibility="visible">
 
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/debug_quality_summary"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="monospace"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:paddingTop="@dimen/spacing_sm"
-                            tools:text="n=10  mean=141.3mm  σ=2.3mm  q=3"/>
-
-                        <!-- Setec rolling counter — separate line so it doesn't push the
-                             aggregate stats above onto two rows on narrow screens. Hidden
-                             when the protocol doesn't expose a serial (CC2540 / NRF52). -->
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/debug_quality_serial"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="monospace"
-                            android:textAppearance="?attr/textAppearanceLabelSmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:paddingBottom="@dimen/spacing_sm"
-                            android:visibility="gone"
-                            tools:visibility="visible"
-                            tools:text="serial=42"/>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="?attr/colorOutlineVariant"
-                            android:layout_marginTop="@dimen/spacing_xs"
-                            android:layout_marginBottom="@dimen/spacing_sm"/>
-
-                        <!-- Header row -->
+                        <!-- Rows added programmatically in SensorDetailFragment.setupDebugRawData
+                             so each row can carry its own background (zebra striping). -->
                         <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingBottom="@dimen/spacing_xs">
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:fontFamily="monospace"
-                                android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textAllCaps="true"
-                                android:text="age"/>
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="2"
-                                android:fontFamily="monospace"
-                                android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textAllCaps="true"
-                                android:gravity="end"
-                                android:text="height (mm)"/>
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="2"
-                                android:fontFamily="monospace"
-                                android:textAppearance="?attr/textAppearanceLabelSmall"
-                                android:textColor="?attr/colorOnSurfaceVariant"
-                                android:textAllCaps="true"
-                                android:gravity="end"
-                                android:text="Δ from mean (mm)"/>
-                        </LinearLayout>
-
-                        <!-- Populated programmatically from the snapshot. -->
-                        <LinearLayout
-                            android:id="@+id/debug_quality_samples"
+                            android:id="@+id/debug_raw_data_rows"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"/>

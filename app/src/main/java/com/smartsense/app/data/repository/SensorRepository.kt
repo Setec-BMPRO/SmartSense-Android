@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -57,7 +58,6 @@ class SensorRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val userPreferences: UserPreferences,
-    private val qualityCalculator: com.smartsense.app.data.quality.ReadingQualityCalculator,
     appScope: ApplicationScope.AppScope
 ) {
     companion object {
@@ -65,6 +65,15 @@ class SensorRepository @Inject constructor(
     }
 
     private val appCoroutineScope: CoroutineScope = appScope.scope
+
+    init {
+        // Cold-start safety net: re-inject mock liveReadings from any persisted mock
+        // entities. Without this, the in-memory ScannedSensor map would stay empty
+        // after a process restart and the dev-mode Raw Data card would render "No
+        // data" for a mock that the DB still claims is registered. See
+        // [rehydrateMockLiveReadings] for the full rationale.
+        appCoroutineScope.launch { rehydrateMockLiveReadings() }
+    }
 
     // --- State Management ---
     private val _rawReadings = kotlinx.coroutines.flow.MutableSharedFlow<ScannedSensor>(extraBufferCapacity = 1)
@@ -112,35 +121,9 @@ class SensorRepository @Inject constructor(
     fun observeRawReadings(): Flow<ScannedSensor> = _rawReadings
 
 
-    /**
-     * Update [reading.quality] in place using [ReadingQualityCalculator] so all downstream
-     * mappers (list, detail, persist) see the derived quality instead of the broadcast byte.
-     *
-     * We also pass the broadcast's reporting-interval (G300 reports it; CC2540/NRF52 don't
-     * and will send 0). The calculator caches the most recent non-zero value per address and
-     * uses it to size the per-sensor sliding-window eviction.
-     *
-     * The Setec/Sigmawit "data serial number" (byte 15) is forwarded so the calculator can
-     * dedupe re-broadcasts — a sensor sitting on the same measurement for multiple adverts
-     * shouldn't pad the rolling buffer with copies of the same height (that would make
-     * stddev=0 and falsely report GOOD quality).
-     */
-    private fun applyDerivedQuality(scanned: ScannedSensor): ScannedSensor {
-        val reading = scanned.parsed?.reading ?: return scanned
-        val q = qualityCalculator.addSample(
-            address = scanned.address,
-            heightMeters = reading.rawHeightMeters,
-            reportingIntervalSeconds = reading.reportingIntervalSeconds,
-            dataSerial = reading.dataSerial
-        )
-        reading.quality = q
-        return scanned
-    }
-
     private fun cacheReading(scanned: ScannedSensor) {
-        val enriched = applyDerivedQuality(scanned)
-        liveReadings.update { it + (enriched.address to enriched) }
-        _rawReadings.tryEmit(enriched)
+        liveReadings.update { it + (scanned.address to scanned) }
+        _rawReadings.tryEmit(scanned)
     }
 
     // --------------------------------------
@@ -311,46 +294,62 @@ class SensorRepository @Inject constructor(
         }
     }
 
-    private val mockAddresses = listOf(
-        "MO:CK:00:00:00:01",
-        "MO:CK:00:00:00:02",
-        "MO:CK:00:00:00:03",
-        "MO:CK:00:00:00:04",
-        "MO:CK:G3:00:00:01"
+    /** Mock sensor definition shared between [seedMockData] (initial load) and
+     *  [rehydrateMockLiveReadings] (re-injects in-memory state on app start). */
+    private data class MockDefinition(
+        val address: String,
+        val name: String,
+        val tankType: com.smartsense.app.domain.model.TankType,
+        val rawHeightMeters: Double,
+        val batteryVoltage: Float,
+        val rssi: Int,
+        val quality: Int,
+        val temperatureCelsius: Float,
+        val sensorType: com.smartsense.app.domain.model.MopekaSensorType,
+        // Setec/Sigmawit-only live fields. Empty/0 for non-Setec mocks.
+        val protocolVersion: String = "",
+        val firmwareVersion: String = "",
+        val sensorTypeCode: Int = 0,
+        val reportingIntervalSeconds: Int = 0,
+        /** Synthetic 17-byte Setec manufacturer-data payload for the developer-mode
+         *  Raw Data card. `null` for non-Setec mocks (CC2540 / NRF52 don't yet have a
+         *  hand-crafted decoder in the dev card). */
+        val rawData: ByteArray? = null
     )
 
-    suspend fun seedMockData() {
-        Timber.i("💾 Repository: Seeding mock sensor data")
-        val now = System.currentTimeMillis()
-        data class Mock(
-            val address: String,
-            val name: String,
-            val tankType: com.smartsense.app.domain.model.TankType,
-            val rawHeightMeters: Double,
-            val batteryVoltage: Float,
-            val rssi: Int,
-            val quality: Int,
-            val temperatureCelsius: Float,
-            val sensorType: com.smartsense.app.domain.model.MopekaSensorType,
-            // Setec/Sigmawit-only live fields. Empty/0 for non-Setec mocks.
-            val protocolVersion: String = "",
-            val firmwareVersion: String = "",
-            val sensorTypeCode: Int = 0,
-            val reportingIntervalSeconds: Int = 0
+    private val mockDefinitions: List<MockDefinition> = run {
+        val addresses = listOf(
+            "MO:CK:00:00:00:01",
+            "MO:CK:00:00:00:02",
+            "MO:CK:00:00:00:03",
+            "MO:CK:00:00:00:04",
+            "MO:CK:G3:00:00:01"
         )
-        val mocks = listOf(
-            Mock(mockAddresses[0], "Kitchen LPG", com.smartsense.app.domain.model.TankType.KG_9,
+        listOf(
+            MockDefinition(addresses[0], "Kitchen LPG", com.smartsense.app.domain.model.TankType.KG_9,
                 0.308, 3.15f, -52, 3, 21.5f, com.smartsense.app.domain.model.MopekaSensorType.PRO),
-            Mock(mockAddresses[1], "BBQ Tank", com.smartsense.app.domain.model.TankType.KG_4,
+            MockDefinition(addresses[1], "BBQ Tank", com.smartsense.app.domain.model.TankType.KG_4,
                 0.117, 2.85f, -64, 2, 26.0f, com.smartsense.app.domain.model.MopekaSensorType.PRO),
-            Mock(mockAddresses[2], "Caravan Spare", com.smartsense.app.domain.model.TankType.LB_20,
+            MockDefinition(addresses[2], "Caravan Spare", com.smartsense.app.domain.model.TankType.LB_20,
                 0.063, 2.60f, -72, 2, 19.0f, com.smartsense.app.domain.model.MopekaSensorType.CC2540_STD),
-            Mock(mockAddresses[3], "Garage Heater", com.smartsense.app.domain.model.TankType.LB_40,
+            MockDefinition(addresses[3], "Garage Heater", com.smartsense.app.domain.model.TankType.LB_40,
                 0.025, 2.40f, -80, 1, 18.0f, com.smartsense.app.domain.model.MopekaSensorType.CC2540_XL),
-            // G300 demo: mirrors a real Sigmawit G300 broadcast
-            // (proto 0.1, sw 1.0, sensor type 6 = gas, reporting 3 s, fresh CR2450 ≈ 2.72 V)
-            Mock(
-                address = mockAddresses[4],
+            // G300 demo: mirrors a real Sigmawit G300 broadcast (proto 0.1, sw 1.0,
+            // sensor type 6 = gas, reporting 3 s, fresh CR2450 ≈ 2.72 V) and includes a
+            // hand-crafted Setec advert payload so the Raw Data card has bytes to decode:
+            //   [0]  0xFF  Data type (3rd-party sensor)
+            //   [1]  0x01  Company ID = Sigmawit (sync flag bit 7 = 0)
+            //   [2]  0x01  Protocol 0.1
+            //   [3]  0x10  Software 1.0
+            //   [4-9]     Fake MAC F4:CE:36:00:00:01
+            //   [10] 0x96  Battery raw → 2.72 V (0x96*0.01 + 1.22)
+            //   [11] 0x00  Reserved
+            //   [12] 0x06  Sensor type = Gas
+            //   [13-14] 0x008D  Tank height 141 mm
+            //   [15] 0x42  Rolling counter (arbitrary, just so it isn't 0)
+            //   [16] 0x31  Low nibble 0x1 = 3 s interval, high nibble 0x3 = Excellent
+            MockDefinition(
+                address = addresses[4],
                 name = "G300 Demo",
                 tankType = com.smartsense.app.domain.model.TankType.KG_4,
                 rawHeightMeters = 0.141, // ~60% of a 4 kg tank (235 mm)
@@ -362,11 +361,88 @@ class SensorRepository @Inject constructor(
                 protocolVersion = "0.1",
                 firmwareVersion = "1.0",
                 sensorTypeCode = com.smartsense.app.data.ble.BleConstants.SensorType.GAS_SENSOR,
-                reportingIntervalSeconds = 3
+                reportingIntervalSeconds = 3,
+                rawData = byteArrayOf(
+                    0xFF.toByte(), 0x01, 0x01, 0x10,
+                    0xF4.toByte(), 0xCE.toByte(), 0x36, 0x00, 0x00, 0x01,
+                    0x96.toByte(), 0x00, 0x06, 0x00, 0x8D.toByte(), 0x42, 0x31
+                )
             )
         )
+    }
 
-        for (mock in mocks) {
+    /** Convenience accessor for code paths that still want just the list of mock
+     *  addresses (e.g. [unloadMockData]). */
+    private val mockAddresses: List<String>
+        get() = mockDefinitions.map { it.address }
+
+    /**
+     * Build the live-broadcast `ScannedSensor` for a given mock definition and stash
+     * it in [liveReadings]. Used by both the on-tap seed path ([seedMockData]) and the
+     * app-start rehydrate path ([rehydrateMockLiveReadings]) so the in-memory state
+     * stays consistent across app restarts. Only Setec mocks carry rawData today;
+     * legacy CC2540 / NRF52 mocks live in the DB-only branch.
+     */
+    private fun injectMockLiveReading(mock: MockDefinition, now: Long) {
+        if (mock.sensorType != com.smartsense.app.domain.model.MopekaSensorType.SETEC_GAS) return
+        val reading = com.smartsense.app.domain.model.SensorReading(
+            rawHeightMeters = mock.rawHeightMeters,
+            batteryVoltage = mock.batteryVoltage,
+            rssi = mock.rssi,
+            quality = mock.quality,
+            temperatureCelsius = mock.temperatureCelsius,
+            firmwareVersion = mock.firmwareVersion,
+            timestampMillis = now,
+            deviceMAC = mock.address,
+            protocolVersion = mock.protocolVersion,
+            sensorTypeCode = mock.sensorTypeCode,
+            reportingIntervalSeconds = mock.reportingIntervalSeconds
+        )
+        val parsed = com.smartsense.app.data.ble.ParsedSensor(
+            reading = reading,
+            sensorType = mock.sensorType,
+            syncPressed = false,
+            rawData = mock.rawData
+        )
+        liveReadings.update {
+            it + (mock.address to com.smartsense.app.data.ble.ScannedSensor(
+                address = mock.address,
+                name = mock.name,
+                rssi = mock.rssi,
+                parsed = parsed
+            ))
+        }
+    }
+
+    /**
+     * On every process start, re-inject any mock entities still in the DB into
+     * [liveReadings]. The map is in-memory only, so a cold start wipes whatever
+     * [seedMockData] previously put there; without this rehydrate, the dev-mode Raw
+     * Data card would render "No data" for a mock G300 that the DB still claims is
+     * registered. Also refreshes the reading's timestamp to "now" so the freshness
+     * check (`Sensor.isStale`) doesn't immediately flip every mock to OFFLINE.
+     *
+     * Hooked from the repository's `init` block on a background coroutine — no
+     * suspend caller needed.
+     */
+    private suspend fun rehydrateMockLiveReadings() {
+        val mocksInDb = sensorDao.getAllRegisteredSensors()
+            .first()
+            .map { it.address }
+            .filter { addr -> mockAddresses.any { it == addr } }
+            .toSet()
+        if (mocksInDb.isEmpty()) return
+        val now = System.currentTimeMillis()
+        mockDefinitions
+            .filter { it.address in mocksInDb }
+            .forEach { injectMockLiveReading(it, now) }
+        Timber.tag(TAG).i("Rehydrated ${mocksInDb.size} mock liveReadings on start")
+    }
+
+    suspend fun seedMockData() {
+        Timber.i("💾 Repository: Seeding mock sensor data")
+        val now = System.currentTimeMillis()
+        for (mock in mockDefinitions) {
             val sensor = SensorEntity(
                 address = mock.address,
                 name = mock.name,
@@ -391,42 +467,9 @@ class SensorRepository @Inject constructor(
             )
             sensorDao.insertSensor(sensor)
             sensorDao.insertTank(tank)
-
-            // Inject a fake "live" ScannedSensor so the detail view can render the
-            // Setec-only fields (protocol version, software version, reporting
-            // interval) which only flow through the live-reading path. Persisted
-            // SensorEntity rows don't carry those.
-            if (mock.sensorType == com.smartsense.app.domain.model.MopekaSensorType.SETEC_GAS) {
-                val reading = com.smartsense.app.domain.model.SensorReading(
-                    rawHeightMeters = mock.rawHeightMeters,
-                    batteryVoltage = mock.batteryVoltage,
-                    rssi = mock.rssi,
-                    quality = mock.quality,
-                    temperatureCelsius = mock.temperatureCelsius,
-                    firmwareVersion = mock.firmwareVersion,
-                    timestampMillis = now,
-                    deviceMAC = mock.address,
-                    protocolVersion = mock.protocolVersion,
-                    sensorTypeCode = mock.sensorTypeCode,
-                    reportingIntervalSeconds = mock.reportingIntervalSeconds
-                )
-                val parsed = com.smartsense.app.data.ble.ParsedSensor(
-                    reading = reading,
-                    sensorType = mock.sensorType,
-                    syncPressed = false,
-                    rawData = null
-                )
-                liveReadings.update {
-                    it + (mock.address to com.smartsense.app.data.ble.ScannedSensor(
-                        address = mock.address,
-                        name = mock.name,
-                        rssi = mock.rssi,
-                        parsed = parsed
-                    ))
-                }
-            }
+            injectMockLiveReading(mock, now)
         }
-        Timber.d("✅ Seeded ${mocks.size} mock sensors")
+        Timber.d("✅ Seeded ${mockDefinitions.size} mock sensors")
     }
 
     suspend fun unloadMockData() {
@@ -445,9 +488,6 @@ class SensorRepository @Inject constructor(
         try {
             sensorDao.markSensorForDeletion(address)
             sensorDao.markTankForDeletion(address)
-            // Reset the deviation-quality window so a future re-pair doesn't inherit
-            // stale samples from this sensor's last lifetime.
-            qualityCalculator.clear(address)
             Timber.d("✅ Local DB updated successfully for $address")
         } catch (e: Exception) {
             Timber.e(e, "❌ Failed to update local status for $address")
@@ -762,24 +802,26 @@ class SensorRepository @Inject constructor(
                 }
                 Timber.d("Final tankType string: ${tank.type}")
                 displayType
-            } else null
+            } else null,
+            // Raw manufacturer-data bytes for the developer-mode Raw Data card. Stays
+            // null for persisted-entity mappings (mapFromPersistedReading) — only live
+            // broadcasts carry the bytes.
+            rawData = scanned.parsed?.rawData
         )
     }
 
     /**
-     * Map the calculator's integer quality to the UI enum. `null` means **unknown** —
-     * either we have no samples yet for this sensor or the buffer is below
-     * [ReadingQualityCalculator.MIN_SAMPLES] (`UNKNOWN_QUALITY = 0`). Surfaced as a `?`
-     * here rather than a synthetic enum value because the UI already handles `null` as
-     * "—" in `setupStatusRow`, and that path needs to be distinct from the broadcast
-     * branches (GOOD/FAIR/POOR all warrant a colour and a label; UNKNOWN warrants
-     * neither).
+     * Map the firmware-reported integer quality (Setec spec byte 30 high nibble, or the
+     * legacy 2-bit quality field for CC2540 / NRF52) to the UI enum. Values match the
+     * Setec protocol's three tiers: `1=POOR, 2=GOOD, 3=EXCELLENT`. `null` means unknown —
+     * either `0` (UNKNOWN_QUALITY) or any value outside the documented range — and
+     * renders as "—" in `setupStatusRow` / the list card.
      */
     private fun Int?.toReadQuality(): ReadQuality? = when (this) {
-        3 -> ReadQuality.GOOD
-        2 -> ReadQuality.FAIR
+        3 -> ReadQuality.EXCELLENT
+        2 -> ReadQuality.GOOD
         1 -> ReadQuality.POOR
-        else -> null // 0 = UNKNOWN_QUALITY, or any unexpected value
+        else -> null
     }
 
 

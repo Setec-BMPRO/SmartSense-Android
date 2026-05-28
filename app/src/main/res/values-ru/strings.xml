@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">Удалить все датчики? Они будут удалены с устройства и из облака.</string>
     <string name="cancel">Отмена</string>
     <string name="remove">Удалить</string>
+    <string name="quality_excellent">Отличное</string>
     <string name="quality_good">Хорошее</string>
-    <string name="quality_fair">Среднее</string>
     <string name="quality_poor">Плохое</string>
     <string name="quality_warning_poor">Низкое качество: бак пуст или датчик неправильно установлен. (Нажмите для деталей)</string>
-    <string name="quality_warning_fair">Среднее качество: возможно слабый сигнал. Проверьте установку датчика.</string>
     <string name="additional_info">О датчике</string>
     <string name="update_rate">Частота обновления</string>
     <string name="sensor_type">Тип датчика</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">Функции разработчика уже включены</string>
     <string name="app_version_developer">Версия %1$s · Режим разработчика</string>
     <string name="developer_mode_disabled">Функции разработчика отключены</string>
-    <string name="developer_section">Разработчик</string>
-    <string name="developer_thresholds_caption">Пороги качества (СКО в мм)</string>
-    <string name="developer_threshold_good">Хорошее ≤</string>
-    <string name="developer_threshold_fair">Среднее ≤</string>
-    <string name="developer_buffer_size">Размер буфера (n)</string>
-    <string name="developer_reset_defaults">Сбросить к настройкам по умолчанию</string>
+    <string name="debug_raw_data_title">Сырые данные</string>
 </resources>

@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">هل أنت متأكد من إزالة جميع المستشعرات؟ ستُحذف من جهازك ومن السحابة.</string>
     <string name="cancel">إلغاء</string>
     <string name="remove">إزالة</string>
+    <string name="quality_excellent">ممتازة</string>
     <string name="quality_good">جيدة</string>
-    <string name="quality_fair">متوسطة</string>
     <string name="quality_poor">ضعيفة</string>
     <string name="quality_warning_poor">جودة منخفضة: الخزان فارغ أو المستشعر في موضع غير صحيح. (اضغط للمزيد)</string>
-    <string name="quality_warning_fair">جودة متوسطة: قد تكون الإشارة ضعيفة. تحقق من موضع المستشعر.</string>
     <string name="additional_info">معلومات المستشعر</string>
     <string name="update_rate">معدل التحديث</string>
     <string name="sensor_type">نوع المستشعر</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">ميزات المطوّر مفعّلة بالفعل</string>
     <string name="app_version_developer">الإصدار %1$s · وضع المطوّر</string>
     <string name="developer_mode_disabled">تم إيقاف ميزات المطوّر</string>
-    <string name="developer_section">المطوّر</string>
-    <string name="developer_thresholds_caption">حدود الجودة (الانحراف المعياري بالملم)</string>
-    <string name="developer_threshold_good">جيد ≤</string>
-    <string name="developer_threshold_fair">متوسط ≤</string>
-    <string name="developer_buffer_size">حجم المخزن المؤقت (n)</string>
-    <string name="developer_reset_defaults">إعادة التعيين إلى الافتراضي</string>
+    <string name="debug_raw_data_title">البيانات الأولية</string>
 </resources>

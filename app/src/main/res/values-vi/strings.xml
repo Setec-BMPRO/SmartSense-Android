@@ -50,11 +50,10 @@
     <string name="remove">Xóa</string>
 
     <!-- Quality -->
+    <string name="quality_excellent">Xuất sắc</string>
     <string name="quality_good">Tốt</string>
-    <string name="quality_fair">Trung bình</string>
     <string name="quality_poor">Kém</string>
     <string name="quality_warning_poor">Chất lượng thấp: Bình trống hoặc cảm biến đặt sai vị trí. (Nhấn để biết thêm)</string>
-    <string name="quality_warning_fair">Chất lượng trung bình: Tín hiệu có thể yếu. Kiểm tra vị trí cảm biến.</string>
 
     <!-- Additional Info -->
     <string name="additional_info">Thông tin cảm biến</string>
@@ -271,10 +270,5 @@
     <string name="developer_mode_already_enabled">Tính năng nhà phát triển đã được bật</string>
     <string name="app_version_developer">Phiên bản %1$s · Chế độ nhà phát triển</string>
     <string name="developer_mode_disabled">Đã tắt tính năng nhà phát triển</string>
-    <string name="developer_section">Nhà phát triển</string>
-    <string name="developer_thresholds_caption">Ngưỡng chất lượng (độ lệch chuẩn, mm)</string>
-    <string name="developer_threshold_good">Tốt ≤</string>
-    <string name="developer_threshold_fair">Khá ≤</string>
-    <string name="developer_buffer_size">Kích thước bộ đệm (n)</string>
-    <string name="developer_reset_defaults">Khôi phục mặc định</string>
+    <string name="debug_raw_data_title">Dữ liệu thô</string>
 </resources>

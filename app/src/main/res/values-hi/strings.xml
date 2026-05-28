@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">क्या आप सभी सेंसर हटाना चाहते हैं? वे डिवाइस और क्लाउड से हट जाएँगे।</string>
     <string name="cancel">रद्द करें</string>
     <string name="remove">हटाएँ</string>
+    <string name="quality_excellent">बहुत अच्छा</string>
     <string name="quality_good">अच्छा</string>
-    <string name="quality_fair">ठीक-ठाक</string>
     <string name="quality_poor">ख़राब</string>
     <string name="quality_warning_poor">गुणवत्ता कम: टैंक खाली है या सेंसर ग़लत स्थान पर है। (और जानकारी के लिए टैप करें)</string>
-    <string name="quality_warning_fair">गुणवत्ता ठीक-ठाक: सिग्नल कमज़ोर हो सकता है। सेंसर की स्थिति जाँचें।</string>
     <string name="additional_info">सेंसर जानकारी</string>
     <string name="update_rate">अपडेट दर</string>
     <string name="sensor_type">सेंसर प्रकार</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">डेवलपर सुविधाएँ पहले से सक्षम हैं</string>
     <string name="app_version_developer">संस्करण %1$s · डेवलपर मोड</string>
     <string name="developer_mode_disabled">डेवलपर सुविधाएँ बंद कर दी गईं</string>
-    <string name="developer_section">डेवलपर</string>
-    <string name="developer_thresholds_caption">क्वालिटी थ्रेशोल्ड (मिमी में स्टैंडर्ड डेविएशन)</string>
-    <string name="developer_threshold_good">अच्छी ≤</string>
-    <string name="developer_threshold_fair">ठीक ≤</string>
-    <string name="developer_buffer_size">बफ़र आकार (n)</string>
-    <string name="developer_reset_defaults">डिफ़ॉल्ट पर रीसेट करें</string>
+    <string name="debug_raw_data_title">रॉ डेटा</string>
 </resources>

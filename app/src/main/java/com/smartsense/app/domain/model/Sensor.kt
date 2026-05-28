@@ -14,7 +14,16 @@ data class Sensor(
     val readQuality: ReadQuality? =null,
     val tankType: String?=null,
     val orientation: TankOrientation? = null,
-    val syncStatus: SyncStatus?=null
+    val syncStatus: SyncStatus?=null,
+    /** Raw manufacturer-data bytes from the most recent BLE advertisement, kept around
+     *  so the developer-mode Raw Data card can decode them against the protocol spec.
+     *  `null` for sensors mapped from persisted DB entities (no live broadcast).
+     *
+     *  Note: ByteArray uses reference equality, which is exactly what we want for the
+     *  `distinctUntilChanged` chain — two Sensors built from the same `ScannedSensor`
+     *  share the same array reference and compare equal; a new broadcast produces a
+     *  fresh array reference and trips the equality, re-emitting downstream. */
+    val rawData: ByteArray? = null
 
     ){
 

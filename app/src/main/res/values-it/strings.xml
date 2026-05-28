@@ -37,11 +37,10 @@
     <string name="remove_all_sensors_confirm">Rimuovere tutti i sensori? Verranno cancellati dal dispositivo e dal cloud.</string>
     <string name="cancel">Annulla</string>
     <string name="remove">Rimuovi</string>
+    <string name="quality_excellent">Eccellente</string>
     <string name="quality_good">Buona</string>
-    <string name="quality_fair">Discreta</string>
     <string name="quality_poor">Scarsa</string>
     <string name="quality_warning_poor">Qualità bassa: serbatoio vuoto o sensore mal posizionato. (Tocca per info)</string>
-    <string name="quality_warning_fair">Qualità discreta: segnale potenzialmente debole. Verifica la posizione del sensore.</string>
     <string name="additional_info">Informazioni sensore</string>
     <string name="update_rate">Frequenza di aggiornamento</string>
     <string name="sensor_type">Tipo di sensore</string>
@@ -240,10 +239,5 @@
     <string name="developer_mode_already_enabled">Le funzioni sviluppatore sono già attive</string>
     <string name="app_version_developer">Versione %1$s · Modalità sviluppatore</string>
     <string name="developer_mode_disabled">Funzioni sviluppatore disattivate</string>
-    <string name="developer_section">Sviluppatore</string>
-    <string name="developer_thresholds_caption">Soglie di qualità (dev. std. in mm)</string>
-    <string name="developer_threshold_good">Buona ≤</string>
-    <string name="developer_threshold_fair">Discreta ≤</string>
-    <string name="developer_buffer_size">Dimensione buffer (n)</string>
-    <string name="developer_reset_defaults">Ripristina valori predefiniti</string>
+    <string name="debug_raw_data_title">Dati grezzi</string>
 </resources>
