@@ -274,10 +274,15 @@ class ScanFragment : Fragment() {
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
-        viewModel.deviceSearchFilterEnabled
+        // Search field is shown whenever there are registered sensors (iOS parity) —
+        // no longer gated behind the Device Search Filter setting, which iOS doesn't
+        // use to hide the search either.
+        viewModel.uiState
+            .map { it.sensors.isNotEmpty() }
+            .distinctUntilChanged()
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .onEach {
-                binding.filterLayout.isVisible=it
+            .onEach { hasSensors ->
+                binding.filterLayout.isVisible = hasSensors
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
