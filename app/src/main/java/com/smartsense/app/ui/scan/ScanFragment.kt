@@ -10,7 +10,10 @@ import android.text.style.RelativeSizeSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -33,6 +36,7 @@ import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_
 
 import com.smartsense.app.ui.helper.BlePermissionManager
 import com.smartsense.app.util.forceShowMenuIcons
+import com.smartsense.app.util.hideKeyboard
 import com.xwray.groupie.ExpandableGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.GroupieViewHolder
@@ -59,6 +63,12 @@ class ScanFragment : Fragment() {
     private val groupAdapter = GroupAdapter<GroupieViewHolder>()
     // Initialize the helper
     private lateinit var blePermissionManager: BlePermissionManager
+
+    /// Tracks the soft-keyboard (IME) visibility so we can release focus from the
+    /// filter field the moment the keyboard is dismissed by *any* means (Done, the
+    /// system back button, etc.). Guards against clearing focus while the keyboard is
+    /// still animating in — we only act on a true→false transition.
+    private var imeWasVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -175,6 +185,31 @@ class ScanFragment : Fragment() {
         // Filter Sensor
         binding.filterEditText.doOnTextChanged { text, _, _, _ ->
             viewModel.setFilterQuery(text.toString())
+        }
+        // Pressing the keyboard's Done action parks focus back on the parent (which is
+        // focusableInTouchMode) and dismisses the IME, so the field doesn't sit there
+        // with a blinking cursor and no keyboard attached.
+        binding.filterEditText.setOnEditorActionListener { v, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                v.clearFocus()
+                requireContext().hideKeyboard(v)
+                true
+            } else {
+                false
+            }
+        }
+        // When the keyboard is dismissed by the system back button (or any non-Done
+        // path), the field would otherwise keep focus and leave a blinking cursor with
+        // no keyboard attached. Watch IME insets and drop focus on the visible→hidden
+        // transition so the cursor disappears. MainActivity is edge-to-edge and returns
+        // its insets unconsumed, so the IME type reaches this view.
+        ViewCompat.setOnApplyWindowInsetsListener(binding.filterEditText) { v, insets ->
+            val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
+            if (imeWasVisible && !imeVisible && v.hasFocus()) {
+                v.clearFocus()
+            }
+            imeWasVisible = imeVisible
+            insets
         }
     }
 
