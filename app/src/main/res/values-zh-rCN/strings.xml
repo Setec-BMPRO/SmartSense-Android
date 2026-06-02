@@ -11,7 +11,19 @@
 
     <!-- Pairing Help -->
     <string name="help_pair_title">如何配对传感器</string>
-    <string name="help_pair_message">1. 打开手机的蓝牙和位置服务,并确认传感器已通电。\n\n2. 打开此屏幕,将传感器保持在距手机 10 米范围内。\n\n之前已配对的传感器:\n一旦传感器开始广播即可自动重新连接 — 无需按任何按钮。\n\n新的或已移除的传感器:\n按下传感器上的配对/同步按钮。应用会检测到配对广播并自动注册。\n\n如果传感器未出现:\n• 再次按下传感器上的配对按钮。\n• 检查传感器电池。\n• 靠近一些,等待几秒钟接收下一次广播。\n• 确认手机设置中已授予蓝牙和位置权限。</string>
+    <string name="help_pair_s1_title">1. 先做好基础</string>
+    <string name="help_pair_s1_body">打开手机的蓝牙和位置服务,并确认传感器已通电。</string>
+    <string name="help_pair_s2_title">2. 保持靠近</string>
+    <string name="help_pair_s2_body">打开此屏幕,将传感器保持在距手机 10 米范围内。</string>
+    <string name="help_pair_s3_title">之前已配对的传感器</string>
+    <string name="help_pair_s3_body">一旦传感器开始广播即可自动重新连接 — 无需按任何按钮。</string>
+    <string name="help_pair_s4_title">新的或已移除的传感器</string>
+    <string name="help_pair_s4_body">按下传感器上的配对/同步按钮。应用会检测到配对广播并自动注册。</string>
+    <string name="help_pair_trouble_title">如果传感器未出现:</string>
+    <string name="help_pair_trouble_1">再次按下传感器上的配对按钮。</string>
+    <string name="help_pair_trouble_2">检查传感器电池。</string>
+    <string name="help_pair_trouble_3">靠近一些,等待几秒钟接收下一次广播。</string>
+    <string name="help_pair_trouble_4">确认手机设置中已授予蓝牙和位置权限。</string>
 
 
     <!-- Dashboard -->

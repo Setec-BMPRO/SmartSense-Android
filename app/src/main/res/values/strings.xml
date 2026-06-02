@@ -11,7 +11,19 @@
 
     <!-- Pairing Help -->
     <string name="help_pair_title">How to pair a sensor</string>
-    <string name="help_pair_message">1. Turn on Bluetooth and Location on your phone, and make sure the sensor has power.\n\n2. Open this screen and keep the sensor within 10 meters of your phone.\n\nPreviously paired sensors:\nReconnect automatically as soon as they broadcast — no button press needed.\n\nNew or removed sensors:\nPress the pair/sync button on the sensor. The app detects the pairing broadcast and registers it automatically.\n\nIf a sensor doesn\'t appear:\n• Press the pair button on the sensor again.\n• Check the sensor\'s battery.\n• Move closer and wait a few seconds for the next broadcast.\n• Confirm Bluetooth and Location permissions are granted in your phone\'s settings.</string>
+    <string name="help_pair_s1_title">1. Get the basics right</string>
+    <string name="help_pair_s1_body">Turn on Bluetooth and Location on your phone, and make sure the sensor has power.</string>
+    <string name="help_pair_s2_title">2. Stay close</string>
+    <string name="help_pair_s2_body">Open this screen and keep the sensor within 10 meters of your phone.</string>
+    <string name="help_pair_s3_title">Previously paired sensors</string>
+    <string name="help_pair_s3_body">Reconnect automatically as soon as they broadcast — no button press needed.</string>
+    <string name="help_pair_s4_title">New or removed sensors</string>
+    <string name="help_pair_s4_body">Press the pair/sync button on the sensor. The app detects the pairing broadcast and registers it automatically.</string>
+    <string name="help_pair_trouble_title">If a sensor doesn\'t appear:</string>
+    <string name="help_pair_trouble_1">Press the pair button on the sensor again.</string>
+    <string name="help_pair_trouble_2">Check the sensor\'s battery.</string>
+    <string name="help_pair_trouble_3">Move closer and wait a few seconds for the next broadcast.</string>
+    <string name="help_pair_trouble_4">Confirm Bluetooth and Location permissions are granted in your phone\'s settings.</string>
 
 
     <!-- Dashboard -->

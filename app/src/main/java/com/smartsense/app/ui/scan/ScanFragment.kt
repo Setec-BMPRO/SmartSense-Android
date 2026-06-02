@@ -424,9 +424,13 @@ class ScanFragment : Fragment() {
     }
 
     private fun showPairingHelp() {
+        // Structured, scrollable body (dialog_pairing_help) mirroring iOS PairingHelpSheet —
+        // bold section headers, secondary body copy, and a clean bullet list — instead of
+        // a single cramped message string.
+        val content = layoutInflater.inflate(R.layout.dialog_pairing_help, null)
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.help_pair_title)
-            .setMessage(R.string.help_pair_message)
+            .setView(content)
             .setPositiveButton(R.string.ok, null)
             .show()
     }

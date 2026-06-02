@@ -11,7 +11,19 @@
 
     <!-- Pairing Help -->
     <string name="help_pair_title">Cách ghép cặp cảm biến</string>
-    <string name="help_pair_message">1. Bật Bluetooth và Vị trí trên điện thoại của bạn, và đảm bảo cảm biến có nguồn điện.\n\n2. Mở màn hình này và giữ cảm biến trong phạm vi 10 mét từ điện thoại của bạn.\n\nCảm biến đã ghép cặp trước đây:\nKết nối lại tự động ngay khi chúng phát tín hiệu — không cần nhấn nút.\n\nCảm biến mới hoặc đã xóa:\nNhấn nút ghép cặp/đồng bộ trên cảm biến. Ứng dụng sẽ phát hiện tín hiệu ghép cặp và đăng ký tự động.\n\nNếu cảm biến không xuất hiện:\n• Nhấn lại nút ghép cặp trên cảm biến.\n• Kiểm tra pin của cảm biến.\n• Lại gần hơn và đợi vài giây cho lần phát tín hiệu tiếp theo.\n• Xác nhận quyền Bluetooth và Vị trí được cấp trong cài đặt điện thoại của bạn.</string>
+    <string name="help_pair_s1_title">1. Chuẩn bị cơ bản</string>
+    <string name="help_pair_s1_body">Bật Bluetooth và Vị trí trên điện thoại của bạn, và đảm bảo cảm biến có nguồn điện.</string>
+    <string name="help_pair_s2_title">2. Ở gần thiết bị</string>
+    <string name="help_pair_s2_body">Mở màn hình này và giữ cảm biến trong phạm vi 10 mét từ điện thoại của bạn.</string>
+    <string name="help_pair_s3_title">Cảm biến đã ghép cặp trước đây</string>
+    <string name="help_pair_s3_body">Kết nối lại tự động ngay khi chúng phát tín hiệu — không cần nhấn nút.</string>
+    <string name="help_pair_s4_title">Cảm biến mới hoặc đã xóa</string>
+    <string name="help_pair_s4_body">Nhấn nút ghép cặp/đồng bộ trên cảm biến. Ứng dụng sẽ phát hiện tín hiệu ghép cặp và đăng ký tự động.</string>
+    <string name="help_pair_trouble_title">Nếu cảm biến không xuất hiện:</string>
+    <string name="help_pair_trouble_1">Nhấn lại nút ghép cặp trên cảm biến.</string>
+    <string name="help_pair_trouble_2">Kiểm tra pin của cảm biến.</string>
+    <string name="help_pair_trouble_3">Lại gần hơn và đợi vài giây cho lần phát tín hiệu tiếp theo.</string>
+    <string name="help_pair_trouble_4">Xác nhận quyền Bluetooth và Vị trí được cấp trong cài đặt điện thoại của bạn.</string>
 
 
     <!-- Dashboard -->
