@@ -285,4 +285,6 @@
     <string name="app_version_developer">Phiên bản %1$s · Chế độ nhà phát triển</string>
     <string name="developer_mode_disabled">Đã tắt tính năng nhà phát triển</string>
     <string name="debug_raw_data_title">Dữ liệu thô</string>
+    <string name="full_name">Họ và tên</string>
+    <string name="enter_your_full_name">Nhập họ và tên của bạn</string>
 </resources>

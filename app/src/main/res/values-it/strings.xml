@@ -255,4 +255,6 @@
     <string name="app_version_developer">Versione %1$s · Modalità sviluppatore</string>
     <string name="developer_mode_disabled">Funzioni sviluppatore disattivate</string>
     <string name="debug_raw_data_title">Dati grezzi</string>
+    <string name="full_name">Nome completo</string>
+    <string name="enter_your_full_name">Inserisci il tuo nome completo</string>
 </resources>

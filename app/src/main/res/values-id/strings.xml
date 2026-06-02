@@ -254,4 +254,6 @@
     <string name="app_version_developer">Versi %1$s · Mode pengembang</string>
     <string name="developer_mode_disabled">Fitur pengembang dinonaktifkan</string>
     <string name="debug_raw_data_title">Data Mentah</string>
+    <string name="full_name">Nama lengkap</string>
+    <string name="enter_your_full_name">Masukkan nama lengkap Anda</string>
 </resources>

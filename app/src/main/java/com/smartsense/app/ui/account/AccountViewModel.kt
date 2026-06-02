@@ -80,9 +80,9 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun signUp(email: String, password: String) {
+    fun signUp(email: String, password: String, fullName: String) {
         viewModelScope.launch {
-            _signUpState.value = authRepository.signUp(email, password)
+            _signUpState.value = authRepository.signUp(email, password, fullName)
         }
     }
 

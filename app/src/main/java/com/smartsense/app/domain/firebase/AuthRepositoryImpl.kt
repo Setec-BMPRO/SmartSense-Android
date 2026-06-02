@@ -4,6 +4,7 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.domain.network.NetworkConnectivityObserver
@@ -27,11 +28,21 @@ class AuthRepositoryImpl @Inject constructor(
         private const val TAG = "AuthRepository"
     }
 
-    override suspend fun signUp(email: String, password: String): Result<FirebaseUser> {
+    override suspend fun signUp(email: String, password: String, fullName: String): Result<FirebaseUser> {
         Timber.tag(TAG).i("📧 Starting sign-up for: $email")
         return try {
             val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val user = result.user ?: throw Exception("Sign-up failed: User is null")
+            // Persist the full name to the Firebase Auth user profile (displayName) —
+            // same backend field iOS writes via createProfileChangeRequest().
+            val trimmedName = fullName.trim()
+            if (trimmedName.isNotEmpty()) {
+                user.updateProfile(
+                    UserProfileChangeRequest.Builder()
+                        .setDisplayName(trimmedName)
+                        .build()
+                ).await()
+            }
             Timber.tag(TAG).d("✅ Sign-up successful. UID: ${user.uid}")
             Result.success(user)
         } catch (e: Exception) {

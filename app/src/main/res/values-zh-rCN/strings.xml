@@ -285,4 +285,6 @@
     <string name="app_version_developer">版本 %1$s · 开发者模式</string>
     <string name="developer_mode_disabled">开发者功能已禁用</string>
     <string name="debug_raw_data_title">原始数据</string>
+    <string name="full_name">全名</string>
+    <string name="enter_your_full_name">请输入您的全名</string>
 </resources>

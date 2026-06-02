@@ -6,7 +6,7 @@ import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.domain.model.Sensor
 import kotlinx.coroutines.flow.Flow
 interface AuthRepository {
-    suspend fun signUp(email: String, password: String): Result<FirebaseUser>
+    suspend fun signUp(email: String, password: String, fullName: String): Result<FirebaseUser>
     suspend fun signIn(email: String, password: String): Result<FirebaseUser>
     fun getCurrentUser(): FirebaseUser?
 

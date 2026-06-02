@@ -254,4 +254,6 @@
     <string name="app_version_developer">バージョン %1$s · デベロッパーモード</string>
     <string name="developer_mode_disabled">デベロッパー機能を無効にしました</string>
     <string name="debug_raw_data_title">生データ</string>
+    <string name="full_name">氏名</string>
+    <string name="enter_your_full_name">氏名を入力してください</string>
 </resources>

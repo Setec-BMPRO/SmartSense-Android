@@ -304,5 +304,7 @@
     <string name="app_version_developer">Version %1$s · Developer mode</string>
     <!-- Long-press feedback when developer mode is turned back off. -->
     <string name="developer_mode_disabled">Developer features disabled</string>
+    <string name="full_name">Full Name</string>
+    <string name="enter_your_full_name">Enter your full name</string>
 
 </resources>

@@ -254,4 +254,6 @@
     <string name="app_version_developer">เวอร์ชัน %1$s · โหมดนักพัฒนา</string>
     <string name="developer_mode_disabled">ปิดใช้งานฟีเจอร์นักพัฒนาแล้ว</string>
     <string name="debug_raw_data_title">ข้อมูลดิบ</string>
+    <string name="full_name">ชื่อ-นามสกุล</string>
+    <string name="enter_your_full_name">กรอกชื่อ-นามสกุลของคุณ</string>
 </resources>

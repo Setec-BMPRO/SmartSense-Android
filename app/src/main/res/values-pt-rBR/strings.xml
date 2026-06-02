@@ -255,4 +255,6 @@
     <string name="app_version_developer">Versão %1$s · Modo desenvolvedor</string>
     <string name="developer_mode_disabled">Recursos de desenvolvedor desativados</string>
     <string name="debug_raw_data_title">Dados brutos</string>
+    <string name="full_name">Nome completo</string>
+    <string name="enter_your_full_name">Digite seu nome completo</string>
 </resources>

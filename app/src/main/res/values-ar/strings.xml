@@ -254,4 +254,6 @@
     <string name="app_version_developer">الإصدار %1$s · وضع المطوّر</string>
     <string name="developer_mode_disabled">تم إيقاف ميزات المطوّر</string>
     <string name="debug_raw_data_title">البيانات الأولية</string>
+    <string name="full_name">الاسم الكامل</string>
+    <string name="enter_your_full_name">أدخل اسمك الكامل</string>
 </resources>

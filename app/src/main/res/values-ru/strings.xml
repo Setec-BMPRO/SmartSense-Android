@@ -257,4 +257,6 @@
     <string name="app_version_developer">Версия %1$s · Режим разработчика</string>
     <string name="developer_mode_disabled">Функции разработчика отключены</string>
     <string name="debug_raw_data_title">Сырые данные</string>
+    <string name="full_name">Полное имя</string>
+    <string name="enter_your_full_name">Введите полное имя</string>
 </resources>

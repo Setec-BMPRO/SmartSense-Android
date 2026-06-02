@@ -86,10 +86,11 @@ class AccountRegisterFragment : Fragment() {
         binding.btnRegister.setOnClickListener {
             hideKeyboard()
             if (performFinalValidation()) {
+                val fullName = binding.etFullName.text.toString().trim()
                 val email = binding.etEmail.text.toString().trim()
                 val password = binding.etPassword.text.toString()
                 (activity as MainActivityListener).showLoadingIndicator(true)
-                viewModel.signUp(email, password)
+                viewModel.signUp(email, password, fullName)
             }
         }
 
@@ -99,6 +100,7 @@ class AccountRegisterFragment : Fragment() {
     }
 
     private fun setupLiveValidation() {
+        binding.etFullName.doOnTextChanged { _, _, _, _ -> binding.tilFullName.error = null }
         binding.etEmail.doOnTextChanged { _, _, _, _ -> binding.tilEmail.error = null }
         binding.etConfirmEmail.doOnTextChanged { _, _, _, _ -> binding.tilConfirmEmail.error = null }
         binding.etPassword.doOnTextChanged { _, _, _, _ -> binding.tilPassword.error = null }
@@ -106,6 +108,7 @@ class AccountRegisterFragment : Fragment() {
     }
 
     private fun performFinalValidation(): Boolean {
+        val fullName = binding.etFullName.text.toString().trim()
         val email = binding.etEmail.text.toString().trim()
         val confirmEmail = binding.etConfirmEmail.text.toString().trim()
         val password = binding.etPassword.text.toString()
@@ -113,6 +116,10 @@ class AccountRegisterFragment : Fragment() {
 
         var isValid = true
 
+        if (fullName.isEmpty()) {
+            binding.tilFullName.error = getString(R.string.enter_your_full_name)
+            isValid = false
+        }
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             binding.tilEmail.error = getString(R.string.enter_a_valid_email_address)
             isValid = false

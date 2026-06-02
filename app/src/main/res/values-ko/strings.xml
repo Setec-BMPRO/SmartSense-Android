@@ -254,4 +254,6 @@
     <string name="app_version_developer">버전 %1$s · 개발자 모드</string>
     <string name="developer_mode_disabled">개발자 기능 비활성화됨</string>
     <string name="debug_raw_data_title">원본 데이터</string>
+    <string name="full_name">이름</string>
+    <string name="enter_your_full_name">이름을 입력하세요</string>
 </resources>

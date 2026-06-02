@@ -255,4 +255,6 @@
     <string name="app_version_developer">संस्करण %1$s · डेवलपर मोड</string>
     <string name="developer_mode_disabled">डेवलपर सुविधाएँ बंद कर दी गईं</string>
     <string name="debug_raw_data_title">रॉ डेटा</string>
+    <string name="full_name">पूरा नाम</string>
+    <string name="enter_your_full_name">अपना पूरा नाम दर्ज करें</string>
 </resources>
