@@ -222,18 +222,8 @@
                 tools:text="Low Quality: Tank empty or sensor is incorrectly positioned."
                 tools:visibility="visible"/>
 
-            <!-- Additional Info Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/additional_info"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary"
-                android:textAllCaps="true"
-                android:paddingBottom="@dimen/spacing_sm"
-                android:paddingStart="@dimen/spacing_xs"
-                android:paddingEnd="@dimen/spacing_xs"/>
-
+            <!-- Sensor Info (expandable card). No separate all-caps section header
+                 above it — the card's own "Sensor Info" title is the heading. -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
