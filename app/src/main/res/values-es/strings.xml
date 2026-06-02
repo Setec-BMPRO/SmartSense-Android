@@ -30,7 +30,10 @@
     <string name="scan_auto_pair_hint">Pulsa el botón de emparejamiento de un sensor nuevo para añadirlo</string>
     <string name="sensors_found">%1$d sensor(es) encontrados</string>
     <string name="connected_sensors">Conectados</string>
-    <string name="sensor_count_label">%1$d sensor(es)</string>
+    <plurals name="sensor_count_label">
+        <item quantity="one">%1$d sensor</item>
+        <item quantity="other">%1$d sensores</item>
+    </plurals>
     <string name="select_tank_type">Seleccionar tipo de tanque</string>
 
     <!-- Detail -->

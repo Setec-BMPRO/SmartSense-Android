@@ -21,7 +21,9 @@
     <string name="scan_auto_pair_hint">Tekan tombol pasangkan pada sensor baru untuk menambahkannya</string>
     <string name="sensors_found">%1$d sensor ditemukan</string>
     <string name="connected_sensors">Terhubung</string>
-    <string name="sensor_count_label">%1$d sensor</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">%1$d sensor</item>
+    </plurals>
     <string name="select_tank_type">Pilih jenis tangki</string>
     <string name="tank_level">Level tangki</string>
     <string name="battery">Baterai</string>

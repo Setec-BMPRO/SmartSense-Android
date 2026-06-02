@@ -21,7 +21,9 @@
     <string name="scan_auto_pair_hint">اضغط زر الإقران على مستشعر جديد لإضافته</string>
     <string name="sensors_found">تم العثور على %1$d مستشعر</string>
     <string name="connected_sensors">متصلة</string>
-    <string name="sensor_count_label">%1$d مستشعر</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">%1$d مستشعر</item>
+    </plurals>
     <string name="select_tank_type">اختر نوع الخزان</string>
     <string name="tank_level">مستوى الخزان</string>
     <string name="battery">البطارية</string>

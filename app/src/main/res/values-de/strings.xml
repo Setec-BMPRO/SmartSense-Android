@@ -21,7 +21,10 @@
     <string name="scan_auto_pair_hint">Drücke die Kopplungs-Taste am neuen Sensor, um ihn hinzuzufügen</string>
     <string name="sensors_found">%1$d Sensor(en) gefunden</string>
     <string name="connected_sensors">Verbunden</string>
-    <string name="sensor_count_label">%1$d Sensor(en)</string>
+    <plurals name="sensor_count_label">
+        <item quantity="one">%1$d Sensor</item>
+        <item quantity="other">%1$d Sensoren</item>
+    </plurals>
     <string name="select_tank_type">Tanktyp wählen</string>
     <string name="tank_level">Tankfüllstand</string>
     <string name="battery">Batterie</string>

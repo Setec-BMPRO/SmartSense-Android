@@ -21,7 +21,9 @@
     <string name="scan_auto_pair_hint">새 센서의 페어링 버튼을 눌러 추가하세요</string>
     <string name="sensors_found">%1$d개 센서 발견</string>
     <string name="connected_sensors">연결됨</string>
-    <string name="sensor_count_label">센서 %1$d개</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">센서 %1$d개</item>
+    </plurals>
     <string name="select_tank_type">탱크 유형 선택</string>
     <string name="tank_level">탱크 수위</string>
     <string name="battery">배터리</string>

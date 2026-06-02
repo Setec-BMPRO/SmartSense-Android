@@ -21,7 +21,9 @@
     <string name="scan_auto_pair_hint">新しいセンサーのペアリングボタンを押して追加</string>
     <string name="sensors_found">%1$d 個のセンサーを検出</string>
     <string name="connected_sensors">接続済み</string>
-    <string name="sensor_count_label">%1$d 個のセンサー</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">%1$d 個のセンサー</item>
+    </plurals>
     <string name="select_tank_type">タンクの種類を選択</string>
     <string name="tank_level">タンクレベル</string>
     <string name="battery">電池</string>

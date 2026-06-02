@@ -30,7 +30,9 @@
     <string name="scan_auto_pair_hint">按下新传感器上的配对按钮以添加</string>
     <string name="sensors_found">找到 %1$d 个传感器</string>
     <string name="connected_sensors">已连接</string>
-    <string name="sensor_count_label">%1$d 个传感器</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">%1$d 个传感器</item>
+    </plurals>
     <string name="select_tank_type">选择罐类型</string>
 
     <!-- Detail -->

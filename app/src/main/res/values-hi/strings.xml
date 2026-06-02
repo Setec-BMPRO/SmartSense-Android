@@ -21,7 +21,10 @@
     <string name="scan_auto_pair_hint">नया सेंसर जोड़ने के लिए उस पर पेयर बटन दबाएँ</string>
     <string name="sensors_found">%1$d सेंसर मिले</string>
     <string name="connected_sensors">कनेक्टेड</string>
-    <string name="sensor_count_label">%1$d सेंसर</string>
+    <plurals name="sensor_count_label">
+        <item quantity="one">%1$d सेंसर</item>
+        <item quantity="other">%1$d सेंसर</item>
+    </plurals>
     <string name="select_tank_type">टैंक का प्रकार चुनें</string>
     <string name="tank_level">टैंक स्तर</string>
     <string name="battery">बैटरी</string>

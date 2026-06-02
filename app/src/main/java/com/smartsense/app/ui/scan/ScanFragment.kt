@@ -395,7 +395,9 @@ class ScanFragment : Fragment() {
             pairHintBanner.isVisible = totalInSystem > 0 && !viewModel.pairHintDismissed.value
 
             if (filteredCount > 0) {
-                sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
+                sensorCount.text = resources.getQuantityString(
+                    R.plurals.sensor_count_label, filteredCount, filteredCount
+                )
             }
         }
     }

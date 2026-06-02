@@ -21,7 +21,10 @@
     <string name="scan_auto_pair_hint">Appuyez sur le bouton d\'association d\'un nouveau capteur pour l\'ajouter</string>
     <string name="sensors_found">%1$d capteur(s) trouvé(s)</string>
     <string name="connected_sensors">Connectés</string>
-    <string name="sensor_count_label">%1$d capteur(s)</string>
+    <plurals name="sensor_count_label">
+        <item quantity="one">%1$d capteur</item>
+        <item quantity="other">%1$d capteurs</item>
+    </plurals>
     <string name="select_tank_type">Sélectionner le type de réservoir</string>
     <string name="tank_level">Niveau du réservoir</string>
     <string name="battery">Batterie</string>

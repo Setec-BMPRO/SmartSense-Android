@@ -30,7 +30,9 @@
     <string name="scan_auto_pair_hint">Nhấn nút ghép cặp trên cảm biến mới để thêm</string>
     <string name="sensors_found">Tìm thấy %1$d cảm biến</string>
     <string name="connected_sensors">Đã kết nối</string>
-    <string name="sensor_count_label">%1$d cảm biến</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">%1$d cảm biến</item>
+    </plurals>
     <string name="select_tank_type">Chọn loại bình</string>
 
     <!-- Detail -->

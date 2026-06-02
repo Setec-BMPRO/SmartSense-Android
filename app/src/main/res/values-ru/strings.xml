@@ -21,7 +21,12 @@
     <string name="scan_auto_pair_hint">Нажмите кнопку сопряжения на новом датчике, чтобы добавить</string>
     <string name="sensors_found">Найдено датчиков: %1$d</string>
     <string name="connected_sensors">Подключены</string>
-    <string name="sensor_count_label">Датчиков: %1$d</string>
+    <plurals name="sensor_count_label">
+        <item quantity="one">%1$d датчик</item>
+        <item quantity="few">%1$d датчика</item>
+        <item quantity="many">%1$d датчиков</item>
+        <item quantity="other">%1$d датчика</item>
+    </plurals>
     <string name="select_tank_type">Выбрать тип бака</string>
     <string name="tank_level">Уровень в баке</string>
     <string name="battery">Батарея</string>

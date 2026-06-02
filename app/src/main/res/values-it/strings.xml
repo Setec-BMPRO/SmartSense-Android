@@ -21,7 +21,10 @@
     <string name="scan_auto_pair_hint">Premi il pulsante di associazione di un nuovo sensore per aggiungerlo</string>
     <string name="sensors_found">%1$d sensore/i trovato/i</string>
     <string name="connected_sensors">Connessi</string>
-    <string name="sensor_count_label">%1$d sensore/i</string>
+    <plurals name="sensor_count_label">
+        <item quantity="one">%1$d sensore</item>
+        <item quantity="other">%1$d sensori</item>
+    </plurals>
     <string name="select_tank_type">Seleziona tipo di serbatoio</string>
     <string name="tank_level">Livello serbatoio</string>
     <string name="battery">Batteria</string>

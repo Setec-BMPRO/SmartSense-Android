@@ -21,7 +21,9 @@
     <string name="scan_auto_pair_hint">กดปุ่มจับคู่บนเซ็นเซอร์ใหม่เพื่อเพิ่ม</string>
     <string name="sensors_found">พบเซ็นเซอร์ %1$d ตัว</string>
     <string name="connected_sensors">เชื่อมต่อแล้ว</string>
-    <string name="sensor_count_label">เซ็นเซอร์ %1$d ตัว</string>
+    <plurals name="sensor_count_label">
+        <item quantity="other">เซ็นเซอร์ %1$d ตัว</item>
+    </plurals>
     <string name="select_tank_type">เลือกชนิดถัง</string>
     <string name="tank_level">ระดับถัง</string>
     <string name="battery">แบตเตอรี่</string>
