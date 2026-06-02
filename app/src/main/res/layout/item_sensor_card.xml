@@ -60,17 +60,40 @@
             android:orientation="vertical"
             android:layout_marginStart="@dimen/spacing_md">
 
-            <!-- Name -->
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/sensor_name"
-                android:layout_width="wrap_content"
+            <!-- Name + OFFLINE pill, inline (matches iOS) -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceTitleMedium"
-                tools:text="Propane - BBQ"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    tools:text="Propane - BBQ"/>
 
+                <!-- Stale badge — same red pill the detail screen shows; sits inline
+                     next to the name. Visibility set in ScanAdapter from sensor.isStale. -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/sensor_offline_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_sm"
+                    android:paddingHorizontal="@dimen/spacing_sm"
+                    android:paddingVertical="2dp"
+                    android:background="@drawable/bg_offline_pill"
+                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="true"
+                    android:visibility="gone"
+                    android:text="@string/offline"
+                    tools:visibility="visible"/>
+            </LinearLayout>
 
-            <!-- Info row: battery, temp, signal -->
+            <!-- Info row: battery, quality, signal -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -182,6 +205,21 @@
                     tools:text="Good"/>
             </LinearLayout>
 
+            <!-- Tank type (e.g. 4 KG) — sits above "Updated", below the info row -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/sensor_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_sensor_type"
+                android:paddingHorizontal="@dimen/spacing_sm"
+                android:paddingVertical="@dimen/spacing_xs"
+                android:textSize="10sp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:layout_marginTop="@dimen/spacing_xs"
+                android:textAllCaps="true"
+                android:textStyle="bold"
+                tools:text="Standard"/>
+
             <!-- Last updated -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/sensor_last_updated"
@@ -191,41 +229,6 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:layout_marginTop="@dimen/spacing_xs"
                 tools:text="Updated 5s ago"/>
-
-            <!-- Stale badge — same red pill the detail screen shows (bg_offline_pill +
-                 white bold uppercase text) so the OFFLINE affordance reads the same on
-                 the list and detail. Slightly smaller text + tighter padding here vs.
-                 the detail screen because the list card has less room. Visibility is
-                 controlled in ScanAdapter from sensor.isStale. -->
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/sensor_offline_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_xs"
-                android:paddingHorizontal="@dimen/spacing_sm"
-                android:paddingVertical="2dp"
-                android:background="@drawable/bg_offline_pill"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:textAllCaps="true"
-                android:visibility="gone"
-                android:text="@string/offline"
-                tools:visibility="visible"/>
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/sensor_type"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_sensor_type"
-                android:paddingHorizontal="@dimen/spacing_sm"
-                android:paddingVertical="@dimen/spacing_xs"
-                android:textSize="10sp"
-
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:layout_marginTop="@dimen/spacing_xs"
-                android:textAllCaps="true"
-                android:textStyle="bold"
-                tools:text="Standard"/>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
