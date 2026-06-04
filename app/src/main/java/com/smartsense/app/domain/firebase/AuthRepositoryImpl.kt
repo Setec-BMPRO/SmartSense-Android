@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.smartsense.app.data.local.entity.SensorEntity
 import com.smartsense.app.domain.network.NetworkConnectivityObserver
 import kotlinx.coroutines.cancel
@@ -42,6 +43,21 @@ class AuthRepositoryImpl @Inject constructor(
                         .setDisplayName(trimmedName)
                         .build()
                 ).await()
+            }
+            // Mirror the name into a queryable Firestore profile doc (/users/{uid})
+            // so it's available server-side, not just in the Auth displayName.
+            // Best-effort: a failure here must not fail an otherwise-successful sign-up.
+            try {
+                firestore.collection("users").document(user.uid)
+                    .set(
+                        mapOf(
+                            "name" to trimmedName,
+                            "email" to (user.email ?: email)
+                        ),
+                        SetOptions.merge()
+                    ).await()
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "⚠️ Could not write user profile doc for ${user.uid}")
             }
             Timber.tag(TAG).d("✅ Sign-up successful. UID: ${user.uid}")
             Result.success(user)
