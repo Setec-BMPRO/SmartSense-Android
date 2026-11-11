@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.SmartSense" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
@@ -24,12 +24,20 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/tab_bar_background</item>
         <item name="android:windowBackground">@android:color/white</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
-        <item name="android:windowSplashScreenBrandingImage">@drawable/splash_branding</item>
+        <item name="android:windowSplashScreenAnimatedIcon" tools:targetApi="31">@drawable/splash_icon</item>
+        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="31">@drawable/splash_branding</item>
         <item name="android:fontFamily">@font/roboto</item>
         <item name="fontFamily">@font/roboto</item>
         <item name="elevationOverlayEnabled">false</item>
         <item name="colorSurfaceInverse">@color/on_surface</item>
+        <item name="colorSurfaceBright">@color/surface</item>
+        <item name="colorSurfaceDim">@color/surface_dim</item>
+        <item name="colorSurfaceContainerLowest">@color/surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/surface_container_highest</item>
+        <item name="toolbarStyle">@style/Widget.SmartSense.MaterialToolbar</item>
 
         <!-- Material 3 Dialog Styling -->
         <item name="alertDialogTheme">@style/ThemeOverlay.SmartSense.MaterialAlertDialog</item>
@@ -99,6 +107,14 @@
         <item name="android:insetBottom">0dp</item>
         <item name="iconGravity">textStart</item>
         <item name="iconPadding">0dp</item>
+    </style>
+
+    <!-- Default MaterialToolbar look: 16 sp TitleMedium title, BodySmall subtitle. -->
+    <style name="Widget.SmartSense.MaterialToolbar" parent="Widget.Material3.Toolbar">
+        <item name="titleTextAppearance">@style/TextAppearance.Material3.TitleMedium</item>
+        <item name="titleTextColor">?attr/colorOnSurface</item>
+        <item name="subtitleTextAppearance">@style/TextAppearance.Material3.BodySmall</item>
+        <item name="subtitleTextColor">?attr/colorOnSurfaceVariant</item>
     </style>
 
     <style name="Widget.SmartSense.Toolbar.Title" parent="">

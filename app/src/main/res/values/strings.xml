@@ -3,13 +3,13 @@
     <string name="app_name">SmartSensePro</string>
 
     <!-- Footer Links -->
-    <string name="bmpro_landing_link">Videos, guides and more at teambmpro.com/smartsensepro</string>
-    <string name="bmpro_landing_url">https://www.teambmpro.com/smartsensepro</string>
-    <string name="bmpro_web_url">https://www.teambmpro.com/</string>
-    <string name="social_facebook_url">https://www.facebook.com/BMPROAU</string>
-    <string name="social_instagram_url">https://www.instagram.com/teambmpro.aus/</string>
-    <string name="social_youtube_url">https://www.youtube.com/c/bmproau</string>
-    <string name="social_linkedin_url">https://au.linkedin.com/company/team-bmpro</string>
+    <string name="bmpro_landing_link">Videos, guides and more at\nteambmpro.com/smartsensepro</string>
+    <string name="bmpro_landing_url" translatable="false">https://www.teambmpro.com/smartsensepro</string>
+    <string name="bmpro_web_url" translatable="false">https://www.teambmpro.com/</string>
+    <string name="social_facebook_url" translatable="false">https://www.facebook.com/BMPROAU</string>
+    <string name="social_instagram_url" translatable="false">https://www.instagram.com/teambmpro.aus/</string>
+    <string name="social_youtube_url" translatable="false">https://www.youtube.com/c/bmproau</string>
+    <string name="social_linkedin_url" translatable="false">https://au.linkedin.com/company/team-bmpro</string>
 
     <!-- Navigation -->
     <string name="nav_account">Account</string>

@@ -97,6 +97,14 @@ class BlePermissionManager(
     }
 
     private fun checkHardwareState() {
+        // SmartSensePro demo mode (debug builds only) feeds fake sensors, so it doesn't
+        // need the Bluetooth radio or location services. Always false in release.
+        com.smartsense.app.demo.DemoInjector.init(context)
+        if (com.smartsense.app.demo.DemoInjector.isActive) {
+            onPermissionGranted()
+            return
+        }
+
         // First check Bluetooth
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val adapter = bluetoothManager.adapter

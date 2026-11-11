@@ -55,11 +55,11 @@ class DemoControlsActivity : Activity() {
         val switchDemo = Switch(this).apply {
             text = "Demo mode (fake sensors instead of Bluetooth)"
             textSize = 16f
-            isChecked = DemoInjector.prefs(this@DemoControlsActivity).getBoolean("enabled", true)
+            isChecked = DemoInjector.prefs(this@DemoControlsActivity).getBoolean(DemoInjector.KEY_ENABLED, DemoInjector.DEFAULT_ENABLED)
             setPadding(0, dp(12), 0, dp(12))
             setOnCheckedChangeListener { _, isChecked ->
                 DemoInjector.prefs(this@DemoControlsActivity).edit()
-                    .putBoolean("enabled", isChecked).apply()
+                    .putBoolean(DemoInjector.KEY_ENABLED, isChecked).apply()
                 Toast.makeText(
                     this@DemoControlsActivity,
                     "Force-stop and reopen SmartSense for this to take effect",

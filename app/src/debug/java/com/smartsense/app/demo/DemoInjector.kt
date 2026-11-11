@@ -21,6 +21,9 @@ object DemoInjector {
     private const val TAG = "SSPDemo"
     private const val PREFS = "ssp_demo_controls"
     const val KEY_ENABLED = "enabled"
+    /** Demo mode is off until switched on in SSP Demo Controls, so debug builds use
+     *  real Bluetooth by default. (Release builds get a no-op stub of this object.) */
+    const val DEFAULT_ENABLED = false
     private const val KEY_SENSORS = "sensors"
 
     @Volatile
@@ -43,7 +46,7 @@ object DemoInjector {
     val isActive: Boolean
         get() {
             val ctx = appContext ?: return false
-            return prefs(ctx).getBoolean(KEY_ENABLED, true)
+            return prefs(ctx).getBoolean(KEY_ENABLED, DEFAULT_ENABLED)
         }
 
     @JvmStatic

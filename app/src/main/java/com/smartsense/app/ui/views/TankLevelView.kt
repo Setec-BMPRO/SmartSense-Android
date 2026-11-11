@@ -18,12 +18,16 @@ class TankLevelView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val FILL_TOP_RATIO = 63.5f / 320f
-        private const val FILL_BOTTOM_RATIO = 288.5f / 320f
-        private const val BODY_TOP_RATIO = 62f / 320f
-        private const val BODY_BOTTOM_RATIO = 290f / 320f
-        private const val SVG_TANK_LEFT_RATIO = 40f / 320f
-        private const val SVG_TANK_RIGHT_RATIO = 280f / 320f
+        // BMPRO bottle (ic_tank_silhouette, 100 x 130 viewport): the body runs from
+        // y 29.7 to 120.65 and x 14.44 to 85.57 (path y 20.15..88.79, x 0..53.68,
+        // scaled x1.325 and offset 14.44 / 3).
+        private const val TANK_ASPECT = 130f / 100f
+        private const val FILL_TOP_RATIO = 29.7f / 130f
+        private const val FILL_BOTTOM_RATIO = 120.65f / 130f
+        private const val BODY_TOP_RATIO = 29.7f / 130f
+        private const val BODY_BOTTOM_RATIO = 120.65f / 130f
+        private const val SVG_TANK_LEFT_RATIO = 14.44f / 100f
+        private const val SVG_TANK_RIGHT_RATIO = 85.57f / 100f
 
         private const val H_FILL_TOP_RATIO = 7.6f / 32f
         private const val H_FILL_BOTTOM_RATIO = 24.4f / 32f
@@ -47,7 +51,7 @@ class TankLevelView @JvmOverloads constructor(
             field = value
             lastWidth = 0
             if (!isHorizontal) {
-                aspectRatio = if (value) 1.3f else 1.0f
+                aspectRatio = TANK_ASPECT
             }
             requestLayout()
             invalidate()
@@ -63,7 +67,7 @@ class TankLevelView @JvmOverloads constructor(
                 if (tankHeightMm > 0) {
                     isBiggerMode = tankHeightMm > VERTICAL_THRESHOLD_MM
                 }
-                aspectRatio = if (isBiggerMode) 1.3f else 1.0f
+                aspectRatio = TANK_ASPECT
             }
             lastWidth = 0
             requestLayout()
@@ -114,11 +118,10 @@ class TankLevelView @JvmOverloads constructor(
 
     private fun applyThemeColors() {
         val dark = isDarkMode()
-        circleFillPaint.color = if (dark) 0xFF1E1E1E.toInt() else 0xFFFFFFFF.toInt()
-        hardwarePaint.colorFilter = PorterDuffColorFilter(
-            if (dark) 0xFFBDBDBD.toInt() else 0xFF000000.toInt(),
-            PorterDuff.Mode.SRC_IN
-        )
+        circleFillPaint.color = if (dark) BmproTankColors.BADGE_FILL_DARK else BmproTankColors.BADGE_FILL_LIGHT
+        // BMPRO bottle: collar, valve and foot ring in the same light grey as the body,
+        // in both themes.
+        hardwarePaint.colorFilter = PorterDuffColorFilter(BmproTankColors.CYLINDER, PorterDuff.Mode.SRC_IN)
         lastDarkMode = dark
     }
 
@@ -214,27 +217,9 @@ class TankLevelView @JvmOverloads constructor(
             val tankRight = tankLeftBound + tankDrawWidth * rightRatio
             val tankWidthActual = tankRight - tankLeft
 
-            tankGradientPaint.shader = if (dark) {
-                LinearGradient(
-                    tankLeft, 0f, tankRight, 0f,
-                    intArrayOf(0xFF3A3A3A.toInt(), 0xFF4A4A4A.toInt(), 0xFF333333.toInt()),
-                    floatArrayOf(0f, 0.4f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-            } else {
-                LinearGradient(
-                    tankLeft, 0f, tankRight, 0f,
-                    intArrayOf(0xFFD0D0D0.toInt(), 0xFFF2F2F2.toInt(), 0xFFC4C4C4.toInt()),
-                    floatArrayOf(0f, 0.4f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-            }
-
-            fillHighlightPaint.shader = LinearGradient(
-                tankLeft, 0f, tankLeft + tankWidthActual * 0.35f, 0f,
-                0x30FFFFFF, 0x00FFFFFF,
-                Shader.TileMode.CLAMP
-            )
+            // Flat light-grey cylinder (BMPRO restyle), the same in light and dark mode.
+            tankGradientPaint.shader = null
+            tankGradientPaint.color = BmproTankColors.CYLINDER
         }
 
         val w = width.toFloat()
@@ -274,21 +259,15 @@ class TankLevelView @JvmOverloads constructor(
                 liquidTopY = fillBottomY - minHeight
             }
 
-            val bottomColor = 0xFF1E88E5.toInt()
-            val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt()
-
+            // Gas in the level colour, fading lighter towards the top (BMPRO restyle).
             fillPaint.shader = LinearGradient(0f, fillBottomY, 0f, fillTopY,
-                bottomColor, topColor, Shader.TileMode.CLAMP)
+                BmproTankColors.gasBottom(context, levelStatus),
+                BmproTankColors.gasTop(context, levelStatus),
+                Shader.TileMode.CLAMP)
 
             val saveFill = canvas.saveLayer(bounds, null)
             // Draw liquid rectangle across the full tank width; the mask will clip it to the rounded ends
             canvas.drawRect(tankLeftBound, liquidTopY, tankLeftBound + tankDrawWidth, fillBottomY, fillPaint)
-
-            canvas.drawRect(
-                tankLeft, liquidTopY,
-                tankLeft + tankWidthActual * 0.35f, fillBottomY,
-                fillHighlightPaint
-            )
 
             tankBitmap?.let { canvas.drawBitmap(it, 0f, 0f, maskPaint) }
             canvas.restoreToCount(saveFill)
@@ -304,7 +283,9 @@ class TankLevelView @JvmOverloads constructor(
     private fun drawLabelsAndBadge(canvas: Canvas, w: Float, fillTopY: Float, fillBottomY: Float, dark: Boolean) {
         if (tankTypeLabel.isNotEmpty()) {
             val labelCx = w / 2f
-            val labelCy = (fillTopY + fillBottomY) / 2f
+            // Size label on the lower body (BMPRO restyle), not the middle of the band.
+            val labelCy = if (isHorizontal) (fillTopY + fillBottomY) / 2f
+                else fillTopY + (fillBottomY - fillTopY) * 0.72f
 
             val textToDraw = tankTypeLabel.uppercase()
             val lines = if (textToDraw.contains(" (")) {
@@ -315,7 +296,7 @@ class TankLevelView @JvmOverloads constructor(
             }
 
             tankLabelPaint.textSize = if (lines.size > 1) tankDrawWidth * 0.075f else tankDrawWidth * 0.085f
-            tankLabelPaint.color = if (dark) 0x90FFFFFF.toInt() else 0x70000000.toInt()
+            tankLabelPaint.color = BmproTankColors.LABEL
 
             val fontSpacing = tankLabelPaint.fontSpacing
             val totalTextHeight = (lines.size - 1) * fontSpacing
@@ -412,9 +393,11 @@ class TankLevelView @JvmOverloads constructor(
                 tankDrawHeight *= adjust
             }
         } else {
-            val baseSize = minOf(w, h)
+            // Draw the BMPRO bottle at its own 100:130 proportions; tall tanks are just
+            // drawn a little larger (scale above).
+            val baseSize = minOf(w, h / TANK_ASPECT)
             tankDrawWidth = baseSize * scale
-            tankDrawHeight = if (isBiggerMode) tankDrawWidth * 1.3f else tankDrawWidth
+            tankDrawHeight = tankDrawWidth * TANK_ASPECT
         }
 
         val left = (width - tankDrawWidth) / 2f
