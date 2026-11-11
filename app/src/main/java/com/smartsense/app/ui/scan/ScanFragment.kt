@@ -35,6 +35,7 @@ import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 
 import com.smartsense.app.ui.helper.BlePermissionManager
+import com.smartsense.app.util.FooterUtils
 import com.smartsense.app.util.forceShowMenuIcons
 import com.smartsense.app.util.hideKeyboard
 import com.xwray.groupie.ExpandableGroup
@@ -117,14 +118,15 @@ class ScanFragment : Fragment() {
     }
 
     private fun setupViews() {
+        binding.root.findViewById<View>(R.id.bmpro_footer)?.let { FooterUtils.setupBmproFooter(it) }
+
         binding.sensorList.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = groupAdapter
         }
 
-        // Setup Logo Branding: SMARTSENSE with "petite caps" — initial caps at full size,
-        // remaining letters scaled down. SMART in dark, SENSE in primary.
-        val logoText = SpannableString("SMARTSENSE").apply {
+        // Setup Logo Branding: SMARTSENSEPRO
+        val logoText = SpannableString("SMARTSENSEPRO").apply {
             setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.logo_smart_text)),
                 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -133,8 +135,10 @@ class ScanFragment : Fragment() {
                 ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.primary)),
                 5, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-            setSpan(RelativeSizeSpan(0.78f), 1, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            setSpan(RelativeSizeSpan(0.78f), 6, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.logo_smart_text)),
+                10, 13, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
         binding.smartsenseLogo.logoText.text = logoText
         binding.toolbar.forceShowMenuIcons()

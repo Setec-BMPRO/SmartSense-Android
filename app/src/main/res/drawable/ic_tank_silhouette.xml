@@ -1,21 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="320dp"
-    android:height="320dp"
-    android:viewportWidth="320"
-    android:viewportHeight="320">
-
-    <!-- The Fillable Area (Inside the border) -->
-    <!-- Matches Hardware: Top y=62, Bottom y=290 -->
-    <path
-        android:fillColor="#FF000000"
-        android:pathData="M 104,62
-                          L 216,62
-                          C 264,62 280,82 280,112
-                          L 280,252
-                          C 280,282 264,290 216,290
-                          L 104,290
-                          C 56,290 40,282 40,252
-                          L 40,112
-                          C 40,82 56,62 104,62 Z" />
+<vector android:height="416.0dp" android:width="320.0dp" android:viewportWidth="100.0" android:viewportHeight="130.0"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:scaleX="1.325" android:scaleY="1.325" android:translateX="14.44" android:translateY="3.0">
+        <path android:fillColor="#ff000000" android:pathData="M51.74,32.62c0,-6.89 -5.58,-12.47 -12.47,-12.47H14.33c-6.89,0 -12.47,5.58 -12.47,12.47v19.17h49.88Z" />
+        <path android:fillColor="#ff000000" android:pathData="M53.68,55.54v-1.58c0,-0.7 -0.65,-1.27 -1.45,-1.27H1.45c-0.8,0 -1.45,0.57 -1.45,1.27v1.58c0,0.7 0.65,1.27 1.45,1.27h50.78c0.8,0 1.45,-0.57 1.45,-1.27Z" />
+        <path android:fillColor="#ff000000" android:pathData="M51.78,57.7h-0.07v-0.07H1.83v0.96s0.05,0.03 0.07,0.04v20.78c0,5.13 4.11,9.29 9.21,9.38h31.38c0.19,0 0.39,-0.01 0.58,-0.02 4.85,-0.36 8.68,-4.4 8.68,-9.35v-20.64s0.05,-0.03 0.07,-0.04v-0.96Z" />
+    </group>
 </vector>

@@ -74,12 +74,21 @@ class BleManager @Inject constructor(
         get() = bluetoothAdapter?.isEnabled == true
 
     @SuppressLint("MissingPermission")
-    fun startScan(): Flow<ScannedSensor> = callbackFlow {
-        if (bluetoothAdapter == null) {
-            Log.w(TAG, "Bluetooth not supported")
-            close()
-            return@callbackFlow
+    fun startScan(): Flow<ScannedSensor> {
+        com.smartsense.app.demo.DemoInjector.init(context)
+        if (com.smartsense.app.demo.DemoInjector.isActive) {
+            val demoFlow = com.smartsense.app.demo.DemoInjector.scanFlowOrNull()
+            if (demoFlow != null) {
+                return demoFlow
+            }
         }
+
+        return callbackFlow {
+            if (bluetoothAdapter == null) {
+                Log.w(TAG, "Bluetooth not supported")
+                close()
+                return@callbackFlow
+            }
 
         stopScan()
 
@@ -205,6 +214,7 @@ class BleManager @Inject constructor(
             stopScan()
         }
     }
+}
 
     /** Dump a one-shot picture of BLE callback stats to logcat under the BleHealth tag. */
     private fun logHealthSnapshot() {

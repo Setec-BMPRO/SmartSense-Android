@@ -13,3 +13,4 @@ gradle.properties
 local.properties
 *.py
 gradle.properties
+/decompiled_SmartSensePro/

@@ -13,6 +13,15 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorSurface">
 
+        <ImageView
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="15dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/ic_bmpro_logo"
+            android:adjustViewBounds="true"
+            android:contentDescription="BMPRO" />
+
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"

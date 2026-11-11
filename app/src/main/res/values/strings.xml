@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartSense</string>
+    <string name="app_name">SmartSensePro</string>
+
+    <!-- Footer Links -->
+    <string name="bmpro_landing_link">Videos, guides and more at teambmpro.com/smartsensepro</string>
+    <string name="bmpro_landing_url">https://www.teambmpro.com/smartsensepro</string>
+    <string name="bmpro_web_url">https://www.teambmpro.com/</string>
+    <string name="social_facebook_url">https://www.facebook.com/BMPROAU</string>
+    <string name="social_instagram_url">https://www.instagram.com/teambmpro.aus/</string>
+    <string name="social_youtube_url">https://www.youtube.com/c/bmproau</string>
+    <string name="social_linkedin_url">https://au.linkedin.com/company/team-bmpro</string>
 
     <!-- Navigation -->
     <string name="nav_account">Account</string>
@@ -214,7 +223,7 @@
     <string name="help_device_name">Set a friendly name for this sensor and tank so that you can easily identify it.  This name is only saved on your phone, so if you use multiple phones you will need to assign the name on each.</string>
     <string name="help_tank_size">Set the size of your tank so that the app can display a percentage read-out. For unlisted sizes or horizontal tanks, you should measure the tank\'s height and enter it into the "Arbitrary" field.  For horizontal tanks the percentage displayed will be the measured fluid height relative to the height you enter in the "Arbitrary" field.</string>
     <string name="help_tank_level_unit">Change the units that are displayed on the main and detailed tank information pages for your tank level.</string>
-    <string name="help_alarm_threshold">et a low-level alarm threshold for your tank.  When the level crosses below this alarm you will be sent a notification on your phone (if enabled in the main menu).  The app will also show you a warning icon and options to help you refill your tank.</string>
+    <string name="help_alarm_threshold">Set a low-level alarm threshold for your tank.  When the level crosses below this alarm you will be sent a notification on your phone (if enabled in the main menu).  The app will also show you a warning icon and options to help you refill your tank.</string>
     <string name="ok">Ok</string>
     <string name="low_quality">Low Quality</string>
     <string name="device_name">Device Name</string>

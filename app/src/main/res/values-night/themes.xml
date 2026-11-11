@@ -1,39 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.SmartSense" parent="Theme.Material3.Dark.NoActionBar">
-        <!-- Primary orange (lighter for dark theme) -->
-        <item name="colorPrimary">#FF7043</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorPrimaryContainer">#832200</item>
-        <item name="colorOnPrimaryContainer">#FFDBC9</item>
-
-        <!-- Secondary -->
-        <item name="colorSecondary">#E7BDB0</item>
-        <item name="colorOnSecondary">#442A20</item>
-        <item name="colorSecondaryContainer">#D24520</item>
-        <item name="colorOnSecondaryContainer">#FFFFFF</item>
-
-        <!-- Tertiary amber -->
-        <item name="colorTertiary">#D9C58D</item>
-        <item name="colorOnTertiary">#3B2F05</item>
-        <item name="colorTertiaryContainer">#534519</item>
-        <item name="colorOnTertiaryContainer">#F6E1A7</item>
-
-        <!-- Error -->
-        <item name="colorError">#FFB4AB</item>
-        <item name="colorOnError">#690005</item>
-
-        <!-- Surface (clean neutral dark) -->
-        <item name="colorSurface">#121212</item>
-        <item name="colorOnSurface">#E0E0E0</item>
-        <item name="colorSurfaceVariant">#2C2C2C</item>
-        <item name="colorOnSurfaceVariant">#B0B0B0</item>
-        <item name="colorOutline">#757575</item>
-        <item name="colorOutlineVariant">#383838</item>
-
+        <item name="android:windowBackground">@color/bmpro_charcoal</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/tab_bar_background</item>
-        <item name="android:windowBackground">#121212</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/splash_branding</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.SmartSense.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.SmartSense.MaterialAlertDialog</item>
+        <item name="colorError">#FFB4AB</item>
+        <item name="colorOnError">#690005</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorOnPrimaryContainer">#F5DAD2</item>
+        <item name="colorOnSecondary">#23272B</item>
+        <item name="colorOnSecondaryContainer">#FFFFFF</item>
+        <item name="colorOnSurface">#E0E0E0</item>
+        <item name="colorOnSurfaceVariant">#B0B0B0</item>
+        <item name="colorOnTertiary">#3B2F05</item>
+        <item name="colorOnTertiaryContainer">#F6E1A7</item>
+        <item name="colorOutline">#757575</item>
+        <item name="colorOutlineVariant">#3C4044</item>
+        <item name="colorPrimary">@color/bmpro_orange</item>
+        <item name="colorPrimaryContainer">#7C2913</item>
+        <item name="colorSecondary">#D3D4D5</item>
+        <item name="colorSecondaryContainer">@color/bmpro_orange</item>
+        <item name="colorSurface">@color/bmpro_charcoal</item>
+        <item name="colorSurfaceBright">#3D4145</item>
+        <item name="colorSurfaceContainer">#2E3236</item>
+        <item name="colorSurfaceContainerHigh">#33373B</item>
+        <item name="colorSurfaceContainerHighest">#393D41</item>
+        <item name="colorSurfaceContainerLow">#2B2F33</item>
+        <item name="colorSurfaceContainerLowest">#1C1F22</item>
+        <item name="colorSurfaceDim">#1C1F22</item>
+        <item name="colorSurfaceVariant">#33373B</item>
+        <item name="colorTertiary">#D9C58D</item>
+        <item name="colorTertiaryContainer">#534519</item>
         <item name="elevationOverlayEnabled">false</item>
     </style>
 </resources>
