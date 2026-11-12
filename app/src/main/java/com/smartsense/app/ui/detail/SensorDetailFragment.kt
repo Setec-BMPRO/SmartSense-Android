@@ -23,6 +23,7 @@ import com.smartsense.app.domain.model.TankLevelUnit
 import com.smartsense.app.domain.model.TankOrientation
 import com.smartsense.app.domain.model.TankType
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
+import com.smartsense.app.util.FooterUtils
 import com.smartsense.app.util.forceShowMenuIcons
 import com.smartsense.app.util.TimeUtils
 import com.smartsense.app.util.showSnackbar
@@ -168,12 +169,11 @@ class SensorDetailFragment : Fragment() {
     // 🖱️ UI EVENTS
     // --------------------------------------
 
-    private fun setupClickListeners() = with(binding) {
-        additionalInfoHeader.setOnClickListener { toggleAdditionalInfo() }
-
-        qualityWarning.setOnClickListener { showQualityDialog() }
-
-        debugRawDataHeader.setOnClickListener { toggleDebugRawData() }
+    private fun setupClickListeners() {
+        binding.root.findViewById<View>(R.id.bmpro_footer)?.let { FooterUtils.setupBmproFooter(it) }
+        binding.additionalInfoHeader.setOnClickListener { toggleAdditionalInfo() }
+        binding.qualityWarning.setOnClickListener { showQualityDialog() }
+        binding.debugRawDataHeader.setOnClickListener { toggleDebugRawData() }
     }
 
     private fun toggleDebugRawData() = with(binding) {
@@ -318,7 +318,7 @@ class SensorDetailFragment : Fragment() {
      *  "No data" row. */
     private fun parseRawDataRows(sensor: Sensor): List<RawDataRow> {
         val data = sensor.rawData ?: return emptyList()
-        val out = mutableListOf<RawDataRow>()
+        var out = mutableListOf<RawDataRow>()
         fun add(label: String, hex: String, decoded: String) {
             out += RawDataRow(label, hex, decoded)
         }

@@ -71,138 +71,152 @@ class BleManager @Inject constructor(
     private var activeScanCallback: ScanCallback? = null
 
     val isBluetoothEnabled: Boolean
-        get() = bluetoothAdapter?.isEnabled == true
-
-    @SuppressLint("MissingPermission")
-    fun startScan(): Flow<ScannedSensor> = callbackFlow {
-        if (bluetoothAdapter == null) {
-            Log.w(TAG, "Bluetooth not supported")
-            close()
-            return@callbackFlow
+        get() {
+            // Demo mode (debug builds only) doesn't use the radio; always false in release.
+            com.smartsense.app.demo.DemoInjector.init(context)
+            return com.smartsense.app.demo.DemoInjector.isActive || bluetoothAdapter?.isEnabled == true
         }
 
-        stopScan()
+    @SuppressLint("MissingPermission")
+    fun startScan(): Flow<ScannedSensor> {
+        com.smartsense.app.demo.DemoInjector.init(context)
+        if (com.smartsense.app.demo.DemoInjector.isActive) {
+            val demoFlow = com.smartsense.app.demo.DemoInjector.scanFlowOrNull()
+            if (demoFlow != null) {
+                return demoFlow
+            }
+        }
 
-        // Wall-clock of the last callback we got. Updated from onScanResult /
-        // onBatchScanResults. Watchdog (below) uses it to detect that Android has
-        // silently demoted us to SCAN_MODE_OPPORTUNISTIC — observed in BtGatt logs as
-        // "Moving scan client to opportunistic". That demotion produces no onScanFailed
-        // and no log on our side; we only notice because callbacks stop.
-        val lastCallbackAtMs = AtomicLong(System.currentTimeMillis())
+        return callbackFlow {
+            if (bluetoothAdapter == null) {
+                Log.w(TAG, "Bluetooth not supported")
+                close()
+                return@callbackFlow
+            }
 
-        val callback = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val now = System.currentTimeMillis()
-                lastCallbackAtMs.set(now)
-                // Per-device variant — feeds both the global "any callback" pulse and the
-                // per-address stats that the 30 s health snapshot dumps to logcat. Without
-                // the per-device side it's impossible to grep "did THIS sensor stop talking
-                // 90 s before the global silence" from the post-incident logs.
-                BleScanHealth.recordDeviceCallback(result.device.address)
-                val record = result.scanRecord
-                // DEBUG: Log all devices with any manufacturer data to find the Setec prototype
-                val mfgSparse = record?.manufacturerSpecificData
-                if (mfgSparse != null && mfgSparse.size() > 0) {
-                    val known = setOf(0x000D, 0x0059) // Skip known Mopeka IDs to reduce noise
-                    for (i in 0 until mfgSparse.size()) {
-                        val companyId = mfgSparse.keyAt(i)
-                        if (companyId !in known) {
-                            val data = mfgSparse.valueAt(i)
-                            val hex = data?.joinToString(",") { "%02X".format(it) } ?: "null"
-                            Timber.d("BLE UNKNOWN mfg 0x${"%04X".format(companyId)} from ${result.device.address} name=${result.device.name ?: record?.deviceName ?: "?"} rssi=${result.rssi} data=[$hex]")
+            stopScan()
+
+            // Wall-clock of the last callback we got. Updated from onScanResult /
+            // onBatchScanResults. Watchdog (below) uses it to detect that Android has
+            // silently demoted us to SCAN_MODE_OPPORTUNISTIC — observed in BtGatt logs as
+            // "Moving scan client to opportunistic". That demotion produces no onScanFailed
+            // and no log on our side; we only notice because callbacks stop.
+            val lastCallbackAtMs = AtomicLong(System.currentTimeMillis())
+
+            val callback = object : ScanCallback() {
+                override fun onScanResult(callbackType: Int, result: ScanResult) {
+                    val now = System.currentTimeMillis()
+                    lastCallbackAtMs.set(now)
+                    // Per-device variant — feeds both the global "any callback" pulse and the
+                    // per-address stats that the 30 s health snapshot dumps to logcat. Without
+                    // the per-device side it's impossible to grep "did THIS sensor stop talking
+                    // 90 s before the global silence" from the post-incident logs.
+                    BleScanHealth.recordDeviceCallback(result.device.address)
+                    val record = result.scanRecord
+                    // DEBUG: Log all devices with any manufacturer data to find the Setec prototype
+                    val mfgSparse = record?.manufacturerSpecificData
+                    if (mfgSparse != null && mfgSparse.size() > 0) {
+                        val known = setOf(0x000D, 0x0059) // Skip known Mopeka IDs to reduce noise
+                        for (i in 0 until mfgSparse.size()) {
+                            val companyId = mfgSparse.keyAt(i)
+                            if (companyId !in known) {
+                                val data = mfgSparse.valueAt(i)
+                                val hex = data?.joinToString(",") { "%02X".format(it) } ?: "null"
+                                Timber.d("BLE UNKNOWN mfg 0x${"%04X".format(companyId)} from ${result.device.address} name=${result.device.name ?: record?.deviceName ?: "?"} rssi=${result.rssi} data=[$hex]")
+                            }
+                        }
+                    }
+                    // Nordic's ScanResult is passed here
+                    parseScanResult(result)?.let { trySend(it) }
+                }
+
+                override fun onBatchScanResults(results: List<ScanResult>) {
+                    lastCallbackAtMs.set(System.currentTimeMillis())
+                    results.forEach { result ->
+                        BleScanHealth.recordDeviceCallback(result.device.address)
+                        parseScanResult(result)?.let { trySend(it) }
+                    }
+                }
+
+                override fun onScanFailed(errorCode: Int) {
+                    Timber.e("Nordic BLE scan failed: $errorCode")
+                    val reason = when (errorCode) {
+                        1 -> "BLE scan already active"
+                        2 -> "App could not register for BLE scanning"
+                        3 -> "BLE scan internal error"
+                        4 -> "BLE feature not supported on this device"
+                        else -> "BLE scan error (code $errorCode)"
+                    }
+                    close(BleScanException(reason, errorCode))
+                }
+            }
+
+            activeScanCallback = callback
+
+            try {
+                // Nordic scanner handles compatibility across Android versions internally
+                scanner.startScan(buildScanFilters(), buildScanSettings(), callback)
+                Timber.d("Nordic BLE scan started")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to start scan")
+                close(e)
+            }
+
+            // Watchdog: every WATCHDOG_INTERVAL_MS, check that callbacks have arrived within
+            // WATCHDOG_STALL_THRESHOLD_MS *or* that UI code has flagged a stall via
+            // BleScanHealth.requestScanRestart. If either tripwire fires, the OS has either
+            // demoted us to opportunistic or the user is staring at an offline sensor — stop
+            // + re-register the scan to count as a new client and pull us back into active
+            // scanning. Runs on the callbackFlow's coroutine scope so it dies with the flow.
+            val watchdog = launch {
+                while (isActive) {
+                    delay(WATCHDOG_INTERVAL_MS)
+                    val silentForMs = System.currentTimeMillis() - lastCallbackAtMs.get()
+                    val uiRequested = BleScanHealth.consumeScanRestartRequest()
+                    val timeoutHit = silentForMs > WATCHDOG_STALL_THRESHOLD_MS
+                    if (uiRequested || timeoutHit) {
+                        val reason = when {
+                            uiRequested && timeoutHit -> "ui+timeout(${silentForMs / 1000}s)"
+                            uiRequested -> "ui-request"
+                            else -> "timeout(${silentForMs / 1000}s)"
+                        }
+                        Timber.w("BLE scan stalled — restarting scanner [reason=$reason]")
+                        BleScanHealth.recordWatchdogRestart(reason)
+                        try {
+                            scanner.stopScan(callback)
+                        } catch (e: Exception) {
+                            Timber.w(e, "stopScan during watchdog restart failed (continuing)")
+                        }
+                        // Brief settle before re-registering so the OS sees this as a fresh client.
+                        delay(WATCHDOG_RESTART_DELAY_MS)
+                        try {
+                            scanner.startScan(buildScanFilters(), buildScanSettings(), callback)
+                            lastCallbackAtMs.set(System.currentTimeMillis())
+                            Timber.d("BLE scan re-registered by watchdog")
+                        } catch (e: Exception) {
+                            Timber.e(e, "Watchdog scan-restart failed")
                         }
                     }
                 }
-                // Nordic's ScanResult is passed here
-                parseScanResult(result)?.let { trySend(it) }
             }
 
-            override fun onBatchScanResults(results: List<ScanResult>) {
-                lastCallbackAtMs.set(System.currentTimeMillis())
-                results.forEach { result ->
-                    BleScanHealth.recordDeviceCallback(result.device.address)
-                    parseScanResult(result)?.let { trySend(it) }
+            // Periodic snapshot of BLE health — emits one line per 30 s with the global
+            // "last callback" gap, watchdog restart counter, and per-device callback counts.
+            // Designed for `adb logcat | grep BleHealth` post-incident grep: lets us answer
+            // "did the radio go quiet across the board, or did this one address stop
+            // talking while others kept streaming?" from the saved log.
+            val healthLogger = launch {
+                while (isActive) {
+                    delay(HEALTH_SNAPSHOT_INTERVAL_MS)
+                    logHealthSnapshot()
                 }
             }
 
-            override fun onScanFailed(errorCode: Int) {
-                Timber.e("Nordic BLE scan failed: $errorCode")
-                val reason = when (errorCode) {
-                    1 -> "BLE scan already active"
-                    2 -> "App could not register for BLE scanning"
-                    3 -> "BLE scan internal error"
-                    4 -> "BLE feature not supported on this device"
-                    else -> "BLE scan error (code $errorCode)"
-                }
-                close(BleScanException(reason, errorCode))
+            awaitClose {
+                watchdog.cancel()
+                healthLogger.cancel()
+                stopScan()
             }
-        }
-
-        activeScanCallback = callback
-
-        try {
-            // Nordic scanner handles compatibility across Android versions internally
-            scanner.startScan(buildScanFilters(), buildScanSettings(), callback)
-            Timber.d("Nordic BLE scan started")
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to start scan")
-            close(e)
-        }
-
-        // Watchdog: every WATCHDOG_INTERVAL_MS, check that callbacks have arrived within
-        // WATCHDOG_STALL_THRESHOLD_MS *or* that UI code has flagged a stall via
-        // BleScanHealth.requestScanRestart. If either tripwire fires, the OS has either
-        // demoted us to opportunistic or the user is staring at an offline sensor — stop
-        // + re-register the scan to count as a new client and pull us back into active
-        // scanning. Runs on the callbackFlow's coroutine scope so it dies with the flow.
-        val watchdog = launch {
-            while (isActive) {
-                delay(WATCHDOG_INTERVAL_MS)
-                val silentForMs = System.currentTimeMillis() - lastCallbackAtMs.get()
-                val uiRequested = BleScanHealth.consumeScanRestartRequest()
-                val timeoutHit = silentForMs > WATCHDOG_STALL_THRESHOLD_MS
-                if (uiRequested || timeoutHit) {
-                    val reason = when {
-                        uiRequested && timeoutHit -> "ui+timeout(${silentForMs / 1000}s)"
-                        uiRequested -> "ui-request"
-                        else -> "timeout(${silentForMs / 1000}s)"
-                    }
-                    Timber.w("BLE scan stalled — restarting scanner [reason=$reason]")
-                    BleScanHealth.recordWatchdogRestart(reason)
-                    try {
-                        scanner.stopScan(callback)
-                    } catch (e: Exception) {
-                        Timber.w(e, "stopScan during watchdog restart failed (continuing)")
-                    }
-                    // Brief settle before re-registering so the OS sees this as a fresh client.
-                    delay(WATCHDOG_RESTART_DELAY_MS)
-                    try {
-                        scanner.startScan(buildScanFilters(), buildScanSettings(), callback)
-                        lastCallbackAtMs.set(System.currentTimeMillis())
-                        Timber.d("BLE scan re-registered by watchdog")
-                    } catch (e: Exception) {
-                        Timber.e(e, "Watchdog scan-restart failed")
-                    }
-                }
-            }
-        }
-
-        // Periodic snapshot of BLE health — emits one line per 30 s with the global
-        // "last callback" gap, watchdog restart counter, and per-device callback counts.
-        // Designed for `adb logcat | grep BleHealth` post-incident grep: lets us answer
-        // "did the radio go quiet across the board, or did this one address stop
-        // talking while others kept streaming?" from the saved log.
-        val healthLogger = launch {
-            while (isActive) {
-                delay(HEALTH_SNAPSHOT_INTERVAL_MS)
-                logHealthSnapshot()
-            }
-        }
-
-        awaitClose {
-            watchdog.cancel()
-            healthLogger.cancel()
-            stopScan()
         }
     }
 

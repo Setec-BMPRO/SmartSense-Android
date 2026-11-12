@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartSense</string>
+    <string name="app_name">SmartSensePro</string>
 
     <!-- Navigation -->
     <string name="nav_account">Cuenta</string>
@@ -11,19 +11,21 @@
 
     <!-- Pairing Help -->
     <string name="help_pair_title">Cómo emparejar un sensor</string>
-    <string name="help_pair_s1_title">1. Lo básico primero</string>
-    <string name="help_pair_s1_body">Activa el Bluetooth y la Ubicación en tu teléfono y asegúrate de que el sensor tenga energía.</string>
-    <string name="help_pair_s2_title">2. Mantente cerca</string>
-    <string name="help_pair_s2_body">Abre esta pantalla y mantén el sensor a menos de 10 metros del teléfono.</string>
-    <string name="help_pair_s3_title">Sensores ya emparejados</string>
-    <string name="help_pair_s3_body">Se reconectan automáticamente en cuanto emiten — no es necesario pulsar ningún botón.</string>
-    <string name="help_pair_s4_title">Sensores nuevos o eliminados</string>
-    <string name="help_pair_s4_body">Pulsa el botón de emparejamiento/sincronización del sensor. La aplicación detecta la señal de emparejamiento y lo registra automáticamente.</string>
-    <string name="help_pair_trouble_title">Si el sensor no aparece:</string>
-    <string name="help_pair_trouble_1">Pulsa de nuevo el botón de emparejamiento.</string>
-    <string name="help_pair_trouble_2">Comprueba la batería del sensor.</string>
-    <string name="help_pair_trouble_3">Acércate y espera unos segundos a la siguiente emisión.</string>
-    <string name="help_pair_trouble_4">Confirma que los permisos de Bluetooth y Ubicación están concedidos en los ajustes del teléfono.</string>
+    <string name="help_pair_message">"1. Activa el Bluetooth y la Ubicación en tu teléfono y asegúrate de que el sensor tenga energía.
+
+2. Abre esta pantalla y mantén el sensor a menos de 10 metros del teléfono.
+
+Sensores ya emparejados:
+Se reconectan automáticamente en cuanto emiten — no es necesario pulsar ningún botón.
+
+Sensores nuevos o eliminados:
+Pulsa el botón de emparejamiento/sincronización del sensor. La aplicación detecta la señal de emparejamiento y lo registra automáticamente.
+
+Si el sensor no aparece:
+• Pulsa de nuevo el botón de emparejamiento.
+• Comprueba la batería del sensor.
+• Acércate y espera unos segundos a la siguiente emisión.
+• Confirma que los permisos de Bluetooth y Ubicación están concedidos en los ajustes del teléfono."</string>
 
 
     <!-- Dashboard -->
@@ -42,10 +44,7 @@
     <string name="scan_auto_pair_hint">Pulsa el botón de emparejamiento de un sensor nuevo para añadirlo</string>
     <string name="sensors_found">%1$d sensor(es) encontrados</string>
     <string name="connected_sensors">Conectados</string>
-    <plurals name="sensor_count_label">
-        <item quantity="one">%1$d sensor</item>
-        <item quantity="other">%1$d sensores</item>
-    </plurals>
+    <string name="sensor_count_label">%1$d sensor(es)</string>
     <string name="select_tank_type">Seleccionar tipo de tanque</string>
 
     <!-- Detail -->

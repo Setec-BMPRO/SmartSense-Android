@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartSense</string>
+    <string name="app_name">SmartSensePro</string>
     <string name="nav_account">계정</string>
     <string name="nav_scan">검색</string>
     <string name="nav_smartsense">SmartSense</string>
     <string name="nav_settings">설정</string>
     <string name="nav_help">도움말</string>
     <string name="help_pair_title">센서 페어링 방법</string>
-    <string name="help_pair_s1_title">1. 기본 준비하기</string>
-    <string name="help_pair_s1_body">휴대폰의 블루투스와 위치 서비스를 켜고 센서에 전원이 있는지 확인하세요.</string>
-    <string name="help_pair_s2_title">2. 가까이 두기</string>
-    <string name="help_pair_s2_body">이 화면을 열고 센서를 휴대폰에서 10미터 이내에 두세요.</string>
-    <string name="help_pair_s3_title">이전에 페어링된 센서</string>
-    <string name="help_pair_s3_body">전송이 시작되면 자동으로 다시 연결됩니다 — 버튼을 누를 필요 없습니다.</string>
-    <string name="help_pair_s4_title">새 센서나 제거된 센서</string>
-    <string name="help_pair_s4_body">센서의 페어링/동기화 버튼을 누르세요. 앱이 페어링 신호를 감지해 자동 등록합니다.</string>
-    <string name="help_pair_trouble_title">센서가 보이지 않으면:</string>
-    <string name="help_pair_trouble_1">페어링 버튼을 다시 누르세요.</string>
-    <string name="help_pair_trouble_2">센서 배터리를 확인하세요.</string>
-    <string name="help_pair_trouble_3">더 가까이 가서 다음 신호를 몇 초 기다리세요.</string>
-    <string name="help_pair_trouble_4">휴대폰 설정에서 블루투스/위치 권한이 허용됐는지 확인하세요.</string>
+    <string name="help_pair_message">"1. 휴대폰의 블루투스와 위치 서비스를 켜고 센서에 전원이 있는지 확인하세요.
+
+2. 이 화면을 열고 센서를 휴대폰에서 10미터 이내에 두세요.
+
+이전에 페어링된 센서:
+전송이 시작되면 자동으로 다시 연결됩니다 — 버튼을 누를 필요 없습니다.
+
+새 센서나 제거된 센서:
+센서의 페어링/동기화 버튼을 누르세요. 앱이 페어링 신호를 감지해 자동 등록합니다.
+
+센서가 보이지 않으면:
+• 페어링 버튼을 다시 누르세요.
+• 센서 배터리를 확인하세요.
+• 더 가까이 가서 다음 신호를 몇 초 기다리세요.
+• 휴대폰 설정에서 블루투스/위치 권한이 허용됐는지 확인하세요."</string>
     <string name="empty_title">연결된 센서 없음</string>
     <string name="empty_subtitle">검색을 눌러 주변 센서를 찾으세요</string>
     <string name="empty_action">검색 시작</string>
@@ -33,9 +35,7 @@
     <string name="scan_auto_pair_hint">새 센서의 페어링 버튼을 눌러 추가하세요</string>
     <string name="sensors_found">%1$d개 센서 발견</string>
     <string name="connected_sensors">연결됨</string>
-    <plurals name="sensor_count_label">
-        <item quantity="other">센서 %1$d개</item>
-    </plurals>
+    <string name="sensor_count_label">센서 %1$d개</string>
     <string name="select_tank_type">탱크 유형 선택</string>
     <string name="tank_level">탱크 수위</string>
     <string name="battery">배터리</string>

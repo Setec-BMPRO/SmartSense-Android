@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_bmpro_footer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Landing Page Link (teambmpro.com/smartsensepro) -->
+    <LinearLayout
+        android:id="@+id/footer_landing_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/bmpro_landing_link"
+        android:paddingHorizontal="@dimen/spacing_md"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/footer_landing_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:text="@string/bmpro_landing_link"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant" />
+    </LinearLayout>
+
+    <!-- Orange BMPRO Footer Bar -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bmpro_orange"
+        android:paddingHorizontal="@dimen/spacing_md"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
+
+        <!-- TEAM BMPRO .COM Web Mark (bottom left) -->
+        <ImageView
+            android:id="@+id/footer_logo_bmpro"
+            android:layout_width="wrap_content"
+            android:layout_height="55dp"
+            android:layout_gravity="start|center_vertical"
+            android:adjustViewBounds="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="teambmpro.com"
+            android:src="@drawable/ic_teambmpro_web" />
+
+        <!-- Social Media Icons & Powering Your Adventures Tagline (centered) -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Social Media Icons Row -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/footer_social_facebook"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="BMPRO on Facebook"
+                    android:src="@drawable/ic_social_facebook" />
+
+                <ImageView
+                    android:id="@+id/footer_social_instagram"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="BMPRO on Instagram"
+                    android:src="@drawable/ic_social_instagram" />
+
+                <ImageView
+                    android:id="@+id/footer_social_youtube"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="BMPRO on YouTube"
+                    android:src="@drawable/ic_social_youtube" />
+
+                <ImageView
+                    android:id="@+id/footer_social_linkedin"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_marginStart="16dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="BMPRO on LinkedIn"
+                    android:src="@drawable/ic_social_linkedin" />
+            </LinearLayout>
+
+            <!-- Tagline: Powering Your Adventures -->
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="11dp"
+                android:layout_marginTop="10dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="Powering your adventures"
+                android:src="@drawable/ic_tagline_powering" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

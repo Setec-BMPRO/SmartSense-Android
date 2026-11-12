@@ -146,13 +146,12 @@ class TankLevelMiniView @JvmOverloads constructor(
         if (lastDarkMode != dark) {
             lastDarkMode = dark
             lastWidth = 0
-            val outlineColor = if (dark) 0xFFAAAAAA.toInt() else 0xFF5A5A5A.toInt()
+            // BMPRO bottle: light-grey cylinder in both themes, with a faint outline only
+            // on the light background.
+            val outlineColor = if (dark) BmproTankColors.CYLINDER else BmproTankColors.MINI_OUTLINE_LIGHT
             outlineBitmapPaint.colorFilter =
                 PorterDuffColorFilter(outlineColor, PorterDuff.Mode.SRC_IN)
-            hardwareTintPaint.colorFilter = PorterDuffColorFilter(
-                if (dark) 0xFFBDBDBD.toInt() else 0xFF000000.toInt(),
-                PorterDuff.Mode.SRC_IN
-            )
+            hardwareTintPaint.colorFilter = PorterDuffColorFilter(BmproTankColors.CYLINDER, PorterDuff.Mode.SRC_IN)
         }
 
         if (size != lastWidth) {
@@ -164,21 +163,9 @@ class TankLevelMiniView @JvmOverloads constructor(
 
             val tankLeft = size * leftRatio
             val tankRight = size * rightRatio
-            tankGradientPaint.shader = if (dark) {
-                LinearGradient(
-                    tankLeft, 0f, tankRight, 0f,
-                    intArrayOf(0xFF3A3A3A.toInt(), 0xFF4A4A4A.toInt(), 0xFF333333.toInt()),
-                    floatArrayOf(0f, 0.4f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-            } else {
-                LinearGradient(
-                    tankLeft, 0f, tankRight, 0f,
-                    intArrayOf(0xFFD0D0D0.toInt(), 0xFFF2F2F2.toInt(), 0xFFC4C4C4.toInt()),
-                    floatArrayOf(0f, 0.4f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-            }
+            // Flat light-grey cylinder, the same in light and dark mode.
+            tankGradientPaint.shader = null
+            tankGradientPaint.color = BmproTankColors.CYLINDER
         }
 
         val bitmap = tankBitmap ?: return
@@ -215,12 +202,11 @@ class TankLevelMiniView @JvmOverloads constructor(
 
         // Liquid fill masked by silhouette
         if (percentage > 0f) {
-            // Apply vertical gradient: Blue (Bottom) -> Red (Top)
-            val topColor = if (dark) 0xFFFF5252.toInt() else 0xFFD24520.toInt() // Softer red in dark mode
+            // Gas in the level colour, fading lighter towards the top (BMPRO restyle).
             fillPaint.shader = LinearGradient(
                 0f, fillBottomY, 0f, fillTopY,
-                0xFF1E88E5.toInt(), // Blue
-                topColor, // Red
+                BmproTankColors.gasBottom(context, levelStatus),
+                BmproTankColors.gasTop(context, levelStatus),
                 Shader.TileMode.CLAMP
             )
 
@@ -236,17 +222,6 @@ class TankLevelMiniView @JvmOverloads constructor(
 
             val save2 = canvas.saveLayer(bounds, null)
             canvas.drawRect(0f, liquidTopY, s, fillBottomY, fillPaint)
-
-            fillHighlightPaint.shader = LinearGradient(
-                tankLeft, 0f, tankLeft + tankWidth * 0.35f, 0f,
-                0x30FFFFFF, 0x00FFFFFF,
-                Shader.TileMode.CLAMP
-            )
-            canvas.drawRect(
-                tankLeft, liquidTopY,
-                tankLeft + tankWidth * 0.35f, fillBottomY,
-                fillHighlightPaint
-            )
 
             canvas.drawBitmap(bitmap, 0f, 0f, maskPaint)
             canvas.restoreToCount(save2)

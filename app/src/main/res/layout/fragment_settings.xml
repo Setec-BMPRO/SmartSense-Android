@@ -49,12 +49,11 @@
 
             <!-- Appearance Group -->
             <TextView
+                style="@style/Widget.SmartSense.SectionHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/setting_appearance"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary"
-                android:textAllCaps="true"
+                android:textAllCaps="false"
                 android:paddingBottom="@dimen/spacing_sm"
                 android:paddingStart="@dimen/spacing_xs"/>
 
@@ -121,12 +120,11 @@
 
             <!-- Preferences Group -->
             <TextView
+                style="@style/Widget.SmartSense.SectionHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/setting_general"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary"
-                android:textAllCaps="true"
+                android:textAllCaps="false"
                 android:paddingBottom="@dimen/spacing_sm"
                 android:paddingStart="@dimen/spacing_xs"/>
 
@@ -348,12 +346,11 @@
 
             <!-- Features Group -->
             <TextView
+                style="@style/Widget.SmartSense.SectionHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/setting_features"
-                android:textAppearance="?attr/textAppearanceLabelLarge"
-                android:textColor="?attr/colorPrimary"
-                android:textAllCaps="true"
+                android:textAllCaps="false"
                 android:paddingBottom="@dimen/spacing_sm"
                 android:paddingStart="@dimen/spacing_xs"/>
 
@@ -440,15 +437,13 @@
                         android:background="?attr/colorOutlineVariant"
                         android:layout_marginStart="64dp"/>
 
-                    <!-- Device Search Filter — hidden for now (the sensor-list search is
-                         always available, so this toggle no longer gates anything). -->
+                    <!-- Device Search Filter -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:padding="@dimen/spacing_lg"
-                        android:gravity="center_vertical"
-                        android:visibility="gone">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="24dp"
@@ -474,8 +469,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="?attr/colorOutlineVariant"
-                        android:layout_marginStart="64dp"
-                        android:visibility="gone"/>
+                        android:layout_marginStart="64dp"/>
 
                     <!-- Group Sensors -->
                     <LinearLayout

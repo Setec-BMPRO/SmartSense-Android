@@ -35,6 +35,7 @@ import com.smartsense.app.domain.model.Sensor
 import com.smartsense.app.ui.detail.TankSettingsFragment.Companion.EXTRA_SENSOR_ADDRESS
 
 import com.smartsense.app.ui.helper.BlePermissionManager
+import com.smartsense.app.util.FooterUtils
 import com.smartsense.app.util.forceShowMenuIcons
 import com.smartsense.app.util.hideKeyboard
 import com.xwray.groupie.ExpandableGroup
@@ -117,14 +118,15 @@ class ScanFragment : Fragment() {
     }
 
     private fun setupViews() {
+        binding.root.findViewById<View>(R.id.bmpro_footer)?.let { FooterUtils.setupBmproFooter(it) }
+
         binding.sensorList.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = groupAdapter
         }
 
-        // Setup Logo Branding: SMARTSENSE with "petite caps" — initial caps at full size,
-        // remaining letters scaled down. SMART in dark, SENSE in primary.
-        val logoText = SpannableString("SMARTSENSE").apply {
+        // Setup Logo Branding: SMARTSENSEPRO
+        val logoText = SpannableString("SMARTSENSEPRO").apply {
             setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.logo_smart_text)),
                 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
@@ -133,8 +135,10 @@ class ScanFragment : Fragment() {
                 ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.primary)),
                 5, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-            setSpan(RelativeSizeSpan(0.78f), 1, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-            setSpan(RelativeSizeSpan(0.78f), 6, 10, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.logo_smart_text)),
+                10, 13, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         }
         binding.smartsenseLogo.logoText.text = logoText
         binding.toolbar.forceShowMenuIcons()
@@ -309,15 +313,11 @@ class ScanFragment : Fragment() {
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
-        // Search field is shown whenever there are registered sensors (iOS parity) —
-        // no longer gated behind the Device Search Filter setting, which iOS doesn't
-        // use to hide the search either.
-        viewModel.uiState
-            .map { it.sensors.isNotEmpty() }
-            .distinctUntilChanged()
+        // Control search filter field visibility based on Device Search Filter setting
+        viewModel.deviceSearchFilterEnabled
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .onEach { hasSensors ->
-                binding.filterLayout.isVisible = hasSensors
+            .onEach { enabled ->
+                binding.filterLayout.isVisible = enabled
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -395,9 +395,7 @@ class ScanFragment : Fragment() {
             pairHintBanner.isVisible = totalInSystem > 0 && !viewModel.pairHintDismissed.value
 
             if (filteredCount > 0) {
-                sensorCount.text = resources.getQuantityString(
-                    R.plurals.sensor_count_label, filteredCount, filteredCount
-                )
+                sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
             }
         }
     }
@@ -424,13 +422,9 @@ class ScanFragment : Fragment() {
     }
 
     private fun showPairingHelp() {
-        // Structured, scrollable body (dialog_pairing_help) mirroring iOS PairingHelpSheet —
-        // bold section headers, secondary body copy, and a clean bullet list — instead of
-        // a single cramped message string.
-        val content = layoutInflater.inflate(R.layout.dialog_pairing_help, null)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.help_pair_title)
-            .setView(content)
+            .setTitle(getString(R.string.help_pair_title).uppercase(java.util.Locale.getDefault()))
+            .setMessage(R.string.help_pair_message)
             .setPositiveButton(R.string.ok, null)
             .show()
     }

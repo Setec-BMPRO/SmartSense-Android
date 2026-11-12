@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartSense</string>
+    <string name="app_name">SmartSensePro</string>
     <string name="nav_account">Account</string>
     <string name="nav_scan">Scansione</string>
     <string name="nav_smartsense">SmartSense</string>
     <string name="nav_settings">Impostazioni</string>
     <string name="nav_help">Aiuto</string>
     <string name="help_pair_title">Come associare un sensore</string>
-    <string name="help_pair_s1_title">1. Le basi</string>
-    <string name="help_pair_s1_body">Attiva Bluetooth e Posizione sul telefono e assicurati che il sensore sia alimentato.</string>
-    <string name="help_pair_s2_title">2. Resta vicino</string>
-    <string name="help_pair_s2_body">Apri questa schermata e tieni il sensore entro 10 metri dal telefono.</string>
-    <string name="help_pair_s3_title">Sensori già associati</string>
-    <string name="help_pair_s3_body">Si riconnettono automaticamente non appena trasmettono — non serve premere alcun pulsante.</string>
-    <string name="help_pair_s4_title">Sensori nuovi o rimossi</string>
-    <string name="help_pair_s4_body">Premi il pulsante di associazione/sincronizzazione sul sensore. L\'app rileva la trasmissione e lo registra automaticamente.</string>
-    <string name="help_pair_trouble_title">Se il sensore non compare:</string>
-    <string name="help_pair_trouble_1">Premi di nuovo il pulsante di associazione.</string>
-    <string name="help_pair_trouble_2">Controlla la batteria.</string>
-    <string name="help_pair_trouble_3">Avvicinati e attendi qualche secondo.</string>
-    <string name="help_pair_trouble_4">Verifica che le autorizzazioni Bluetooth e Posizione siano concesse.</string>
+    <string name="help_pair_message">"1. Attiva Bluetooth e Posizione sul telefono e assicurati che il sensore sia alimentato.
+
+2. Apri questa schermata e tieni il sensore entro 10 metri dal telefono.
+
+Sensori già associati:
+Si riconnettono automaticamente non appena trasmettono — non serve premere alcun pulsante.
+
+Sensori nuovi o rimossi:
+Premi il pulsante di associazione/sincronizzazione sul sensore. L'app rileva la trasmissione e lo registra automaticamente.
+
+Se il sensore non compare:
+• Premi di nuovo il pulsante di associazione.
+• Controlla la batteria.
+• Avvicinati e attendi qualche secondo.
+• Verifica che le autorizzazioni Bluetooth e Posizione siano concesse."</string>
     <string name="empty_title">Nessun sensore connesso</string>
     <string name="empty_subtitle">Tocca Scansione per trovare sensori vicini</string>
     <string name="empty_action">Avvia scansione</string>
@@ -33,10 +35,7 @@
     <string name="scan_auto_pair_hint">Premi il pulsante di associazione di un nuovo sensore per aggiungerlo</string>
     <string name="sensors_found">%1$d sensore/i trovato/i</string>
     <string name="connected_sensors">Connessi</string>
-    <plurals name="sensor_count_label">
-        <item quantity="one">%1$d sensore</item>
-        <item quantity="other">%1$d sensori</item>
-    </plurals>
+    <string name="sensor_count_label">%1$d sensore/i</string>
     <string name="select_tank_type">Seleziona tipo di serbatoio</string>
     <string name="tank_level">Livello serbatoio</string>
     <string name="battery">Batteria</string>

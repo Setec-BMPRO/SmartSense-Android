@@ -1,53 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="320dp"
-    android:height="320dp"
-    android:viewportWidth="320"
-    android:viewportHeight="320">
-
-    <!-- Handle Top Bar (Medium Thickness) -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M91,0 L228,0 C241,0 241,14 228,14 L91,14 C78,14 78,0 91,0 Z" />
-
-    <!-- Handle Supports (Medium Thickness) -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M101,14 L101,62 L116,62 L116,14 Z
-                          M203,14 L203,62 L218,62 L218,14 Z" />
-
-    <!-- Center Valve Assembly (Medium Thickness) -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M151,44 L151,62 L168,62 L168,44 Z
-                          M134,38 L134,44 L185,44 L185,38 Z" />
-
-    <!-- Foot Ring Outline -->
-    <path
-        android:fillColor="#000000"
-        android:fillType="evenOdd"
-        android:pathData="M 76,286
-                          L 244,286
-                          L 244,312
-                          C 236,320 84,320 76,312
-                          Z
-                          M 90,296 L 120,296 L 120,306 L 90,306 Z
-                          M 140,296 L 180,296 L 180,306 L 140,306 Z
-                          M 200,296 L 230,296 L 230,306 L 200,306 Z" />
-
-    <!-- Tank Bulb Outline -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#000000"
-        android:strokeWidth="3"
-        android:strokeLineJoin="round"
-        android:pathData="M 104,62
-                          L 216,62
-                          C 264,62 280,82 280,112
-                          L 280,252
-                          C 280,282 264,290 216,290
-                          L 104,290
-                          C 56,290 40,282 40,252
-                          L 40,112
-                          C 40,82 56,62 104,62 Z" />
+<vector android:height="416.0dp" android:width="320.0dp" android:viewportWidth="100.0" android:viewportHeight="130.0"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:scaleX="1.325" android:scaleY="1.325" android:translateX="14.44" android:translateY="3.0">
+        <path android:fillColor="#ff000000" android:pathData="M39.2,20.15c2.4,0 4.34,-1.26 4.34,-2.82V2.82c0,-1.56 -1.94,-2.82 -4.34,-2.82H14.4c-2.4,0 -4.34,1.26 -4.34,2.82v14.51c0,1.56 1.94,2.82 4.34,2.82Z M39.1,17.69c0,1.36 -1.43,2.46 -3.18,2.46h-18.21c-1.76,0 -3.18,-1.1 -3.18,-2.46V5.03c0,-1.36 1.43,-2.46 3.18,-2.46h18.21c1.76,0 3.18,1.1 3.18,2.46v12.66Z" android:fillType="evenOdd" />
+        <path android:fillColor="#ff000000" android:pathData="M32.26,16.77h-10.84c-0.55,0 -0.99,0.44 -0.99,0.99v0.8c0,0.55 0.44,0.99 0.99,0.99h10.84c0.55,0 0.99,-0.44 0.99,-0.99v-0.8c0,-0.55 -0.44,-0.99 -0.99,-0.99Z" />
+        <path android:fillColor="#ff000000" android:pathData="M24.16,9.48h5.36c0.52,0 0.94,0.42 0.94,0.94v4.81c0,0.52 -0.42,0.94 -0.94,0.94h-5.36c-0.52,0 -0.94,-0.42 -0.94,-0.94v-4.81c0,-0.52 0.42,-0.94 0.94,-0.94Z" />
+        <path android:fillColor="#ff000000" android:pathData="M22.68,8.04h1.94v0.85h4.45v-0.85h1.94c0.82,0 1.49,-0.67 1.49,-1.49v-0.05c0,-0.82 -0.67,-1.49 -1.49,-1.49h-8.33c-0.82,0 -1.49,0.67 -1.49,1.49v0.05c0,0.82 0.67,1.49 1.49,1.49Z" />
+        <path android:fillColor="#ff000000" android:pathData="M31.05,11.62h1.71v3.48h-1.71Z" />
+        <path android:fillColor="#ff000000" android:pathData="M36.56,10.23h-1.92c-0.72,0 -1.31,0.59 -1.31,1.31v3.64c0,0.72 0.59,1.31 1.31,1.31h1.92c0.72,0 1.31,-0.59 1.31,-1.31v-3.64c0,-0.72 -0.59,-1.31 -1.31,-1.31Z" />
+        <path android:fillColor="#ff000000" android:pathData="M11.11,88.75v2.66h-1.16c-0.41,0 -0.75,0.33 -0.75,0.75v0.56c0,0.22 0.1,0.42 0.26,0.56 0.14,0.16 0.33,0.26 0.56,0.26h33.62c0.41,0 0.75,-0.33 0.75,-0.75v-0.56c0,-0.22 -0.1,-0.42 -0.26,-0.56 -0.14,-0.16 -0.33,-0.26 -0.56,-0.26h-1.08v-2.65Z M18.13,89.79v0.25c0,0.58 -0.47,1.06 -1.06,1.06h-3.1c-0.58,0 -1.06,-0.47 -1.06,-1.06v-0.25c0,-0.58 0.47,-1.06 1.06,-1.06h3.1c0.58,0 1.06,0.47 1.06,1.06Z M25.63,89.79v0.25c0,0.58 -0.47,1.06 -1.06,1.06h-3.1c-0.58,0 -1.06,-0.47 -1.06,-1.06v-0.25c0,-0.58 0.47,-1.06 1.06,-1.06h3.1c0.58,0 1.06,0.47 1.06,1.06Z M33.14,89.79v0.25c0,0.58 -0.47,1.06 -1.06,1.06h-3.1c-0.58,0 -1.06,-0.47 -1.06,-1.06v-0.25c0,-0.58 0.47,-1.06 1.06,-1.06h3.1c0.58,0 1.06,0.47 1.06,1.06Z M40.65,89.79v0.25c0,0.58 -0.47,1.06 -1.06,1.06h-3.1c-0.58,0 -1.06,-0.47 -1.06,-1.06v-0.25c0,-0.58 0.47,-1.06 1.06,-1.06h3.1c0.58,0 1.06,0.47 1.06,1.06Z" android:fillType="evenOdd" />
+    </group>
 </vector>

@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartSense</string>
+    <string name="app_name">SmartSensePro</string>
     <string name="nav_account">الحساب</string>
     <string name="nav_scan">مسح</string>
     <string name="nav_smartsense">SmartSense</string>
     <string name="nav_settings">الإعدادات</string>
     <string name="nav_help">المساعدة</string>
     <string name="help_pair_title">كيفية إقران المستشعر</string>
-    <string name="help_pair_s1_title">١. ابدأ بالأساسيات</string>
-    <string name="help_pair_s1_body">فعّل البلوتوث والموقع في هاتفك وتأكد من تشغيل المستشعر.</string>
-    <string name="help_pair_s2_title">٢. ابقَ قريبًا</string>
-    <string name="help_pair_s2_body">افتح هذه الشاشة وضع المستشعر على بُعد لا يتجاوز ١٠ أمتار من الهاتف.</string>
-    <string name="help_pair_s3_title">المستشعرات المُقترَنة سابقًا</string>
-    <string name="help_pair_s3_body">يُعاد الاتصال تلقائيًا بمجرد بدء البث — لا حاجة للضغط على أي زر.</string>
-    <string name="help_pair_s4_title">المستشعرات الجديدة أو المحذوفة</string>
-    <string name="help_pair_s4_body">اضغط زر الإقران/المزامنة على المستشعر. يكتشف التطبيق إشارة الإقران ويسجلها تلقائيًا.</string>
-    <string name="help_pair_trouble_title">إذا لم يظهر المستشعر:</string>
-    <string name="help_pair_trouble_1">اضغط زر الإقران مرة أخرى.</string>
-    <string name="help_pair_trouble_2">تحقق من بطارية المستشعر.</string>
-    <string name="help_pair_trouble_3">اقترب وانتظر بضع ثوانٍ للبث التالي.</string>
-    <string name="help_pair_trouble_4">تأكد من منح إذني البلوتوث والموقع في إعدادات الهاتف.</string>
+    <string name="help_pair_message">"١. فعّل البلوتوث والموقع في هاتفك وتأكد من تشغيل المستشعر.
+
+٢. افتح هذه الشاشة وضع المستشعر على بُعد لا يتجاوز ١٠ أمتار من الهاتف.
+
+المستشعرات المُقترَنة سابقًا:
+يُعاد الاتصال تلقائيًا بمجرد بدء البث — لا حاجة للضغط على أي زر.
+
+المستشعرات الجديدة أو المحذوفة:
+اضغط زر الإقران/المزامنة على المستشعر. يكتشف التطبيق إشارة الإقران ويسجلها تلقائيًا.
+
+إذا لم يظهر المستشعر:
+• اضغط زر الإقران مرة أخرى.
+• تحقق من بطارية المستشعر.
+• اقترب وانتظر بضع ثوانٍ للبث التالي.
+• تأكد من منح إذني البلوتوث والموقع في إعدادات الهاتف."</string>
     <string name="empty_title">لا توجد مستشعرات متصلة</string>
     <string name="empty_subtitle">اضغط مسح للعثور على مستشعرات قريبة</string>
     <string name="empty_action">بدء المسح</string>
@@ -33,9 +35,7 @@
     <string name="scan_auto_pair_hint">اضغط زر الإقران على مستشعر جديد لإضافته</string>
     <string name="sensors_found">تم العثور على %1$d مستشعر</string>
     <string name="connected_sensors">متصلة</string>
-    <plurals name="sensor_count_label">
-        <item quantity="other">%1$d مستشعر</item>
-    </plurals>
+    <string name="sensor_count_label">%1$d مستشعر</string>
     <string name="select_tank_type">اختر نوع الخزان</string>
     <string name="tank_level">مستوى الخزان</string>
     <string name="battery">البطارية</string>

@@ -14,6 +14,15 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorSurface">
 
+        <ImageView
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="15dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/ic_bmpro_logo"
+            android:adjustViewBounds="true"
+            android:contentDescription="BMPRO" />
+
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -29,7 +38,8 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:fillViewport="true">
 
         <LinearLayout
@@ -222,11 +232,11 @@
                 tools:text="Low Quality: Tank empty or sensor is incorrectly positioned."
                 tools:visibility="visible"/>
 
-            <!-- Sensor Info (expandable card). No separate all-caps section header
-                 above it — the card's own "Sensor Info" title is the heading. -->
+            <!-- Sensor Info (expandable card) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
                 android:layout_marginBottom="32dp"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
@@ -535,5 +545,11 @@
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <include
+        android:id="@+id/bmpro_footer"
+        layout="@layout/layout_bmpro_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

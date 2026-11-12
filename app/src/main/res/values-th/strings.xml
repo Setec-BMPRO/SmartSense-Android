@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SmartSense</string>
+    <string name="app_name">SmartSensePro</string>
     <string name="nav_account">บัญชี</string>
     <string name="nav_scan">สแกน</string>
     <string name="nav_smartsense">SmartSense</string>
     <string name="nav_settings">การตั้งค่า</string>
     <string name="nav_help">ช่วยเหลือ</string>
     <string name="help_pair_title">วิธีจับคู่เซ็นเซอร์</string>
-    <string name="help_pair_s1_title">1. เตรียมพื้นฐานให้พร้อม</string>
-    <string name="help_pair_s1_body">เปิด Bluetooth และตำแหน่งบนโทรศัพท์ และตรวจสอบว่าเซ็นเซอร์มีพลังงาน</string>
-    <string name="help_pair_s2_title">2. อยู่ใกล้ ๆ</string>
-    <string name="help_pair_s2_body">เปิดหน้านี้และให้เซ็นเซอร์อยู่ภายในระยะ 10 เมตรจากโทรศัพท์</string>
-    <string name="help_pair_s3_title">เซ็นเซอร์ที่จับคู่ไว้แล้ว</string>
-    <string name="help_pair_s3_body">เชื่อมต่อใหม่อัตโนมัติเมื่อเริ่มกระจายสัญญาณ ไม่ต้องกดปุ่ม</string>
-    <string name="help_pair_s4_title">เซ็นเซอร์ใหม่หรือที่ลบออก</string>
-    <string name="help_pair_s4_body">กดปุ่มจับคู่/ซิงค์บนเซ็นเซอร์ แอปจะตรวจจับสัญญาณและลงทะเบียนอัตโนมัติ</string>
-    <string name="help_pair_trouble_title">หากเซ็นเซอร์ไม่ปรากฏ:</string>
-    <string name="help_pair_trouble_1">กดปุ่มจับคู่อีกครั้ง</string>
-    <string name="help_pair_trouble_2">ตรวจสอบแบตเตอรี่ของเซ็นเซอร์</string>
-    <string name="help_pair_trouble_3">เข้าไปใกล้และรอสัญญาณถัดไปสักครู่</string>
-    <string name="help_pair_trouble_4">ตรวจสอบว่าได้อนุญาต Bluetooth และตำแหน่งในการตั้งค่าโทรศัพท์</string>
+    <string name="help_pair_message">"1. เปิด Bluetooth และตำแหน่งบนโทรศัพท์ และตรวจสอบว่าเซ็นเซอร์มีพลังงาน
+
+2. เปิดหน้านี้และให้เซ็นเซอร์อยู่ภายในระยะ 10 เมตรจากโทรศัพท์
+
+เซ็นเซอร์ที่จับคู่ไว้แล้ว:
+เชื่อมต่อใหม่อัตโนมัติเมื่อเริ่มกระจายสัญญาณ ไม่ต้องกดปุ่ม
+
+เซ็นเซอร์ใหม่หรือที่ลบออก:
+กดปุ่มจับคู่/ซิงค์บนเซ็นเซอร์ แอปจะตรวจจับสัญญาณและลงทะเบียนอัตโนมัติ
+
+หากเซ็นเซอร์ไม่ปรากฏ:
+• กดปุ่มจับคู่อีกครั้ง
+• ตรวจสอบแบตเตอรี่ของเซ็นเซอร์
+• เข้าไปใกล้และรอสัญญาณถัดไปสักครู่
+• ตรวจสอบว่าได้อนุญาต Bluetooth และตำแหน่งในการตั้งค่าโทรศัพท์"</string>
     <string name="empty_title">ยังไม่มีเซ็นเซอร์ที่เชื่อมต่อ</string>
     <string name="empty_subtitle">แตะ สแกน เพื่อค้นหาเซ็นเซอร์ใกล้เคียง</string>
     <string name="empty_action">เริ่มสแกน</string>
@@ -33,9 +35,7 @@
     <string name="scan_auto_pair_hint">กดปุ่มจับคู่บนเซ็นเซอร์ใหม่เพื่อเพิ่ม</string>
     <string name="sensors_found">พบเซ็นเซอร์ %1$d ตัว</string>
     <string name="connected_sensors">เชื่อมต่อแล้ว</string>
-    <plurals name="sensor_count_label">
-        <item quantity="other">เซ็นเซอร์ %1$d ตัว</item>
-    </plurals>
+    <string name="sensor_count_label">เซ็นเซอร์ %1$d ตัว</string>
     <string name="select_tank_type">เลือกชนิดถัง</string>
     <string name="tank_level">ระดับถัง</string>
     <string name="battery">แบตเตอรี่</string>

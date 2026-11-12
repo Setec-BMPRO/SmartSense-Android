@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only additions: the SSP Demo Controls launcher used for SmartSensePro demos and
+     screenshots (fake G300 sensors). Merged into debug builds only. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <activity
+            android:name=".demo.DemoControlsActivity"
+            android:exported="true"
+            android:label="SSP Demo Controls"
+            android:taskAffinity="com.smartsense.app.democontrols"
+            android:theme="@android:style/Theme.Material.Light">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

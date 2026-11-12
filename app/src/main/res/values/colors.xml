@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary orange palette (BMPRO brand) -->
-    <color name="primary">#D24520</color>
+    <!-- Primary orange palette (BMPRO brand: Pantone 173 C) -->
+    <color name="primary">#CF4520</color>
+    <color name="primary_50">#80CF4520</color>
+    <color name="bmpro_orange">#CF4520</color>
     <color name="on_primary">#FFFFFF</color>
-    <color name="primary_container">#FFDBC9</color>
-    <color name="on_primary_container">#3A0B00</color>
+    <color name="primary_container">#F5DAD2</color>
+    <color name="on_primary_container">#23272B</color>
 
-    <!-- Secondary warm charcoal -->
-    <color name="secondary">#77574B</color>
+    <!-- Secondary (Pantone 426 C charcoal) -->
+    <color name="secondary">#23272B</color>
+    <color name="bmpro_charcoal">#23272B</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="secondary_container">#D24520</color>
+    <color name="secondary_container">#CF4520</color>
     <color name="on_secondary_container">#FFFFFF</color>
 
     <!-- Tertiary amber/gold -->
@@ -20,12 +23,16 @@
 
     <!-- Surface -->
     <color name="surface">#FFFFFF</color>
-    <color name="on_surface">#231A16</color>
+    <color name="dialog_surface">#FFFFFF</color>
+    <color name="on_surface">#23272B</color>
     <color name="surface_variant">#F5F5F5</color>
-    <color name="on_surface_variant">#53433D</color>
-    <color name="surface_container">#FFFFFF</color>
-    <color name="surface_container_low">#FFFFFF</color>
-    <color name="surface_container_high">#F5F5F5</color>
+    <color name="on_surface_variant">#4F5255</color>
+    <color name="surface_container">#F1F1F2</color>
+    <color name="surface_container_low">#F5F5F6</color>
+    <color name="surface_container_high">#ECECED</color>
+    <color name="surface_container_highest">#E6E7E8</color>
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_dim">#DCDDDE</color>
 
     <!-- Error -->
     <color name="error">#BA1A1A</color>
@@ -47,12 +54,11 @@
     <color name="temp_hot">#F44336</color>
 
     <!-- Logo -->
-    <color name="logo_smart_text">#231A16</color>
+    <color name="logo_smart_text">#23272B</color>
 
     <!-- Tab bar -->
     <color name="tab_bar_background">#F0F0F0</color>
     <color name="tab_bar_fab_background">@color/primary</color>
-    <color name="primary_50">#80D24520</color>
     <color name="tab_color_fab">#FFFFFF</color>
 
     <!-- Gauge -->
@@ -62,6 +68,4 @@
     <color name="tab_color_unselected">#80000000</color>
 
     <color name="ic_launcher_foreground_hardware">#FFFFFF</color>
-
-
 </resources>
