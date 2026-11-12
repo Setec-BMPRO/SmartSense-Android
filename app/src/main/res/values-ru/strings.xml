@@ -7,19 +7,21 @@
     <string name="nav_settings">Настройки</string>
     <string name="nav_help">Справка</string>
     <string name="help_pair_title">Как сопрячь датчик</string>
-    <string name="help_pair_s1_title">1. Основное</string>
-    <string name="help_pair_s1_body">Включите Bluetooth и Геолокацию на телефоне и убедитесь, что датчик питается.</string>
-    <string name="help_pair_s2_title">2. Будьте рядом</string>
-    <string name="help_pair_s2_body">Откройте этот экран и держите датчик в пределах 10 м от телефона.</string>
-    <string name="help_pair_s3_title">Ранее сопряжённые датчики</string>
-    <string name="help_pair_s3_body">Переподключаются автоматически, как только начнут вещать — кнопку нажимать не нужно.</string>
-    <string name="help_pair_s4_title">Новые или удалённые датчики</string>
-    <string name="help_pair_s4_body">Нажмите кнопку сопряжения/синхронизации на датчике. Приложение обнаружит сигнал сопряжения и зарегистрирует его автоматически.</string>
-    <string name="help_pair_trouble_title">Если датчик не появляется:</string>
-    <string name="help_pair_trouble_1">Нажмите кнопку сопряжения снова.</string>
-    <string name="help_pair_trouble_2">Проверьте батарею датчика.</string>
-    <string name="help_pair_trouble_3">Подойдите ближе и подождите несколько секунд.</string>
-    <string name="help_pair_trouble_4">Убедитесь, что разрешения Bluetooth и Геолокации предоставлены.</string>
+    <string name="help_pair_message">"1. Включите Bluetooth и Геолокацию на телефоне и убедитесь, что датчик питается.
+
+2. Откройте этот экран и держите датчик в пределах 10 м от телефона.
+
+Ранее сопряжённые датчики:
+Переподключаются автоматически, как только начнут вещать — кнопку нажимать не нужно.
+
+Новые или удалённые датчики:
+Нажмите кнопку сопряжения/синхронизации на датчике. Приложение обнаружит сигнал сопряжения и зарегистрирует его автоматически.
+
+Если датчик не появляется:
+• Нажмите кнопку сопряжения снова.
+• Проверьте батарею датчика.
+• Подойдите ближе и подождите несколько секунд.
+• Убедитесь, что разрешения Bluetooth и Геолокации предоставлены."</string>
     <string name="empty_title">Нет подключённых датчиков</string>
     <string name="empty_subtitle">Нажмите Поиск, чтобы найти ближайшие датчики</string>
     <string name="empty_action">Начать поиск</string>
@@ -33,12 +35,7 @@
     <string name="scan_auto_pair_hint">Нажмите кнопку сопряжения на новом датчике, чтобы добавить</string>
     <string name="sensors_found">Найдено датчиков: %1$d</string>
     <string name="connected_sensors">Подключены</string>
-    <plurals name="sensor_count_label">
-        <item quantity="one">%1$d датчик</item>
-        <item quantity="few">%1$d датчика</item>
-        <item quantity="many">%1$d датчиков</item>
-        <item quantity="other">%1$d датчика</item>
-    </plurals>
+    <string name="sensor_count_label">Датчиков: %1$d</string>
     <string name="select_tank_type">Выбрать тип бака</string>
     <string name="tank_level">Уровень в баке</string>
     <string name="battery">Батарея</string>

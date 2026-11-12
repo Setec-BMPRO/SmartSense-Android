@@ -232,11 +232,11 @@
                 tools:text="Low Quality: Tank empty or sensor is incorrectly positioned."
                 tools:visibility="visible"/>
 
-            <!-- Sensor Info (expandable card). No separate all-caps section header
-                 above it — the card's own "Sensor Info" title is the heading. -->
+            <!-- Sensor Info (expandable card) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_lg"
                 android:layout_marginBottom="32dp"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"

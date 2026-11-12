@@ -437,15 +437,13 @@
                         android:background="?attr/colorOutlineVariant"
                         android:layout_marginStart="64dp"/>
 
-                    <!-- Device Search Filter — hidden for now (the sensor-list search is
-                         always available, so this toggle no longer gates anything). -->
+                    <!-- Device Search Filter -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:padding="@dimen/spacing_lg"
-                        android:gravity="center_vertical"
-                        android:visibility="gone">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="24dp"
@@ -471,8 +469,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="?attr/colorOutlineVariant"
-                        android:layout_marginStart="64dp"
-                        android:visibility="gone"/>
+                        android:layout_marginStart="64dp"/>
 
                     <!-- Group Sensors -->
                     <LinearLayout

@@ -93,9 +93,7 @@ class AccountSensorsFragment : Fragment() {
             .onEach { list ->
                 // Update your Adapter
                 sensorAdapter.submitList(list)
-                binding.tvSensorCount.text = resources.getQuantityString(
-                    R.plurals.sensor_count_label, list.size, list.size
-                )
+                binding.tvSensorCount.text = getString(R.string.sensor_count_label, list.size)
                 binding.swipeRefresh.isRefreshing=false
             }
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)

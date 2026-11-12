@@ -313,15 +313,11 @@ class ScanFragment : Fragment() {
             .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
             .launchIn(scope)
 
-        // Search field is shown whenever there are registered sensors (iOS parity) —
-        // no longer gated behind the Device Search Filter setting, which iOS doesn't
-        // use to hide the search either.
-        viewModel.uiState
-            .map { it.sensors.isNotEmpty() }
-            .distinctUntilChanged()
+        // Control search filter field visibility based on Device Search Filter setting
+        viewModel.deviceSearchFilterEnabled
             .flowWithLifecycle(viewLifecycleOwner.lifecycle, Lifecycle.State.STARTED)
-            .onEach { hasSensors ->
-                binding.filterLayout.isVisible = hasSensors
+            .onEach { enabled ->
+                binding.filterLayout.isVisible = enabled
             }
             .launchIn(viewLifecycleOwner.lifecycleScope)
 
@@ -399,9 +395,7 @@ class ScanFragment : Fragment() {
             pairHintBanner.isVisible = totalInSystem > 0 && !viewModel.pairHintDismissed.value
 
             if (filteredCount > 0) {
-                sensorCount.text = resources.getQuantityString(
-                    R.plurals.sensor_count_label, filteredCount, filteredCount
-                )
+                sensorCount.text = getString(R.string.sensor_count_label, filteredCount)
             }
         }
     }
@@ -428,13 +422,9 @@ class ScanFragment : Fragment() {
     }
 
     private fun showPairingHelp() {
-        // Structured, scrollable body (dialog_pairing_help) mirroring iOS PairingHelpSheet —
-        // bold section headers, secondary body copy, and a clean bullet list — instead of
-        // a single cramped message string.
-        val content = layoutInflater.inflate(R.layout.dialog_pairing_help, null)
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.help_pair_title)
-            .setView(content)
+            .setTitle(getString(R.string.help_pair_title).uppercase(java.util.Locale.getDefault()))
+            .setMessage(R.string.help_pair_message)
             .setPositiveButton(R.string.ok, null)
             .show()
     }

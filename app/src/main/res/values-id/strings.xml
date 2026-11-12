@@ -7,19 +7,21 @@
     <string name="nav_settings">Pengaturan</string>
     <string name="nav_help">Bantuan</string>
     <string name="help_pair_title">Cara memasangkan sensor</string>
-    <string name="help_pair_s1_title">1. Siapkan hal dasar</string>
-    <string name="help_pair_s1_body">Aktifkan Bluetooth dan Lokasi di ponsel, dan pastikan sensor menyala.</string>
-    <string name="help_pair_s2_title">2. Tetap dekat</string>
-    <string name="help_pair_s2_body">Buka layar ini dan jaga sensor dalam jarak 10 meter dari ponsel.</string>
-    <string name="help_pair_s3_title">Sensor yang sudah dipasangkan</string>
-    <string name="help_pair_s3_body">Otomatis tersambung kembali begitu menyiarkan — tanpa menekan tombol.</string>
-    <string name="help_pair_s4_title">Sensor baru atau yang dihapus</string>
-    <string name="help_pair_s4_body">Tekan tombol pasangkan/sinkronkan pada sensor. Aplikasi mendeteksi siaran pemasangan dan mendaftarkannya otomatis.</string>
-    <string name="help_pair_trouble_title">Jika sensor tidak muncul:</string>
-    <string name="help_pair_trouble_1">Tekan lagi tombol pasangkan.</string>
-    <string name="help_pair_trouble_2">Periksa baterai sensor.</string>
-    <string name="help_pair_trouble_3">Dekatkan dan tunggu beberapa detik untuk siaran berikutnya.</string>
-    <string name="help_pair_trouble_4">Pastikan izin Bluetooth dan Lokasi diberikan di pengaturan ponsel.</string>
+    <string name="help_pair_message">"1. Aktifkan Bluetooth dan Lokasi di ponsel, dan pastikan sensor menyala.
+
+2. Buka layar ini dan jaga sensor dalam jarak 10 meter dari ponsel.
+
+Sensor yang sudah dipasangkan:
+Otomatis tersambung kembali begitu menyiarkan — tanpa menekan tombol.
+
+Sensor baru atau yang dihapus:
+Tekan tombol pasangkan/sinkronkan pada sensor. Aplikasi mendeteksi siaran pemasangan dan mendaftarkannya otomatis.
+
+Jika sensor tidak muncul:
+• Tekan lagi tombol pasangkan.
+• Periksa baterai sensor.
+• Dekatkan dan tunggu beberapa detik untuk siaran berikutnya.
+• Pastikan izin Bluetooth dan Lokasi diberikan di pengaturan ponsel."</string>
     <string name="empty_title">Tidak ada sensor terhubung</string>
     <string name="empty_subtitle">Ketuk Pindai untuk menemukan sensor di sekitar</string>
     <string name="empty_action">Mulai memindai</string>
@@ -33,9 +35,7 @@
     <string name="scan_auto_pair_hint">Tekan tombol pasangkan pada sensor baru untuk menambahkannya</string>
     <string name="sensors_found">%1$d sensor ditemukan</string>
     <string name="connected_sensors">Terhubung</string>
-    <plurals name="sensor_count_label">
-        <item quantity="other">%1$d sensor</item>
-    </plurals>
+    <string name="sensor_count_label">%1$d sensor</string>
     <string name="select_tank_type">Pilih jenis tangki</string>
     <string name="tank_level">Level tangki</string>
     <string name="battery">Baterai</string>
