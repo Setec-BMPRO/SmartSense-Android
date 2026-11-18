@@ -16,15 +16,13 @@ import com.smartsense.app.domain.model.SensorReading
  *     staleThresholdMs = (reportingIntervalSeconds [or DEFAULT_REPORTING_INTERVAL_S])
  *                      × STALE_MULTIPLIER × 1000
  *
- * With STALE_MULTIPLIER = 5: a G300 at 3 s flips stale after 15 s of silence; a sensor
- * configured at 60 s flips after 5 min. 5 intervals is roomy enough to absorb the
- * occasional dropped packet (BLE drops 1-2 advs per minute are normal) without flapping,
- * but short enough that a genuine outage shows up well before the user notices stale data.
+ * With STALE_MULTIPLIER = 20: a G300 at 3 s flips stale after 60 s of silence; a sensor
+ * configured at 60 s flips after 20 min.
  */
 object SensorFreshness {
 
     /** How many reporting intervals of silence we tolerate before declaring "stale". */
-    const val STALE_MULTIPLIER = 5
+    const val STALE_MULTIPLIER = 20
 
     /** Fallback for sensors that don't broadcast a reporting interval (CC2540 / NRF52). */
     const val DEFAULT_REPORTING_INTERVAL_S = 3

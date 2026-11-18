@@ -496,6 +496,10 @@ class SensorDetailFragment : Fragment() {
         detailHeight.text = sensor.reading?.rawHeightMeters
             ?.let { getString(R.string.height_mm_format, it * 1000.0) }
             ?: "--"
+        val heightFormatted = sensor.reading?.rawHeightMeters
+            ?.let { getString(R.string.height_mm_format, it * 1000.0) }
+            ?: "--"
+        Timber.d("Measured height updated for sensor [${sensor.address}]: rawHeightMeters=${sensor.reading?.rawHeightMeters}, formatted=$heightFormatted")
         detailTemperature.text = sensor.temperatureFormatted(viewModel.unitSystem)
         detailTankType.text = sensor.tankType
         // Hide temperature for Setec gas sensors (no temperature in protocol)

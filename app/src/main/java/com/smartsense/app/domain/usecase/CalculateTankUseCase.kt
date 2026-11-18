@@ -36,6 +36,12 @@ class CalculateTankUseCase @Inject constructor() {
 
         val heightMm = (rawHeightMeters * 1000.0).toFloat()
 
+        // Per requirement: If measured height is >25% greater than configured height, set Gas Level to 0
+        if (rawHeightMeters > (tankHeightMeters * 1.25)) {
+            Timber.tag(TAG).d("Measured height ($rawHeightMeters m) is > 25% greater than configured height ($tankHeightMeters m) → Gas Level set to 0%")
+            return TankLevel(0f, heightMm)
+        }
+
         // 1. Try modern Mopeka firmware logic if raw data is available
         if (rawData != null && rawData.size >= 23) {
             val percentage = MopekaSensorCalculator
